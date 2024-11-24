@@ -1,6 +1,6 @@
 [submodule "lib/circle-stdlib"]
 	path = lib/circle-stdlib
-	url = https://github.com/smuehlst/circle-stdlib.git
+	url = https://github.com/smuehlst/circle-stdlib
 [submodule "lib/mINI"]
 	path = lib/mINI
 	url = https://github.com/metayeti/mINI.git
