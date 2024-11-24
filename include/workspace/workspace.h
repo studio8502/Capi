@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "graphics/graphics.h"
+#include "graphics/screen.h"
 #include "custom_types.h"
 
 // The Workspace is the GUI layer of Capi; it replaces the C2DGraphics
@@ -23,7 +23,7 @@
 // is, all drawing in Workspace is done within the bounds of clipping
 // rectangles supplied as arguments to draw functions.
 
-class Workspace: public Graphics {
+class Workspace: public Screen {
 public:
 
     Workspace(unsigned width, unsigned height, boolean vsync = true, unsigned display = 0);

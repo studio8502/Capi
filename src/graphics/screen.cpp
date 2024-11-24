@@ -24,10 +24,15 @@
 #include <circle/bcmpropertytags.h>
 #include <circle/util.h>
 
-#include "graphics/graphics.h"
+#include "graphics/screen.h"
 #include "mcufont.h"
+#include "fonts/fonts.h"
 
-Graphics::Graphics (UInt32 width, UInt32 height, Bool vsync, UInt8 display)
+static auto char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t;
+
+static auto pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
+
+Screen::Screen (UInt32 width, UInt32 height, Bool vsync, UInt8 display)
 : 	width(width),
 	height(height),
 	display (display),
@@ -39,12 +44,12 @@ Graphics::Graphics (UInt32 width, UInt32 height, Bool vsync, UInt8 display)
 
 }
 
-Graphics::~Graphics (void)
+Screen::~Screen (void)
 {
     
 }
 
-method Graphics::initialize (void) -> Bool {
+method Screen::initialize (void) -> Bool {
 	framebuffer = make_unique<CBcmFrameBuffer>(width, height, DEPTH, width, 2*height,
 					      display, TRUE);
 
@@ -61,7 +66,7 @@ method Graphics::initialize (void) -> Bool {
 	return TRUE;
 }
 
-method Graphics::resize (unsigned nWidth, unsigned nHeight) -> Bool {
+method Screen::resize (unsigned nWidth, unsigned nHeight) -> Bool {
 	framebuffer.reset();
 
 	width = nWidth;
@@ -73,24 +78,24 @@ method Graphics::resize (unsigned nWidth, unsigned nHeight) -> Bool {
 	return initialize ();
 }
 
-method Graphics::getWidth () const -> UInt32 {
+method Screen::getWidth () const -> UInt32 {
 	return width;
 }
 
-method Graphics::getHeight () const -> UInt32 {
+method Screen::getHeight () const -> UInt32 {
 	return height;
 }
 
-method Graphics::getScreenRect() -> Rect {
+method Screen::getScreenRect() -> Rect {
 	return Rect(0, 0, width, height);
 }
 
-method Graphics::clearScreen(UInt8 palette, UInt8 color) -> Void {
+method Screen::clearScreen(UInt8 palette, UInt8 color) -> Void {
     Rect clip = getScreenRect();
 	drawRect(clip, clip, true, palette, color, 255);
 }
 
-method Graphics::drawRect(Rect rect, Rect clip, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::drawRect(Rect rect, Rect clip, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     if (fill == true) {
         _drawRect(rect, clip, palette, color, alpha);
     } else {
@@ -98,7 +103,7 @@ method Graphics::drawRect(Rect rect, Rect clip, Bool fill, UInt8 palette, UInt8 
     }
 }
 
-method Graphics::_drawRect (Rect rect, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::_drawRect (Rect rect, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     var target = Point(0, 0);
 
     Color c = SystemPalette[palette][color];
@@ -122,7 +127,7 @@ method Graphics::_drawRect (Rect rect, Rect clip, UInt8 palette, UInt8 color, UI
 	}
 }
 
-method Graphics::_drawRectOutline (Rect rect, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::_drawRectOutline (Rect rect, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     var begin = Point(rect.x, rect.y);
     var end = Point(rect.x + rect.width, rect.y);
 	drawLine(begin, end, clip, palette, color, alpha);
@@ -140,7 +145,7 @@ method Graphics::_drawRectOutline (Rect rect, Rect clip, UInt8 palette, UInt8 co
 	drawLine(begin, end, clip, palette, color, alpha);
 }
 
-method Graphics::drawLine(Point begin, Point end, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::drawLine(Point begin, Point end, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     Color lineColor = SystemPalette[palette][color];
 	
 	int dx = end.x - begin.x;
@@ -200,7 +205,7 @@ method Graphics::drawLine(Point begin, Point end, Rect clip, UInt8 palette, UInt
 	}
 }
 
-method Graphics::drawCircle(Point origin, UInt32 radius, Rect clip, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::drawCircle(Point origin, UInt32 radius, Rect clip, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     if (fill == true) {
         _drawCircle(origin, radius, clip, palette, color, alpha);
     } else {
@@ -209,7 +214,7 @@ method Graphics::drawCircle(Point origin, UInt32 radius, Rect clip, Bool fill, U
 }
 
 
-method Graphics::_drawCircle(Point origin, UInt32 radius, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::_drawCircle(Point origin, UInt32 radius, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     Color pixelValue = SystemPalette[palette][color];
     
     unsigned nX = origin.x;
@@ -239,7 +244,7 @@ method Graphics::_drawCircle(Point origin, UInt32 radius, Rect clip, UInt8 palet
 	}
 }
 
-method Graphics::_drawCircleOutline(Point origin, UInt32 radius, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Screen::_drawCircleOutline(Point origin, UInt32 radius, Rect clip, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
 
     Color pixelValue = SystemPalette[palette][color];
     
@@ -342,17 +347,17 @@ method Graphics::_drawCircleOutline(Point origin, UInt32 radius, Rect clip, UInt
 	}
 }
 
-method Graphics::drawImage(Rect rect, Rect clip, Color *pixelBuffer, UInt8 alpha) -> Void {
+method Screen::drawImage(Rect rect, Rect clip, Color *pixelBuffer, UInt8 alpha) -> Void {
     var sourceOrigin = Point(0, 0);
 	drawImageRect(rect, sourceOrigin, clip, pixelBuffer, alpha);
 }
 
-method Graphics::drawImageTransparent(Rect rect, Rect clip, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
+method Screen::drawImageTransparent(Rect rect, Rect clip, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
     Rect sourceRect(0, 0, rect.width, rect.height);
 	drawImageRectTransparent(rect, sourceRect, clip, pixelBuffer, transparentColor, alpha);
 }
 
-method Graphics::drawImageRect(Rect rect, Point sourceOrigin, Rect clip, Color *pixelBuffer, UInt8 alpha) -> Void {
+method Screen::drawImageRect(Rect rect, Point sourceOrigin, Rect clip, Color *pixelBuffer, UInt8 alpha) -> Void {
     var target = Point(0 ,0);
 	
 	for(unsigned i = 0; i < rect.height; i++)
@@ -371,7 +376,7 @@ method Graphics::drawImageRect(Rect rect, Point sourceOrigin, Rect clip, Color *
 	}
 }
 
-method Graphics::drawImageRectTransparent(Rect rect, Rect sourceRect, Rect clip, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
+method Screen::drawImageRectTransparent(Rect rect, Rect sourceRect, Rect clip, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
     var target = Point(0, 0);
 	
 	for(unsigned i = 0; i < rect.height; i++)
@@ -394,7 +399,7 @@ method Graphics::drawImageRectTransparent(Rect rect, Rect sourceRect, Rect clip,
 	}
 }
 
-method Graphics::drawPixel(Point point, Rect clippingRect, UInt8 paletteIndex, UInt8 colorIndex, UInt8 alpha) -> Void {
+method Screen::drawPixel(Point point, Rect clippingRect, UInt8 paletteIndex, UInt8 colorIndex, UInt8 alpha) -> Void {
 	if(clippingRect.checkPoint(point) == false)
 	{
 		return;
@@ -405,11 +410,11 @@ method Graphics::drawPixel(Point point, Rect clippingRect, UInt8 paletteIndex, U
 													alpha);
 }
 
-method Graphics::getBuffer()  -> Color * {
+method Screen::getBuffer()  -> Color * {
 	return buffer;
 }
 
-method Graphics::updateDisplay() -> Void {
+method Screen::updateDisplay() -> Void {
 	
 	if(vsync) {
 		framebuffer->SetVirtualOffset(0, bufferSwapped ? height : 0);
@@ -418,5 +423,38 @@ method Graphics::updateDisplay() -> Void {
 		buffer = baseBuffer + bufferSwapped * width * height;
 	} else {
 		memcpy(baseBuffer, buffer, width * height * sizeof(Color));
+	}
+}
+
+
+// MCUFont stuff below
+
+method Screen::fontRenderTest(String message, UInt16 x, UInt16 y) -> Void {
+	 mf_render_aligned(&mf_rlefont_DejaVuSans12.font,
+            		   x, y, 
+					   MF_ALIGN_LEFT, 
+					   "Hello, World!", 13, 
+					   &char_callback, (void *)this);
+}
+
+// Character callback
+static auto char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t {
+    return mf_render_character(&mf_rlefont_DejaVuSans12.font, x0, y0, character, &pixel_callback, state);
+}
+
+// Pixel callback
+static auto pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
+	while (count--) {
+		/* your code goes here, ex: drawPixel(x, y, alpha, color::black); */
+
+		Screen *screen = (Screen *) state;
+		Color *buffer = screen->getBuffer();
+
+		Color black = RGB(0x000000);
+
+		UInt32 offset = screen->getWidth() * y + x;
+
+		buffer[offset] = alpha_blend(buffer[offset], black, alpha);
+		x++;
 	}
 }

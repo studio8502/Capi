@@ -21,7 +21,7 @@
 #include "workspace/window.h"
 
 Workspace::Workspace(unsigned width, unsigned height, boolean vsync, unsigned display):
-    Graphics(width, height, vsync, display) 
+    Screen(width, height, vsync, display) 
 {
     
 }

@@ -39,15 +39,15 @@ using std::make_unique;
 // features needed for Capi, such as clipping, as well as to shrink the API
 // surface.
 
-class Graphics
+class Screen
 {
 public:
 	friend class Kernel;
 	friend class Window;
 
-	Graphics (UInt32 width, UInt32 height, Bool vsync = true, UInt8 display = 0);
+	Screen (UInt32 width, UInt32 height, Bool vsync = true, UInt8 display = 0);
 
-	~Graphics (void);
+	~Screen (void);
 
 	method initialize(void) -> Bool;
     
@@ -55,7 +55,8 @@ public:
 
     method getScreenRect() -> Rect;
 
-protected:
+	method fontRenderTest(String message, UInt16 x, UInt16 y) -> Void;
+
 	method getBuffer() -> Color *;
 	
     method updateDisplay() -> Void;
