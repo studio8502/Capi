@@ -59,8 +59,7 @@ struct mf_rlefont_s
     const struct mf_rlefont_char_range_s *char_ranges;
 };
 
-#ifdef MF_RLEFONT_INTERNALS
-/* Internal functions, don't use these directly. */
+
 MF_EXTERN uint8_t mf_rlefont_render_character(const struct mf_font_s *font,
                                               int16_t x0, int16_t y0,
                                               mf_char character,
@@ -69,6 +68,5 @@ MF_EXTERN uint8_t mf_rlefont_render_character(const struct mf_font_s *font,
 
 MF_EXTERN uint8_t mf_rlefont_character_width(const struct mf_font_s *font,
                                              mf_char character);
-#endif
 
 #endif

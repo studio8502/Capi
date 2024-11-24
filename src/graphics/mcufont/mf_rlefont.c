@@ -246,7 +246,7 @@ static void write_glyph_codeword(const struct mf_rlefont_s *font,
 
 uint8_t mf_rlefont_render_character(const struct mf_font_s *font,
                                     int16_t x0, int16_t y0,
-                                    uint16_t character,
+                                    mf_char character,
                                     mf_pixel_callback_t callback,
                                     void *state)
 {
@@ -276,7 +276,7 @@ uint8_t mf_rlefont_render_character(const struct mf_font_s *font,
 }
 
 uint8_t mf_rlefont_character_width(const struct mf_font_s *font,
-                                   uint16_t character)
+                                   mf_char character)
 {
     const uint8_t *p;
     p = find_glyph((struct mf_rlefont_s*)font, character);

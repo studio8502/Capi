@@ -14,6 +14,47 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "graphics/text.h"
+#include "fonts/fonts.h"
+#include "mcufont.h"
+
+using std::make_shared;
 
 // A class representing a string as a graphical object which Drawable
 // objects can use to draw text on screen.
+
+Text::Text(String value, shared_ptr<Font> font, Int32 width, Alignment align):
+    _string(value),
+    _width(width),
+    _align(align),
+    _font(font)
+{}
+  
+method Text::font() -> shared_ptr<Font> {
+    return _font;
+}
+
+method Text::setFont(shared_ptr<Font> newValue) -> Void {
+    _font.reset();
+    _font = newValue;
+}
+
+method Text::widthForLength(UInt16 length) -> Int16 {
+
+    return mf_get_string_width(font()->fontData(), _string.c_str(), length, true);
+}
+
+method Text::width() -> Int32 {
+    return _width;
+}
+
+method Text::setWidth(Int32 newValue) -> Void {
+    _width = newValue;
+}
+
+method Text::align() -> Alignment {
+    return _align;
+}
+
+method Text::setAlign(Alignment newValue) -> Void {
+    _align = newValue;
+}
