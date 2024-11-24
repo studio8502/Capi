@@ -1,0 +1,23 @@
+divert(-1)
+define(`FRAMEBUFFER_WIDTH', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_WIDTH"'))
+define(`FRAMEBUFFER_HEIGHT', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_HEIGHT"'))
+divert(0)dnl
+arm_64bit=1
+kernel_address=0x80000
+
+# Enable this for JTAG / SWD debugging!
+#enable_jtag_gpio=1
+
+[pi4]
+armstub=armstub8-rpi4.bin
+kernel=kernel8-rpi4.img
+max_framebuffers=2
+hdmi_group=1
+hdmi_mode=16
+hdmi_force_mode=1
+disable_overscan=1
+overscan_scale=1
+framebuffer_width=FRAMEBUFFER_WIDTH
+framebuffer_height=FRAMEBUFFER_HEIGHT
+framebuffer_depth=32
+#framebuffer_ignore_alpha=1

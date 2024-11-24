@@ -1,0 +1,11 @@
+*.d
+*.o
+*.img
+kernel*.*
+*.
+unittests
+unittests.cc
+cmake-build-debug/
+build/
+.idea/
+.vscode/

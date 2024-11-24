@@ -1,0 +1,12 @@
+diff --git a/samples/01-nosys/Makefile b/samples/01-nosys/Makefile
+index ca37216..1f1c161 100644
+--- a/samples/01-nosys/Makefile
++++ b/samples/01-nosys/Makefile
+@@ -4,6 +4,7 @@
+ 
+ include ../../Config.mk
+ 
++NEWLIB_ARCH := arm-none-circle
+ CIRCLEHOME = ../../libs/circle
+ NEWLIBDIR = ../../install/$(NEWLIB_ARCH)
+ 

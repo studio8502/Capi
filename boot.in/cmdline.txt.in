@@ -1,0 +1,5 @@
+divert(-1)
+define(`FRAMEBUFFER_WIDTH', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_WIDTH"'))
+define(`FRAMEBUFFER_HEIGHT', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_HEIGHT"'))
+divert(0)dnl
+width=FRAMEBUFFER_WIDTH height=FRAMEBUFFER_HEIGHT
