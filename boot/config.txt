@@ -1,7 +1,3 @@
-divert(-1)
-define(`FRAMEBUFFER_WIDTH', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_WIDTH"'))
-define(`FRAMEBUFFER_HEIGHT', esyscmd(`printf \`\`%s\'\' "$FRAMEBUFFER_HEIGHT"'))
-divert(0)dnl
 arm_64bit=1
 kernel_address=0x80000
 
@@ -17,7 +13,7 @@ hdmi_mode=16
 hdmi_force_mode=1
 disable_overscan=1
 overscan_scale=1
-framebuffer_width=FRAMEBUFFER_WIDTH
-framebuffer_height=FRAMEBUFFER_HEIGHT
+framebuffer_width=960
+framebuffer_height=540
 framebuffer_depth=32
 framebuffer_ignore_alpha=1

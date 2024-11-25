@@ -48,7 +48,7 @@ Screen::Screen (UInt32 width, UInt32 height, Bool vsync, UInt8 display)
 
 Screen::~Screen (void)
 {
-    
+    delete [] buffer;
 }
 
 method Screen::initialize (void) -> Bool {
@@ -63,7 +63,11 @@ method Screen::initialize (void) -> Bool {
 	baseBuffer = (Color *) (uintptr) framebuffer->GetBuffer();
 	width = framebuffer->GetWidth();
 	height = framebuffer->GetHeight();
-	buffer = baseBuffer + width * height;
+
+	buffer = new Color[width * height];
+	if (buffer == nullptr) {
+		return false;
+	}
 	
 	return TRUE;
 }
@@ -74,7 +78,8 @@ method Screen::resize (unsigned nWidth, unsigned nHeight) -> Bool {
 	width = nWidth;
 	height = nHeight;
 
-	buffer = 0;
+	delete [] buffer;
+	buffer = nullptr;
 	bufferSwapped = TRUE;
 
 	return initialize ();
@@ -419,10 +424,12 @@ method Screen::getBuffer()  -> Color * {
 method Screen::updateDisplay() -> Void {
 	
 	if(vsync) {
-		framebuffer->SetVirtualOffset(0, bufferSwapped ? height : 0);
 		framebuffer->WaitForVerticalSync();
+		memcpy(baseBuffer + bufferSwapped * width * height, 
+			   buffer, 
+			   width * height * sizeof(Color));
+		framebuffer->SetVirtualOffset(0, bufferSwapped ? height : 0);
 		bufferSwapped = !bufferSwapped;
-		buffer = baseBuffer + bufferSwapped * width * height;
 	} else {
 		memcpy(baseBuffer, buffer, width * height * sizeof(Color));
 	}

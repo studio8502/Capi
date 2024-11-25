@@ -1,8 +1,10 @@
-*.d
-*.o
-*.img
-kernel*.*
-*.
+**/*.d
+**/*.o
+**/*.img
+**/*.lst
+**/*.map
+**/*.elf
+**/.*
 unittests
 unittests.cc
 cmake-build-debug/

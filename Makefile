@@ -115,7 +115,7 @@ reflash: bootconfig $(TARGET).img reboot
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
 	@echo "Rebooting target..."
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img 
+	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img monitor
 
 .PHONY:
 bootload: bootconfig reboot 
