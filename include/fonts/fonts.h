@@ -1,3 +1,3 @@
 #pragma once
 
-#include "fonts/DejaVuSans.h"
+#include "fonts/Lexend.h"

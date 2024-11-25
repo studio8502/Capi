@@ -28,6 +28,8 @@
 #include "mcufont.h"
 #include "fonts/fonts.h"
 
+static auto line_callback(mf_str line, uint16_t count, void *state) -> Bool;
+
 static auto char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t;
 
 static auto pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
@@ -426,35 +428,51 @@ method Screen::updateDisplay() -> Void {
 	}
 }
 
+method Screen::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void {
 
-// MCUFont stuff below
+	var context = new Screen::TextDrawingContext(style, origin, clip, this);
 
-method Screen::fontRenderTest(String message, UInt16 x, UInt16 y) -> Void {
-	 mf_render_aligned(&mf_rlefont_DejaVuSans12.font,
-            		   x, y, 
-					   MF_ALIGN_LEFT, 
-					   "Hello, World!", 13, 
-					   &char_callback, (void *)this);
+	mf_render_aligned(context->style->font()->data(),
+            		  context->origin.x, context->origin.y, 
+					  (mf_align_t) context->style->align(), 
+					  message.c_str(), 0, 
+					  &char_callback, (void *) context);
+	
+	delete context;
+}
+
+static auto line_callback(mf_str line, uint16_t count, void *state) -> Bool {
+
+	var context = (Screen::TextDrawingContext *) state;
+	
+	return false;
 }
 
 // Character callback
 static auto char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t {
-    return mf_render_character(&mf_rlefont_DejaVuSans12.font, x0, y0, character, &pixel_callback, state);
+
+	var context = (Screen::TextDrawingContext *) state;
+
+    return mf_render_character(context->style->font()->data(), x0, y0, character, &pixel_callback, state);
 }
 
 // Pixel callback
 static auto pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
+
+	var context = (Screen::TextDrawingContext *) state;
+
 	while (count--) {
 		/* your code goes here, ex: drawPixel(x, y, alpha, color::black); */
 
-		Screen *screen = (Screen *) state;
-		Color *buffer = screen->getBuffer();
+		Color *buffer = context->screen->getBuffer();
 
-		Color black = RGB(0x000000);
+		UInt32 offset = context->screen->getWidth() * y + x;
 
-		UInt32 offset = screen->getWidth() * y + x;
-
-		buffer[offset] = alpha_blend(buffer[offset], black, alpha);
+		var target = Point(x, y);
+		
+		if (context->clip.checkPoint(target) == true) {
+			buffer[offset] = alpha_blend(buffer[offset], context->style->color(), alpha);
+		}
 		x++;
 	}
 }

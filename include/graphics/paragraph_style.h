@@ -1,4 +1,4 @@
-// workspace/palette.h
+// workspace/font.h
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,28 +13,48 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 #pragma once
 
-#include <circle/screen.h>
+#include <memory>
+
+#include "mf_font.h"
+#include "graphics/font.h"
+#include "graphics/palette.h"
+#include "graphics/geometry.h"
+
 #include "custom_types.h"
 
-#ifndef DefaultPalette
-#define DefaultPalette ((UInt8)0)
-#endif
+using std::shared_ptr;
 
-using Color = TScreenColor;
+class ParagraphStyle {
+public:
 
-// Take an RGB value in the form 0xAABBCC and turn it into a screen colour.
-auto RGB(UInt32 RGB) -> Color;
+    enum class Align {
+        left,
+        center,
+        centre = center,
+        right,
+        justify
+    };
 
-struct Palette {
-    Color color[256];
+    ParagraphStyle(shared_ptr<Font> font, UInt8 palette, UInt8 color, Align align = Align::left);
 
-    Color& operator[] (int index);
+    ~ParagraphStyle();
+
+    static method DefaultStyle() -> shared_ptr<ParagraphStyle>;
+
+    method color() -> Color;
+    
+    method align() -> Align;
+
+    method font() -> shared_ptr<Font>;
+
+private:
+
+    Color _color;
+
+    Align _align;
+
+    shared_ptr<Font> _font;
 };
-
-extern Palette SystemPalette[256];
-
-// Given two colours and an alpha level, return the result of alpha blending
-// the second over the first with the supplied alpha level.
-auto alpha_blend(Color background, Color foreground, UInt8 alpha) -> Color;

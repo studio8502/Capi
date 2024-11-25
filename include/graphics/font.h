@@ -1,4 +1,4 @@
-// workspace/palette.h
+// workspace/paragraph_style.h
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,28 +13,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 #pragma once
 
-#include <circle/screen.h>
+#include "mf_font.h"
+#include "graphics/font.h"
 #include "custom_types.h"
 
-#ifndef DefaultPalette
-#define DefaultPalette ((UInt8)0)
-#endif
+using FontData = mf_font_s;
 
-using Color = TScreenColor;
+class Font {
+public:
 
-// Take an RGB value in the form 0xAABBCC and turn it into a screen colour.
-auto RGB(UInt32 RGB) -> Color;
+    enum class Size {
+        xxSmall = 8,
+        xSmall = 10,
+        small = 12,
+        medium = 16,
+        large = 20,
+        xLarge = 32,
+        xxLarge = 48
+    };
 
-struct Palette {
-    Color color[256];
+    enum class Weight {
+        regular,
+        bold
+    };
 
-    Color& operator[] (int index);
+    enum class Style {
+        roman,
+        italic
+    };
+
+    virtual method data() -> const FontData * = 0;
 };
-
-extern Palette SystemPalette[256];
-
-// Given two colours and an alpha level, return the result of alpha blending
-// the second over the first with the supplied alpha level.
-auto alpha_blend(Color background, Color foreground, UInt8 alpha) -> Color;

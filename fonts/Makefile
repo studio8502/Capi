@@ -6,62 +6,36 @@ OUTPUT := $(SRCS:.ttf=.c)
 
 CHARS ?= 0-255
 
-OPTIMIZE_ITERATIONS ?= 50
+OPTIMIZE_ITERATIONS ?= 25
 
-SIZES ?= 8 10 12 14
+SIZES ?= 8 10 12 16 20 32 48
 
 .PHONY:
-all: fonts.h DejaVu
+all: fonts.h
+	find . -type f -name "*.dat" -delete
 
 .PHONY:
 install: all
 	cp -f *.h ../include/fonts
 	cp -f *.inc ../include/fonts
 
-%.c: %.dat
-	$(MCUFONT) rlefont_export $<
-
-%.inc: %.c
-	mv $< $@
-
-.PHONY:
-DejaVu: DejaVuSans.h $(foreach size,$(SIZES),DejaVuSans$(size).inc)
-
-fonts.h: DejaVuSans.h
+fonts.h: Lexend.h
 	printf '#pragma once\n\n' > $@
 	printf '$(foreach font,$^,#include "fonts/$(font)"\n)' >> $@
 
-DejaVuSans.h: $(foreach size,$(SIZES),DejaVuSans$(size).inc)
-	printf '#pragma once\n\n' > $@
-	printf '$(foreach font,$^,#include "fonts/$(font)"\n)' >> $@
+Lexend.h:
+	printf '#pragma once\n\n' > Lato.h
+	for F in $(foreach style,Regular Bold,Lexend-$(style) ); do \
+		for S in $(SIZES); do \
+			$(MCUFONT) import_ttf $$F.ttf $$S; \
+			$(MCUFONT) filter $$F$$S.dat $(CHARS); \
+			$(MCUFONT) rlefont_optimize $$F$$S.dat $(OPTIMIZE_ITERATIONS); \
+			$(MCUFONT) rlefont_export $$F$$S.dat; \
+			mv $$F$$S.c $$F$$S.inc; \
+			printf "#include \"fonts/$$F$$S.inc\"\n" >> Lato.h; \
+		done \
+	done
 
-DejaVuSans8: DejaVuSans8.inc
-
-DejaVuSans8.dat: DejaVuSans.ttf
-	$(MCUFONT) import_ttf $< 8
-	$(MCUFONT) filter $@ $(CHARS)
-	$(MCUFONT) rlefont_optimize $@ $(OPTIMIZE_ITERATIONS)
-
-DejaVuSans10: DejaVuSans10.inc
-
-DejaVuSans10.dat: DejaVuSans.ttf
-	$(MCUFONT) import_ttf $< 10
-	$(MCUFONT) filter $@ $(CHARS)
-	$(MCUFONT) rlefont_optimize $@ $(OPTIMIZE_ITERATIONS)
-
-DejaVuSans12: DejaVuSans12.inc
-
-DejaVuSans12.dat: DejaVuSans.ttf
-	$(MCUFONT) import_ttf $< 12
-	$(MCUFONT) filter $@ $(CHARS)
-	$(MCUFONT) rlefont_optimize $@ $(OPTIMIZE_ITERATIONS)
-
-DejaVuSans14: DejaVuSans14.inc
-
-DejaVuSans14.dat: DejaVuSans.ttf
-	$(MCUFONT) import_ttf $< 14
-	$(MCUFONT) filter $@ $(CHARS)
-	$(MCUFONT) rlefont_optimize $@ $(OPTIMIZE_ITERATIONS)
 
 .PHONY:
 clean:

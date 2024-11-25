@@ -1,4 +1,4 @@
-// workspace/palette.h
+// workspace/font.h
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,26 +15,20 @@
 
 #pragma once
 
-#include <circle/screen.h>
+#include "graphics/font.h"
+
 #include "custom_types.h"
 
-#ifndef DefaultPalette
-#define DefaultPalette ((UInt8)0)
-#endif
+class UIFont: public Font {
+public:
 
-using Color = TScreenColor;
+    UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular);
 
-// Take an RGB value in the form 0xAABBCC and turn it into a screen colour.
-auto RGB(UInt32 RGB) -> Color;
+    ~UIFont();
 
-struct Palette {
-    Color color[256];
+    virtual method data() -> const FontData * override;
 
-    Color& operator[] (int index);
+private:
+    
+    const FontData *_fontData;
 };
-
-extern Palette SystemPalette[256];
-
-// Given two colours and an alpha level, return the result of alpha blending
-// the second over the first with the supplied alpha level.
-auto alpha_blend(Color background, Color foreground, UInt8 alpha) -> Color;

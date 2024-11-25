@@ -30,8 +30,11 @@
 
 #include "graphics/geometry.h"
 #include "graphics/palette.h"
+#include "graphics/font.h"
+#include "graphics/paragraph_style.h"
 
 using std::unique_ptr;
+using std::shared_ptr;
 using std::make_unique;
 
 // This class is based on the C2DGraphics class, by Stephane Damo. It was
@@ -45,6 +48,14 @@ public:
 	friend class Kernel;
 	friend class Window;
 
+	struct TextDrawingContext {
+	public:
+		shared_ptr<ParagraphStyle> style; 
+		Point origin;
+		Rect clip;
+		Screen *screen;
+	};
+
 	Screen (UInt32 width, UInt32 height, Bool vsync = true, UInt8 display = 0);
 
 	~Screen (void);
@@ -55,7 +66,7 @@ public:
 
     method getScreenRect() -> Rect;
 
-	method fontRenderTest(String message, UInt16 x, UInt16 y) -> Void;
+	method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void;
 
 	method getBuffer() -> Color *;
 	
