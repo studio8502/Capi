@@ -17,8 +17,8 @@
 
 #include <memory>
 
-#include "workspace/workspace.h"
 #include "workspace/window.h"
+#include "workspace/workspace.h"
 
 Window::Window():
     _rect(Rect(200, 200, 400, 300)),

@@ -38,8 +38,6 @@ static const char *magicRebootString = "DEADC0DE";
 
 static Kernel *staticThis = nullptr;
 
-Workspace *workspace = nullptr;
-
 Kernel::Kernel():
 	irq(CInterruptSystem::Get()),
 	systemTimer(irq),
@@ -52,7 +50,8 @@ Kernel::Kernel():
 	dns(&net),
 	ntp(&net),
 	sound(irq),
-	mousePosition(0, 0)
+	mousePosition(0, 0),
+	screen(kernelOptions.GetWidth(), kernelOptions.GetHeight())
 { 
 	staticThis = this;
 }
@@ -76,10 +75,10 @@ method Kernel::initialize() -> Bool {
 	net.Initialize();
 
 	ntpd = new CNTPDaemon(NTPServer, &net);
-	
-	workspace = new Workspace(kernelOptions.GetWidth(), kernelOptions.GetHeight());
 
-	workspace->initialize();
+	screen.initialize();
+
+	workspace = new Workspace();
 
 	return true;
 }
@@ -209,7 +208,9 @@ method Kernel::run() -> ShutdownMode {
 	while (true) {
 		updateUSB();
 
-		workspace->clearScreen(DefaultPalette, 50);
+		screen.acquire();
+
+		screen.clear(DefaultPalette, 50);
 
 		win->draw();
 
@@ -247,7 +248,9 @@ method Kernel::run() -> ShutdownMode {
 		sprintf(message, "%lu", counter += 1);
 		workspace->drawText(message, style, Point(300, 100), clip);
 
-		workspace->updateDisplay();
+		screen.release();
+
+		screen.updateDisplay();
 
 		CScheduler::Get()->Yield();
 	}

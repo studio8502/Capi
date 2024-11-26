@@ -21,7 +21,6 @@
 #include "fonts/fonts.h"
 #include "graphics/geometry.h"
 #include "graphics/palette.h"
-#include "workspace/workspace.h"
 #include "workspace/drawable.h"
 
 #include "custom_types.h"

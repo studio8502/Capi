@@ -38,10 +38,10 @@
 #include <circle/net/ntpclient.h>
 #include <circle/net/ntpdaemon.h>
 
+#include "graphics/screen.h"
 #include "graphics/geometry.h"
 #include "graphics/palette.h"
 #include "custom_types.h"
-#include "workspace/workspace.h"
 
 #define MAX_GAMEPADS 8
 
@@ -124,6 +124,8 @@ private:
 	Point mousePosition;
 	UInt16 mousebuttons;
 	Int16 mouseScroll; 
+
+	Screen screen;
 };
 
 extern Kernel *kernel;
