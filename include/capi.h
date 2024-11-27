@@ -90,16 +90,3 @@ using std::make_shared;
 
 using std::unique_ptr;
 using std::make_unique;
-
-#include "graphics/palette.h"
-#include "graphics/geometry.h"
-#include "graphics/surface.h"
-#include "graphics/screen.h"
-#include "mf_font.h"
-#include "fonts/fonts.h"
-#include "graphics/font.h"
-#include "graphics/ui_font.h"
-#include "graphics/paragraph_style.h"
-#include "graphics/compositor.h"
-#include "multicore.h"
-#include "kernel.h"

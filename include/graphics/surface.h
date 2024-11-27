@@ -21,6 +21,10 @@
 
 #pragma once
 
+#include "capi.h"
+#include "graphics/geometry.h"
+#include "graphics/paragraph_style.h"
+
 using std::shared_ptr;
 using std::weak_ptr;
 
@@ -32,6 +36,14 @@ class Surface {
 public:
 
     friend class Screen;
+
+	struct TextDrawingContext {
+	public:
+		shared_ptr<ParagraphStyle> style; 
+		Point origin;
+		Rect clip;
+		weak_ptr<Surface> surface;
+	};
 
     Surface(UInt64 width = 64, UInt64 height = 64);
     
@@ -54,6 +66,12 @@ public:
     method drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
 
     method drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+
+    method drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+
+    method drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha = 255) -> Void;
+
+    method drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha = 255) -> Void;
 
 private:
     UInt64 _width;

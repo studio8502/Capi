@@ -19,7 +19,7 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "capi.h"
+#include "graphics/screen.h"
 
 Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
  	_width(width),

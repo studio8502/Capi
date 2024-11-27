@@ -19,7 +19,8 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "capi.h"
+#include "graphics/paragraph_style.h"
+#include "graphics/ui_font.h"
 
 ParagraphStyle::ParagraphStyle(shared_ptr<Font> font, UInt8 palette, UInt8 color, ParagraphStyle::Align align):
     _color(SystemPalette[palette][color]),

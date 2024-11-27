@@ -22,6 +22,10 @@
 
 #pragma once
 
+#include "capi.h"
+#include "graphics/font.h"
+#include "graphics/palette.h"
+
 using std::shared_ptr;
 
 class ParagraphStyle {

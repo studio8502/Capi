@@ -21,6 +21,11 @@
 
 #pragma once
 
+#include "capi.h"
+#include "graphics/geometry.h"
+#include "graphics/screen.h"
+#include "multicore.h"
+
 #define MAX_GAMEPADS 8
 
 class Kernel

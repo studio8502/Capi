@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "capi.h"
+
 class Compositor {
 public:
 

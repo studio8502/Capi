@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "capi.h"
+
 class Multicore: public CMultiCoreSupport {
 public:
 

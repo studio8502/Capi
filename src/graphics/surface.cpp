@@ -19,7 +19,16 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "capi.h"
+#include "graphics/surface.h"
+
+[[gnu::unused]]
+static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
+
+[[gnu::unused]]
+static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t;
+
+[[gnu::unused]]
+static function line_callback(mf_str line, uint16_t count, void *state) -> Bool;
 
 Surface::Surface(UInt64 width, UInt64 height):
     _width(width),
@@ -143,16 +152,12 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
             
             target.x = begin.x;
             target.y = begin.y;
-		
-            if (target.x > _width) {
+
+            if (target.x > _width || target.y > _height) {
                 return;
-            } else if (target.x < 0) {
+            } else if (target.x < 0 || target.y < 0) {
                 continue;
-            } else if (target.y > _height) {
-                return;
-            } else if (target.y < 0) {
-                continue;
-            }
+            } 
 
 			buffer[width * begin.y + begin.x] = alpha_blend(buffer[width * begin.y + begin.x], lineColor, alpha);
 		}
@@ -172,17 +177,250 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
             target.x = begin.x;
             target.y = begin.y;
 
-            if (target.x > _width) {
+            if (target.x > _width || target.y > _height) {
                 return;
-            } else if (target.x < 0) {
+            } else if (target.x < 0 || target.y < 0) {
                 continue;
-            } else if (target.y > _height) {
-                return;
-            } else if (target.y < 0) {
-                continue;
-            }
+            } 
 
 			buffer[width * begin.y + begin.x] = alpha_blend(buffer[width * begin.y + begin.x], lineColor, alpha);
 		}
+	}
+}
+
+method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+    if (fill == true) {
+        Color pixelValue = SystemPalette[palette][color];
+        
+        unsigned nX = origin.x;
+        unsigned nY = origin.y;
+        
+        int r2 = radius * radius;
+        unsigned area = r2 << 2;
+        unsigned rr = radius << 1;
+
+        var target = Point(0, 0);
+        var surface = _data.get();
+        var width = _width;
+
+        for (unsigned i = 0; i < area; i++)
+        {
+            int tx = (int) (i % rr) - radius;
+            int ty = (int) (i / rr) - radius;
+
+            if (tx * tx + ty * ty < r2)
+            {   
+                target.x = nX + tx;
+                target.y = nY + ty;
+
+                if (target.x > _width || target.y > _height) {
+                    return;
+                } else if (target.x < 0 || target.y < 0) {
+                    continue;
+                } 
+
+                surface[width * (nY + ty) + nX + tx] = alpha_blend(surface[width * (nY + ty) + nX + tx], pixelValue, alpha);
+            }
+        }
+    } else {
+        Color pixelValue = SystemPalette[palette][color];
+            
+        unsigned nX = origin.x;
+        unsigned nY = origin.y;
+        var buffer = _data.get();
+        var width = _width;
+
+        var target = Point(radius + nX, nY);
+
+        if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+            buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+        }
+
+        if (radius > 0) {
+            target.y = -radius + nY;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            target.x = -radius + nX;
+            target.y = nY;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            target.x = nX;
+            target.y = radius + nY;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+        }
+        
+        int p = 1 - radius;
+        int y = 0;
+        
+        while ((int) radius > y)
+        {
+            y++;
+
+            if (p <= 0)
+            {
+                p = p + 2 * y + 1;
+            }
+            else
+            {
+                radius--;
+                p = p + 2 * y - 2 * radius + 1;
+            }
+
+            if ((int) radius < y)
+            {
+                break;
+            }
+
+            target.x = radius + nX;
+            target.y = y + nY;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            target.x = -radius + nX;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            target.x = radius + nX;
+            target.y = -y + nY;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            target.x = -radius + nX;
+            if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+            }
+
+            if ((int) radius != y)
+            {
+                target.x = y + nX;
+                target.y = radius + nY;
+                if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                    buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+                }
+
+                target.x = -y + nX;
+                if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                    buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+                }
+                
+                target.x = y + nX;
+                target.y = -radius + nY;
+                if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                    buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+                }
+
+                target.x = -y + nX;
+                if (target.x > 0 && target.x > _width && target.x > 0 && target.y < _height) {
+                    buffer[width * target.y + target.x] = alpha_blend(buffer[width * target.y + target.x], pixelValue, alpha);
+                }
+            }
+        }
+    }
+}
+
+method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha) -> Void {
+    var target = Point(0 ,0);
+	var buffer = _data.get();
+	var width = _width;
+
+	for(unsigned i = 0; i < rect.height; i++)
+	{
+		for(unsigned j = 0; j < rect.width; j++)
+		{
+			Color sourcePixel = pixelBuffer[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
+
+            target.x = j + rect.x;
+            target.y = rect.y + i;
+
+            if (target.x > _width || target.y > _height) {
+                return;
+            } else if (target.x < 0 || target.y < 0) {
+                continue;
+            } 
+        
+            buffer[(rect.y + i) * width + j + rect.x] = 
+                alpha_blend(buffer[(rect.y + i) * width + j + rect.x], 
+                sourcePixel, 
+                alpha);
+		}
+	}
+}
+
+method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
+    var target = Point(0, 0);
+	var buffer = _data.get();
+	var width = _width;
+	
+	for(unsigned i = 0; i < rect.height; i++)
+	{
+		for(unsigned j = 0; j < rect.width; j++)
+		{
+			Color sourcePixel = pixelBuffer[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
+			if(sourcePixel != transparentColor)
+			{
+                target.x = j + rect.x;
+                target.y = rect.y + i;
+
+                if (target.x > _width || target.y > _height) {
+                    return;
+                } else if (target.x < 0 || target.y < 0) {
+                    continue;
+                } 
+            
+                buffer[(rect.y + i) * width + j + rect.x] = 
+                    alpha_blend(buffer[(rect.y + i) * width + j + rect.x], 
+                    sourcePixel, 
+                    alpha);
+            }
+		}
+	}
+}
+
+
+static function line_callback(mf_str line, uint16_t count, void *state) -> Bool {
+
+    [[gnu::unused]]
+	var context = (Surface::TextDrawingContext *) state;
+	
+	return false;
+}
+
+// Character callback
+static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t {
+
+    [[gnu::unused]]
+	var context = (Surface::TextDrawingContext *) state;
+
+    return mf_render_character(context->style->font()->data(), x0, y0, character, &pixel_callback, state);
+}
+
+// Pixel callback
+static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
+
+    [[gnu::unused]]
+	var context = (Surface::TextDrawingContext *) state;
+
+	while (count--) {
+        if (var surface = context->surface.lock()) {
+            Color *buffer = surface->data().get();
+            UInt32 offset = surface->width() * y + x;
+            var target = Point(x, y);
+            
+            if (context->clip.checkPoint(target) == true) {
+                buffer[offset] = alpha_blend(buffer[offset], context->style->color(), alpha);
+            }
+        } else {
+            return;
+        }
+		x++;
 	}
 }

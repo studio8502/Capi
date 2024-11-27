@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "capi.h"
+
 #ifndef DefaultPalette
 #define DefaultPalette ((UInt8)0)
 #endif

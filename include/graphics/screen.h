@@ -21,7 +21,9 @@
 
 #pragma once
 
-using std::unique_ptr;
+#include "capi.h"
+#include "graphics/palette.h"
+#include "graphics/surface.h"
 
 class Screen {
 public:
