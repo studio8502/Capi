@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/fonts.h                                                          ║
+ ║ capi.h                                                                    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -21,34 +21,41 @@
 
 #pragma once
 
-#include "mf_font.h"
-#include "graphics/font.h"
-#include "capi.h"
+#include <cstdint>
+#include <string>
+#include <memory>
+#include <vector>
+#include <circle/actled.h>
+#include <circle/interrupt.h>
 
-using FontData = mf_font_s;
+#define method auto
+#define var auto
+#define let auto const
 
-class Font {
-public:
+using Void = void;
 
-    enum class Size {
-        xxSmall = 8,
-        xSmall = 10,
-        small = 12,
-        medium = 16,
-        large = 20,
-        xLarge = 32,
-        xxLarge = 48
-    };
+using UnsafePointer = void const *;
+using UnsafeMutablePointer = void *;
 
-    enum class Weight {
-        regular,
-        bold
-    };
+using Bool = boolean;
 
-    enum class Style {
-        roman,
-        italic
-    };
+using UInt64 = uint64_t;
+using UInt32 = uint32_t;
+using UInt16 = uint16_t;
+using UInt8 = uint8_t;
+using UInt = uint32_t;
 
-    virtual method data() -> const FontData * = 0;
-};
+using Int64 = int64_t;
+using Int32 = int32_t;
+using Int16 = int16_t;
+using Int8 = int8_t;
+using Int = int32_t;
+
+using Double = double;
+using Single = float;
+
+using String = std::string;
+
+using ActivityLED = CActLED;
+
+using InterruptSystem = CInterruptSystem;

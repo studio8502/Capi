@@ -1,31 +1,35 @@
-// kernel.cpp
-//
-// Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*****************************************************************************
+ ╔═══════════════════════════════════════════════════════════════════════════╗
+ ║ kernel.cpp                                                                ║
+ ╟───────────────────────────────────────────────────────────────────────────╢
+ ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
+ ╟───────────────────────────────────────────────────────────────────────────╢
+ ║ This program is free software: you can redistribute it and/or modify      ║
+ ║ it under the terms of the GNU General Public License as published by      ║
+ ║ the Free Software Foundation, either version 3 of the License, or         ║
+ ║ (at your option) any later version.                                       ║
+ ║                                                                           ║
+ ║ This program is distributed in the hope that it will be useful,           ║
+ ║ but WITHOUT ANY WARRANTY; without even the implied warranty of            ║
+ ║ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             ║
+ ║ GNU General Public License for more details.                              ║
+ ║                                                                           ║
+ ║ You should have received a copy of the GNU General Public License         ║
+ ║ along with this program.  If not, see <http://www.gnu.org/licenses/>.     ║
+ ╚═══════════════════════════════════════════════════════════════════════════╝
+ ****************************************************************************/
 
 #include "kernel.h"
 
-#include <circle/startup.h>
-#include <circle/synchronize.h>
 #include <cstring>
 #include <string>
 #include <memory>
 
+#include <circle/startup.h>
+#include <circle/synchronize.h>
+#include <circle/memory.h>
+
 #include "graphics/geometry.h"
-#include "workspace/workspace.h"
-#include "workspace/window.h"
 #include "graphics/palette.h"
 #include "graphics/paragraph_style.h"
 #include "graphics/ui_font.h"
@@ -51,7 +55,8 @@ Kernel::Kernel():
 	ntp(&net),
 	sound(irq),
 	mousePosition(0, 0),
-	screen(kernelOptions.GetWidth(), kernelOptions.GetHeight())
+	screen(kernelOptions.GetWidth(), kernelOptions.GetHeight()),
+	multicore(CMemorySystem::Get())
 { 
 	staticThis = this;
 }
@@ -78,8 +83,6 @@ method Kernel::initialize() -> Bool {
 
 	screen.initialize();
 
-	workspace = new Workspace();
-
 	return true;
 }
 
@@ -98,7 +101,7 @@ method Kernel::updateUSB() -> Void {
 				mouse->RegisterEventHandler(mouseEventHandler);
 				mouse->Setup(kernelOptions.GetWidth(), kernelOptions.GetHeight());
 				mouse->SetCursor(kernelOptions.GetWidth()/2, kernelOptions.GetHeight()/2);
-				mouse->ShowCursor(true);
+				mouse->ShowCursor(false);
 			}
 		}
 
@@ -197,63 +200,9 @@ method Kernel::run() -> ShutdownMode {
 
 	taskScheduler.ListTasks(&debugPort);
 
-	var win = make_shared<Window>();
+	multicore.Initialize();
 
-	var testRect = Rect(-20, -10, 200, 800);
-
-	char message[256];
-
-	Int64 counter = 0;
-
-	while (true) {
-		updateUSB();
-
-		screen.acquire();
-
-		screen.clear(DefaultPalette, 50);
-
-		win->draw();
-
-		testRect.x = 100;
-		testRect.y = 100;
-		testRect.width = 500;
-		testRect.height = 200;
-
-		win->drawRect(testRect, true, DefaultPalette, 28);
-
-		var origin = Point(50, 75);
-		win->drawCircle(origin, 94, true, DefaultPalette, 87);
-		win->drawCircle(origin, 90, true, DefaultPalette, 86);
-
-		origin.x += 100;
-		var end = Point(270, 500);
-		win->drawLine(origin, end, DefaultPalette, 130);
-		origin.y -= 1;
-		end.y -= 1;
-		win->drawLine(origin, end, DefaultPalette, 130);
-		origin.y -= 1;
-		end.y -= 1;
-		win->drawLine(origin, end, DefaultPalette, 130);
-
-		testRect.x = 50;
-		testRect.y = 50;
-		testRect.width = 200;
-		testRect.height = 200;
-
-		win->drawRect(testRect, true, DefaultPalette, 40, 127);
-
-		var clip = Rect(300, 100, 500, 56);
-		var font = make_shared<UIFont>(Font::Size::xxLarge, Font::Weight::bold);
-		var style = make_shared<ParagraphStyle>(font, 0, 0);
-		sprintf(message, "%lu", counter += 1);
-		workspace->drawText(message, style, Point(300, 100), clip);
-
-		screen.release();
-
-		screen.updateDisplay();
-
-		CScheduler::Get()->Yield();
-	}
+	multicore.Run(0);
 
 	return Halt;
 }
@@ -273,20 +222,7 @@ method Kernel::CPUMonitor::Run() -> Void {
 	CCPUThrottle::Get()->SetSpeed(CPUSpeedMaximum);
 	
 	while (true) {
-		unsigned temp = CCPUThrottle::Get()->GetClockRate() / 1000000;
-		CLogger::Get()->Write("CPU Monitor", LogNotice, "Clock rate: %uMHz\n", temp);
-
-		if (temp == 0) {
-			CCPUThrottle::Get()->SetSpeed (CPUSpeedLow);
-
-			CLogger::Get()->Write("CPU Monitor", LogPanic, "Cannot get SoC temperature");
-		}
-
-		if (CCPUThrottle::Get()->Update() == false) {
-			CCPUThrottle::Get()->SetSpeed (CPUSpeedLow);
-			CLogger::Get()->Write("CPU Monitor", LogPanic, "CPU temperature management failed");
-		}
-
+		CCPUThrottle::Get()->Update();
 		CScheduler::Get()->Sleep(2);
 	}
 }

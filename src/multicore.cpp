@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/fonts.h                                                          ║
+ ║ multicore.cpp                                                             ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,36 +19,79 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#pragma once
+#include <memory>
 
-#include "mf_font.h"
-#include "graphics/font.h"
-#include "capi.h"
+#include <circle/memory.h>
+#include <circle/logger.h>
 
-using FontData = mf_font_s;
+#include "kernel.h"
+#include "graphics/screen.h"
+#include "graphics/ui_font.h"
+#include "graphics/surface.h"
+#include "multicore.h"
 
-class Font {
-public:
+using std::make_shared;
 
-    enum class Size {
-        xxSmall = 8,
-        xSmall = 10,
-        small = 12,
-        medium = 16,
-        large = 20,
-        xLarge = 32,
-        xxLarge = 48
-    };
+static auto draw() -> Void;
 
-    enum class Weight {
-        regular,
-        bold
-    };
+CoreTest::CoreTest(CMemorySystem *memory):
+	CMultiCoreSupport (memory)
+{}
 
-    enum class Style {
-        roman,
-        italic
-    };
+CoreTest::~CoreTest() {}
 
-    virtual method data() -> const FontData * = 0;
-};
+method CoreTest::Run(UInt32 core_id) -> Void {
+    switch (core_id) {
+    case 0:
+        while (true) {
+            kernel->updateUSB();
+
+            CScheduler::Get()->Yield();
+        }
+    case 1:
+        while (true) {
+            screen->updateDisplay();
+        }
+        break;
+    case 2:
+        draw();
+        break;
+    default:
+        return;
+    }
+
+    var log = CLogger::Get();
+
+    log->Write("Core 1", LogNotice, "Running!");
+}
+
+static auto draw() -> Void {
+
+    UInt8 color = 0;
+    var box = make_shared<Surface>(256, 256);
+    var border = make_shared<Surface>(264, 264);
+
+    while (true) {
+
+        border->acquire();
+        border->clear(0, 0);
+        border->release();
+
+        box->acquire();
+        box->clear(0, 0);
+        for (UInt16 row = 0; row < 16; row += 1) {     
+            for (UInt16 col = 0; col < 16; col += 1) {
+                var rect = Rect(col * 16, row * 16, 16, 16);
+                box->drawRect(rect, true, 0, color);
+                color += 1;
+            }
+        }
+        box->release();
+
+        screen->acquire();
+        screen->clear();
+        screen->drawSurface(border, Point(252, 252));
+        screen->drawSurface(box, Point(256, 256));
+        screen->release();
+    }
+}

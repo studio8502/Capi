@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/fonts.h                                                          ║
+ ║ graphics/compositor.h                                                     ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -21,34 +21,11 @@
 
 #pragma once
 
-#include "mf_font.h"
-#include "graphics/font.h"
-#include "capi.h"
+#include "graphics/screen.h"
 
-using FontData = mf_font_s;
-
-class Font {
+class Compositor {
 public:
 
-    enum class Size {
-        xxSmall = 8,
-        xSmall = 10,
-        small = 12,
-        medium = 16,
-        large = 20,
-        xLarge = 32,
-        xxLarge = 48
-    };
+private:
 
-    enum class Weight {
-        regular,
-        bold
-    };
-
-    enum class Style {
-        roman,
-        italic
-    };
-
-    virtual method data() -> const FontData * = 0;
 };

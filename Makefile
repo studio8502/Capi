@@ -28,7 +28,7 @@ include $(CIRCLEHOME)/Rules.mk
 
 CPPFLAGS += --std=gnu++2b \
 			-I include \
-		  	-I include/graphics/mcufont \
+		  	-I include/fonts/mcufont \
 		  	-I $(NEWLIBDIR)/include \
 		  	-I $(STDDEF_INCPATH) \
 		  	-I lib/circle-stdlib/include \
@@ -40,7 +40,7 @@ CPPFLAGS += --std=gnu++2b \
 			-Wfatal-errors
 
 CFLAGS += -I include \
-		  -I include/graphics/mcufont \
+		  -I include/fonts/mcufont \
 		  -I $(NEWLIBDIR)/include \
 		  -I $(STDDEF_INCPATH) \
 		  -I lib/circle-stdlib/include \

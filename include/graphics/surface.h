@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/fonts.h                                                          ║
+ ║ graphics/surface.h                                                        ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -21,34 +21,53 @@
 
 #pragma once
 
-#include "mf_font.h"
-#include "graphics/font.h"
+#include <memory>
+
+#include <circle/spinlock.h>
+
+#include <graphics/palette.h>
+#include <graphics/geometry.h>
+
 #include "capi.h"
 
-using FontData = mf_font_s;
+using std::shared_ptr;
+using std::weak_ptr;
 
-class Font {
+// The Surface class manages a 2D surface of arbitrary width and height,
+// to which graphics and text can be drawn. Surfaces are protected with
+// spinlocks -- calling code is expected to acquire the lock before
+// using draw functions.
+class Surface {
 public:
 
-    enum class Size {
-        xxSmall = 8,
-        xSmall = 10,
-        small = 12,
-        medium = 16,
-        large = 20,
-        xLarge = 32,
-        xxLarge = 48
-    };
+    friend class Screen;
 
-    enum class Weight {
-        regular,
-        bold
-    };
+    Surface(UInt64 width = 64, UInt64 height = 64);
+    
+    ~Surface();
 
-    enum class Style {
-        roman,
-        italic
-    };
+    virtual method width() -> UInt64;
 
-    virtual method data() -> const FontData * = 0;
+    virtual method height() -> UInt64;
+
+    virtual method data() -> shared_ptr<Color[]>;
+
+    method acquire() -> Void;
+
+    method release() -> Void;
+
+    // The functions below require holding the spinlock or crashes may result.
+
+	virtual method clear(UInt8 palette, UInt8 color) -> Void;
+
+    method drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+
+    method drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+
+private:
+    UInt64 _width;
+    UInt64 _height;
+    shared_ptr<Color[]> _data;
+
+    CSpinLock _lock;
 };
