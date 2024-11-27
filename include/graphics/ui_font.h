@@ -21,10 +21,6 @@
 
 #pragma once
 
-#include "graphics/font.h"
-
-#include "capi.h"
-
 class UIFont: public Font {
 public:
 

@@ -1,4 +1,4 @@
-// core_test.h
+// multicore.h
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,15 +15,12 @@
 
 #pragma once
 
-#include <circle/multicore.h>
-#include "capi.h"
-
-class CoreTest: public CMultiCoreSupport {
+class Multicore: public CMultiCoreSupport {
 public:
 
-    CoreTest(CMemorySystem *memory);
+    Multicore(CMemorySystem *memory);
 
-    ~CoreTest();
+    ~Multicore();
 
     method Run(UInt32 core_id) -> Void;
 

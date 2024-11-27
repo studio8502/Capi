@@ -21,17 +21,6 @@
 
 #pragma once
 
-#include <memory>
-
-#include <circle/screen.h>
-#include <circle/spinlock.h>
-#include <circle/dmachannel.h>
-
-#include "graphics/palette.h"
-#include "graphics/geometry.h"
-#include "graphics/surface.h"
-#include "capi.h"
-
 using std::unique_ptr;
 
 class Screen {

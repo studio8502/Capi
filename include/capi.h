@@ -21,12 +21,40 @@
 
 #pragma once
 
+#include <cmath>
+#include <cstring>
 #include <cstdint>
 #include <string>
 #include <memory>
 #include <vector>
+
 #include <circle/actled.h>
+#include <circle/bcmrandom.h>
+#include <circle/cputhrottle.h>
+#include <circle/devicenameservice.h>
+#include <circle/dmachannel.h>
+#include <circle/exceptionhandler.h>
+#include <circle/input/mouse.h>
 #include <circle/interrupt.h>
+#include <circle/koptions.h>
+#include <circle/logger.h>
+#include <circle/multicore.h>
+#include <circle/net/dnsclient.h>
+#include <circle/net/netsubsystem.h>
+#include <circle/net/ntpclient.h>
+#include <circle/net/ntpdaemon.h>
+#include <circle/sched/scheduler.h>
+#include <circle/sched/task.h>
+#include <circle/screen.h>
+#include <circle/serial.h>
+#include <circle/sound/hdmisoundbasedevice.h>
+#include <circle/spinlock.h>
+#include <circle/startup.h>
+#include <circle/usb/usbhcidevice.h>
+#include <circle/usb/usbgamepad.h>
+#include <circle/usb/usbkeyboard.h>
+#include <SDCard/emmc.h>
+#include <fatfs/ff.h>
 
 #define method auto
 #define var auto
@@ -56,6 +84,21 @@ using Single = float;
 
 using String = std::string;
 
-using ActivityLED = CActLED;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
+using std::make_unique;
 
-using InterruptSystem = CInterruptSystem;
+#include "multicore.h"
+
+#include "graphics/palette.h"
+#include "graphics/geometry.h"
+#include "graphics/surface.h"
+#include "graphics/screen.h"
+#include "mf_font.h"
+#include "fonts/fonts.h"
+#include "graphics/font.h"
+#include "graphics/ui_font.h"
+#include "graphics/paragraph_style.h"
+
+#include "kernel.h"

@@ -21,41 +21,12 @@
 
 #pragma once
 
-#include <circle/koptions.h>
-#include <circle/devicenameservice.h>
-#include <circle/cputhrottle.h>
-#include <circle/interrupt.h>
-#include <circle/serial.h>
-#include <circle/exceptionhandler.h>
-#include <circle/logger.h>
-#include <circle/sound/hdmisoundbasedevice.h>
-#include <circle/usb/usbhcidevice.h>
-#include <SDCard/emmc.h>
-#include <fatfs/ff.h>
-#include <circle/input/mouse.h>
-#include <circle/usb/usbkeyboard.h>
-#include <circle/usb/usbgamepad.h>
-#include <circle/bcmrandom.h>
-#include <circle/cputhrottle.h>
-#include <circle/sched/scheduler.h>
-#include <circle/sched/task.h>
-#include <circle/net/netsubsystem.h>
-#include <circle/net/dnsclient.h>
-#include <circle/net/ntpclient.h>
-#include <circle/net/ntpdaemon.h>
-
-#include "graphics/screen.h"
-#include "graphics/geometry.h"
-#include "graphics/palette.h"
-#include "multicore.h"
-#include "capi.h"
-
 #define MAX_GAMEPADS 8
 
 class Kernel
 {
 public:
-	friend class CoreTest;
+	friend class Multicore;
 
 	enum class ShutdownMode
 	{
@@ -135,7 +106,7 @@ private:
 
 	Screen screen;
 
-	CoreTest multicore;
+	Multicore multicore;
 };
 
 extern Kernel *kernel;

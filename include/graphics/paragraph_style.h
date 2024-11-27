@@ -22,15 +22,6 @@
 
 #pragma once
 
-#include <memory>
-
-#include "mf_font.h"
-#include "graphics/font.h"
-#include "graphics/palette.h"
-#include "graphics/geometry.h"
-
-#include "capi.h"
-
 using std::shared_ptr;
 
 class ParagraphStyle {

@@ -19,14 +19,7 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include <cstring>
-#include <memory>
-
-#include <circle/interrupt.h>
-
-#include "graphics/screen.h"
-
-using std::make_unique;
+#include "capi.h"
 
 Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
  	_width(width),

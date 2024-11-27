@@ -19,9 +19,7 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/ui_font.h"
-#include "fonts/fonts.h"
-
+#include "capi.h"
 
 UIFont::UIFont(Font::Size size, Font::Weight weight)
 {

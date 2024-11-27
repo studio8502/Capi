@@ -19,9 +19,7 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include <cstring>
-
-#include "graphics/surface.h"
+#include "capi.h"
 
 Surface::Surface(UInt64 width, UInt64 height):
     _width(width),

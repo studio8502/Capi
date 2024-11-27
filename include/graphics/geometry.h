@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "capi.h"
-
 struct Point {
     Int32 x;
     Int32 y;

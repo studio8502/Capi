@@ -21,15 +21,6 @@
 
 #pragma once
 
-#include <memory>
-
-#include <circle/spinlock.h>
-
-#include <graphics/palette.h>
-#include <graphics/geometry.h>
-
-#include "capi.h"
-
 using std::shared_ptr;
 using std::weak_ptr;
 

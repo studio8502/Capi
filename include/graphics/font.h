@@ -21,10 +21,6 @@
 
 #pragma once
 
-#include "mf_font.h"
-#include "graphics/font.h"
-#include "capi.h"
-
 using FontData = mf_font_s;
 
 class Font {

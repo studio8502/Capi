@@ -19,28 +19,17 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include <memory>
-
-#include <circle/memory.h>
-#include <circle/logger.h>
-
-#include "kernel.h"
-#include "graphics/screen.h"
-#include "graphics/ui_font.h"
-#include "graphics/surface.h"
-#include "multicore.h"
-
-using std::make_shared;
+#include "capi.h"
 
 static auto draw() -> Void;
 
-CoreTest::CoreTest(CMemorySystem *memory):
+Multicore::Multicore(CMemorySystem *memory):
 	CMultiCoreSupport (memory)
 {}
 
-CoreTest::~CoreTest() {}
+Multicore::~Multicore() {}
 
-method CoreTest::Run(UInt32 core_id) -> Void {
+method Multicore::Run(UInt32 core_id) -> Void {
     switch (core_id) {
     case 0:
         while (true) {

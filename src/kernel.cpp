@@ -19,24 +19,9 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "kernel.h"
-
-#include <cstring>
-#include <string>
-#include <memory>
-
-#include <circle/startup.h>
-#include <circle/synchronize.h>
-#include <circle/memory.h>
-
-#include "graphics/geometry.h"
-#include "graphics/palette.h"
-#include "graphics/paragraph_style.h"
-#include "graphics/ui_font.h"
+#include "capi.h"
 
 #define NTPServer "pool.ntp.org"
-
-using std::make_shared;
 
 static const char *magicRebootString = "DEADC0DE";
 

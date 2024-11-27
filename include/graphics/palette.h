@@ -21,9 +21,6 @@
 
 #pragma once
 
-#include <circle/screen.h>
-#include "capi.h"
-
 #ifndef DefaultPalette
 #define DefaultPalette ((UInt8)0)
 #endif

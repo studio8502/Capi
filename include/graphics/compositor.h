@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "graphics/screen.h"
-
 class Compositor {
 public:
 
