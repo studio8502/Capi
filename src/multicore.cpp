@@ -21,7 +21,7 @@
 
 #include "capi.h"
 
-static auto draw() -> Void;
+static function draw() -> Void;
 
 Multicore::Multicore(CMemorySystem *memory):
 	CMultiCoreSupport (memory)
@@ -54,7 +54,7 @@ method Multicore::Run(UInt32 core_id) -> Void {
     log->Write("Core 1", LogNotice, "Running!");
 }
 
-static auto draw() -> Void {
+static function draw() -> Void {
 
     UInt8 color = 0;
     var box = make_shared<Surface>(256, 256);

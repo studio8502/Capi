@@ -57,6 +57,7 @@
 #include <fatfs/ff.h>
 
 #define method auto
+#define function auto
 #define var auto
 #define let auto const
 
@@ -85,11 +86,10 @@ using Single = float;
 using String = std::string;
 
 using std::shared_ptr;
-using std::unique_ptr;
 using std::make_shared;
-using std::make_unique;
 
-#include "multicore.h"
+using std::unique_ptr;
+using std::make_unique;
 
 #include "graphics/palette.h"
 #include "graphics/geometry.h"
@@ -100,5 +100,6 @@ using std::make_unique;
 #include "graphics/font.h"
 #include "graphics/ui_font.h"
 #include "graphics/paragraph_style.h"
-
+#include "graphics/compositor.h"
+#include "multicore.h"
 #include "kernel.h"

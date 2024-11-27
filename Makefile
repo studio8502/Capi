@@ -11,12 +11,15 @@ FLASHY_OPTS ?= --cpu-boost:yes \
 			   --flashBaud:$(FLASHY_BAUD)
 
 MCUFONT := bin/mcufont
+MFDIR := lib/mcufont/decoder
+include lib/mcufont/decoder/mcufont.mk
 
 FLASHY_CMD_REBOOT_LOADER := exec "reboot"
 FLASHY_CMD_REBOOT := reboot $(FLASHY_REBOOT_MAGIC_WORD)
 
 CXX_SRCS := $(shell find src -type f -name "*.cpp")
-C_SRCS := $(shell find src -type f -name "*.c")
+C_SRCS := $(shell find src -type f -name "*.c") \
+		  $(shell find lib/mcufont/decoder -type f -name "*.c")
 
 OBJS := $(CXX_SRCS:.cpp=.o) \
 		$(C_SRCS:.c=.o)
@@ -28,7 +31,8 @@ include $(CIRCLEHOME)/Rules.mk
 
 CPPFLAGS += --std=gnu++2b \
 			-I include \
-		  	-I include/fonts/mcufont \
+			-I include/fonts \
+		  	-I $(MFINC) \
 		  	-I $(NEWLIBDIR)/include \
 		  	-I $(STDDEF_INCPATH) \
 		  	-I lib/circle-stdlib/include \
@@ -40,7 +44,8 @@ CPPFLAGS += --std=gnu++2b \
 			-Wfatal-errors
 
 CFLAGS += -I include \
-		  -I include/fonts/mcufont \
+		  -I include/fonts \
+		  -I $(MFINC) \
 		  -I $(NEWLIBDIR)/include \
 		  -I $(STDDEF_INCPATH) \
 		  -I lib/circle-stdlib/include \
@@ -90,6 +95,8 @@ font-clean:
 distclean:
 	@find src -type f -name "*.o" -delete
 	@find src -type f -name "*.d" -delete
+	@find $(MFDIR) -type f -name "*.o" -delete
+	@find $(MFDIR) -type f -name "*.d" -delete
 	@rm -f *.elf *.img *.lst *.map *.txz
 	@rm -f boot/*
 	@rm -f pkg/boot/*
