@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "graphics/surface.h"
+#include "mcufont.h"
 
 [[gnu::unused]]
 static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
@@ -30,7 +31,14 @@ static function char_callback(int16_t x0, int16_t y0, mf_char character, void *s
 [[gnu::unused]]
 static function line_callback(mf_str line, uint16_t count, void *state) -> Bool;
 
-Surface::Surface(UInt64 width, UInt64 height):
+Surface::Surface(Size size):
+    _width(size.width),
+    _height(size.height),
+    _data(shared_ptr<Color[]>(new Color[size.width * size.height])),
+    _lock()
+{}
+
+Surface::Surface(UInt32 width, UInt32 height):
     _width(width),
     _height(height),
     _data(shared_ptr<Color[]>(new Color[width * height])),
@@ -62,7 +70,6 @@ method Surface::release() -> Void {
 }
 
 method Surface::clear(UInt8 palette, UInt8 color) -> Void {
-
     drawRect(Rect(0,0,_width,_height), true, palette, color);
 }
 
@@ -385,6 +392,54 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixe
 	}
 }
 
+method Surface::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
+
+    var target = Point(0 ,0);
+	var pixelBuffer = src.get()->data();
+	var buffer = _data.get();
+	
+	for(unsigned i = 0; i < src->height(); i += 1)
+	{
+		target.y = dest.y + i;
+		
+		if (target.y > _height) {
+			return;
+		} else if (target.y < 0) {
+			continue;
+		}
+
+		for(unsigned j = 0; j < src->width(); j += 1)
+		{
+            target.x = j + dest.x;
+		
+			if (target.x > _width || target.x > dest.x + src->width()) {
+				return;
+			} else if (target.x < 0) {
+				continue;
+			}
+
+			buffer[target.y * _width + target.x] =
+				alpha_blend(buffer[target.y * _width + target.x], 
+							pixelBuffer[i * src->width() + j], 
+							alpha);
+    	}
+	}
+    DataSyncBarrier();
+}
+
+method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void {
+
+	var context = new Surface::TextDrawingContext(style, origin, clip, this);
+
+	mf_render_aligned(context->style->font()->data(),
+            		  context->origin.x, context->origin.y, 
+					  (mf_align_t) context->style->align(), 
+					  message.c_str(), 0, 
+					  &char_callback, (void *) context);
+	
+	delete context;
+}
+
 
 static function line_callback(mf_str line, uint16_t count, void *state) -> Bool {
 
@@ -410,7 +465,7 @@ static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alph
 	var context = (Surface::TextDrawingContext *) state;
 
 	while (count--) {
-        if (var surface = context->surface.lock()) {
+        if (Surface *surface = context->surface) {
             Color *buffer = surface->data().get();
             UInt32 offset = surface->width() * y + x;
             var target = Point(x, y);

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/surface.h                                                        ║
+ ║ workspace/window.h                                                        ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -22,48 +22,55 @@
 #pragma once
 
 #include "capi.h"
-#include "graphics/geometry.h"
-#include "graphics/paragraph_style.h"
+#include "graphics/surface.h"
 
-using std::shared_ptr;
-using std::weak_ptr;
+#define WINDOW_BORDER_WIDTH 4
+#define WINDOW_TITLEBAR_HEIGHT 16
 
-// The Surface class manages a 2D surface of arbitrary width and height,
-// to which graphics and text can be drawn. Surfaces are protected with
-// spinlocks -- calling code is expected to acquire the lock before
-// using draw functions.
-class Surface {
+class Window {
 public:
 
-    friend class Screen;
+    using WindowDrawCallback = function (*)(Window *) -> Void;
 
-	struct TextDrawingContext {
-	public:
-		shared_ptr<ParagraphStyle> style; 
-		Point origin;
-		Rect clip;
-		Surface *surface;
-	};
+    Window(Point origin, Size size, Bool hasTitlebar = true, Bool isDecorated = true);
 
-    Surface(Size size);
-
-    Surface(UInt32 width, UInt32 height);
-    
-    ~Surface();
+    ~Window();
 
     virtual method width() -> UInt64;
 
     virtual method height() -> UInt64;
 
-    virtual method data() -> shared_ptr<Color[]>;
+    method rect() -> Rect;
+
+    method contentRect() -> Rect;
+
+    method resize(Size size) -> Void;
+
+    method setDrawCallback(WindowDrawCallback callback) -> Void;
+
+    method isVisible() -> Bool;
+
+    method show() -> Void;
+
+    method hide() -> Void;
+
+    method hasCloseButton() -> Bool;
+
+    method setHasCloseButton(Bool closeButton) -> Void ;
+
+    method hasRollUpButton() -> Bool;
+
+    method setHasRollUpButton(Bool rollUpButton) -> Void ;
+
+    method opacity() -> UInt8;
+
+    method setOpacity(UInt8 opacity) -> Void;
 
     method acquire() -> Void;
 
     method release() -> Void;
 
-    // The functions below require holding the spinlock or crashes may result.
-
-	virtual method clear(UInt8 palette, UInt8 color) -> Void;
+	method clear(UInt8 palette, UInt8 color) -> Void;
 
     method drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
 
@@ -77,12 +84,34 @@ public:
 
     method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
 
-    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void;
+    virtual method draw() -> Void;
 
 private:
+
+    virtual method drawWindowChrome() -> Void;
+
+    virtual method drawWindowContent() -> Void;
+
+    method translate(Rect rect) -> Rect;
+
+    method translate(Point point) -> Point;
+
+    Int64 _x;
+    Int64 _y;
     UInt64 _width;
     UInt64 _height;
-    shared_ptr<Color[]> _data;
+    Bool _isDecorated;
+    Bool _hasTitlebar;
+    Bool _isVisible;
+    Bool _hasCloseButton;
+    Bool _hasRollUpButton;
+    UInt8 _opacity;
+    Bool _dirty;
+
+    shared_ptr<Surface> windowSurface;
+    shared_ptr<Surface> contentSurface;
 
     CSpinLock _lock;
+
+    WindowDrawCallback drawCallback;
 };

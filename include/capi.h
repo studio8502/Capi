@@ -61,6 +61,8 @@
 #define var auto
 #define let auto const
 
+#define guard(STMT) if ((STMT)) {}
+
 using Void = void;
 
 using UnsafePointer = void const *;

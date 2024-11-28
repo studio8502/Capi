@@ -109,8 +109,6 @@ method Screen::clear(UInt8 palette, UInt8 color) -> Void {
 
 method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
 
-	src->acquire();
-
     var target = Point(0 ,0);
 	var pixelBuffer = src.get()->data();
 	var clip = screenRect();
@@ -141,8 +139,7 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 							alpha);
     	}
 	}
-
-	src->release();
+	DataSyncBarrier();
 }
 
 method Screen::updateDisplay() -> Void {
