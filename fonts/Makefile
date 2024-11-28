@@ -12,20 +12,20 @@ SIZES ?= 8 10 12 16 20 32 48
 
 .PHONY:
 all: fonts.h
-	find . -type f -name "*.dat" -delete
+	@find . -type f -name "*.dat" -delete
 
 .PHONY:
 install: all
-	cp -f *.h ../include/fonts
-	cp -f *.inc ../include/fonts
+	@cp -f *.h ../include/fonts
+	@cp -f *.inc ../include/fonts
 
 fonts.h: Lexend.h
-	printf '#pragma once\n\n' > $@
-	printf '$(foreach font,$^,#include "fonts/$(font)"\n)' >> $@
+	@printf '#pragma once\n\n' > $@
+	@printf '$(foreach font,$^,#include "fonts/$(font)"\n)' >> $@
 
 Lexend.h:
-	printf '#pragma once\n\n' > Lato.h
-	for F in $(foreach style,Regular Bold,Lexend-$(style) ); do \
+	@printf '#pragma once\n\n' > Lato.h
+	@for F in $(foreach style,Regular Bold,Lexend-$(style) ); do \
 		for S in $(SIZES); do \
 			$(MCUFONT) import_ttf $$F.ttf $$S; \
 			$(MCUFONT) filter $$F$$S.dat $(CHARS); \
@@ -39,8 +39,8 @@ Lexend.h:
 
 .PHONY:
 clean:
-	find . -type f -name "*.dat" -delete
-	find . -type f -name "*.inc" -delete
-	find . -type f -name "*.h" -delete
+	@find . -type f -name "*.dat" -delete
+	@find . -type f -name "*.inc" -delete
+	@find . -type f -name "*.h" -delete
 
 .SUFFIXES:

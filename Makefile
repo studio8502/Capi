@@ -1,6 +1,7 @@
 include Config.mk
 
-SHELL := env PATH=$(TOOLCHAIN):$(PATH) /bin/bash
+SHELL := env PATH=$(TOOLCHAIN):$(PATH) /bin/sh
+
 
 NEWLIB_ARCH := aarch64-none-circle
 CIRCLEHOME  := lib/circle-stdlib/libs/circle
@@ -29,6 +30,15 @@ LIBS := $(shell find lib -type f -name "*.a")
 include lib/circle-stdlib/Config.mk
 include $(CIRCLEHOME)/Rules.mk
 
+# Create an auto-incrementing build number.
+BUILD_NUMBER_FILE=build_number.txt
+BUILD_NUMBER_LDFLAGS  = -Xlinker --defsym -Xlinker __BUILD_DATE=$$(date +'%Y%m%d')
+BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
+
+# Build number file.  Increment if any object file changes.
+$(BUILD_NUMBER_FILE): $(OBJS)
+	@printf $(shell expr `cat $(BUILD_NUMBER_FILE)` + 1) > $(BUILD_NUMBER_FILE)
+
 CPPFLAGS += --std=gnu++2b \
 			-I include \
 			-I include/fonts \
@@ -41,7 +51,8 @@ CPPFLAGS += --std=gnu++2b \
 			-MMD \
 			-O3 \
 			-Wno-sign-compare \
-			-Wfatal-errors
+			-Wfatal-errors \
+			$(BUILD_NUMBER_LDFLAGS)
 
 CFLAGS += -I include \
 		  -I include/fonts \
@@ -54,18 +65,21 @@ CFLAGS += -I include \
 		  -MMD \
 		  -O3 \
 		  -Wno-sign-compare \
-		  -Wfatal-errors
+		  -Wfatal-errors \
+		  $(BUILD_NUMBER_LDFLAGS)
 
 -include $(OBJS:.o=.d)
 
+$(TARGET).img: $(BUILD_NUMBER_FILE)
+
 $(MCUFONT):
-	make -C vendor/mcufont
-	cp -f vendor/mcufont/mcufont bin/mcufont
+	@make -C vendor/mcufont
+	@cp -f vendor/mcufont/mcufont bin/mcufont
 
 .PHONY:
 fonts: $(MCUFONT)
-	make -C fonts
-	make -C fonts install
+	@make -C fonts
+	@make -C fonts install
 
 .PHONY:
 bootconfig:
@@ -89,7 +103,7 @@ clean: distclean font-clean
 
 .PHONY:
 font-clean:
-	make -C fonts clean
+	@make -C fonts clean
 
 .PHONY:
 distclean:
