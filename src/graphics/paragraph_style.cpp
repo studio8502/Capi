@@ -40,10 +40,22 @@ method ParagraphStyle::color() -> Color {
     return _color;
 }
 
+method ParagraphStyle::setColor(Color newColor) -> Void {
+    _color = newColor;
+}
+
 method ParagraphStyle::align() -> ParagraphStyle::Align {
     return _align;
 }
 
+method ParagraphStyle::setAlign(Align newAlign) -> Void {
+    _align = newAlign;
+}
+
 method ParagraphStyle::font() -> shared_ptr<Font> {
     return _font;
+}
+
+method ParagraphStyle::setFont(shared_ptr<Font> newFont) -> Void {
+    _font = newFont;
 }

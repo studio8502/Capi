@@ -89,8 +89,6 @@ static function newWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     win->drawRect(Rect(50,100,45,76), true, 0, 76);
     win->drawRect(Rect(49,99,46,77), false, 0, 0);
 
-    win->drawText("Hellorld!", ParagraphStyle::DefaultStyle(), Point(20, 50));
-
     var color = 0;
     var box = make_shared<Surface>(256, 256);
     var border = make_shared<Surface>(264, 264);
@@ -110,8 +108,13 @@ static function newWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     }
     box->release();
 
-    win->drawSurface(border, Point(100, 10));
-    win->drawSurface(box, Point(104, 14));
+    var style = ParagraphStyle::DefaultStyle();
+    style->setColor(SystemPalette[0][15]);
+
+    win->drawSurface(border, Point(165, 10));
+    win->drawSurface(box, Point(169, 14));
+
+    win->drawText(VersionString(), style, Point(2, 215));
 
     win->release();
 

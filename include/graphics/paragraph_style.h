@@ -46,10 +46,16 @@ public:
     static method DefaultStyle() -> shared_ptr<ParagraphStyle>;
 
     method color() -> Color;
+
+    method setColor(Color newColor) -> Void;
     
     method align() -> Align;
 
+    method setAlign(Align newAlign) -> Void;
+
     method font() -> shared_ptr<Font>;
+
+    method setFont(shared_ptr<Font> newFont) -> Void;
 
 private:
 

@@ -30,14 +30,15 @@ LIBS := $(shell find lib -type f -name "*.a")
 include lib/circle-stdlib/Config.mk
 include $(CIRCLEHOME)/Rules.mk
 
+
 # Create an auto-incrementing build number.
 BUILD_NUMBER_FILE=build_number.txt
-BUILD_NUMBER_LDFLAGS  = --defsym __BUILD_DATE=$$(date +'%Y%m%d')
-BUILD_NUMBER_LDFLAGS += --defsym __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MAJOR=$$(git describe --tags | cut -d"." -f1)
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MINOR=$$(git describe --tags | cut -d"." -f2)
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MICRO=$$(git describe --tags | cut -d"." -f3)
-BUILD_NUMBER_LDFLAGS += --defsym __BUILD_COMMIT=$$(printf $$((16\#`git rev-parse --short HEAD`)))
+BUILD_NUMBER_LDFLAGS := --defsym __BUILD_DATE=$(shell date +'%Y%m%d')
+BUILD_NUMBER_LDFLAGS += --defsym __BUILD_NUMBER=$(shell cat $(BUILD_NUMBER_FILE))
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MAJOR=$(shell git describe --tags | cut -d"." -f1)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MINOR=$(shell git describe --tags | cut -d"." -f2)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MICRO=$(shell git describe --tags | cut -d"." -f3 | cut -d"-" -f1)
+BUILD_NUMBER_LDFLAGS += --defsym __BUILD_COMMIT=$(shell printf $$((16#`git rev-parse --short HEAD`)))
 
 # Build number file.  Increment if any object file changes.
 $(BUILD_NUMBER_FILE): $(OBJS)
