@@ -21,6 +21,8 @@
 
 #include "graphics/screen.h"
 
+unique_ptr<Screen> screen;
+
 Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
  	_width(width),
 	_height(height),
@@ -32,14 +34,18 @@ Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
 	_bufferLock(),
 	_dirty(false),
 	dma(DMA_CHANNEL_EXTENDED, CInterruptSystem::Get())
-{}
+{
+    if (screen != nullptr) {
+		throw std::runtime_error("There can be only a single Screen instance!");
+    }
+}
 
-Screen::~Screen (void)
+Screen::~Screen(void)
 {
     delete [] _buffer;
 }
 
-method Screen::initialize (void) -> Bool {
+method Screen::initialize(void) -> Bool {
 	framebuffer = make_unique<CBcmFrameBuffer>(_width, _height, DEPTH, _width, 2 * _height,
 					                           display, TRUE);
 
@@ -56,13 +62,11 @@ method Screen::initialize (void) -> Bool {
 	if (_buffer == nullptr) {
 		return false;
 	}
-
-    screen = this;
 	
 	return TRUE;
 }
 
-method Screen::resize (unsigned nWidth, unsigned nHeight) -> Bool {
+method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
 	framebuffer.reset();
 
 	_width = nWidth;
@@ -70,16 +74,16 @@ method Screen::resize (unsigned nWidth, unsigned nHeight) -> Bool {
 
 	delete [] _buffer;
 	_buffer = nullptr;
-	bufferSwapped = TRUE;
+	bufferSwapped = true;
 
-	return initialize ();
+	return initialize();
 }
 
-method Screen::width () const -> UInt32 {
+method Screen::width() const -> UInt32 {
 	return _width;
 }
 
-method Screen::height () const -> UInt32 {
+method Screen::height() const -> UInt32 {
 	return _height;
 }
 
@@ -169,5 +173,3 @@ method Screen::updateDisplay() -> Void {
 	_dirty = false;
 	_bufferLock.Release();
 }
-
-Screen *screen;

@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "kernel.h"
+#include "workspace/workspace.h"
 
 #define NTPServer "pool.ntp.org"
 
@@ -40,7 +41,6 @@ Kernel::Kernel():
 	ntp(&net),
 	sound(irq),
 	mousePosition(0, 0),
-	screen(kernelOptions.GetWidth(), kernelOptions.GetHeight()),
 	multicore(CMemorySystem::Get())
 { 
 	staticThis = this;
@@ -65,8 +65,12 @@ method Kernel::initialize() -> Bool {
 	net.Initialize();
 
 	ntpd = new CNTPDaemon(NTPServer, &net);
+	
+	screen = make_unique<Screen>(kernelOptions.GetWidth(), kernelOptions.GetHeight());
 
-	screen.initialize();
+	screen->initialize();
+
+	workspace = make_unique<Workspace>();
 
 	return true;
 }
@@ -188,7 +192,11 @@ method Kernel::run() -> ShutdownMode {
 
 	multicore.Initialize();
 
-	multicore.Run(0);
+	while (true) {
+		kernel->updateUSB();
+
+		CScheduler::Get()->Yield();
+	}
 
 	return Halt;
 }

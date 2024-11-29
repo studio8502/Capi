@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstring>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <memory>
 #include <vector>

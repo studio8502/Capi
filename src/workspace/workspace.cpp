@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ multicore.cpp                                                             ║
+ ║ workspace/workspace.cpp                                                   ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,87 +19,66 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "multicore.h"
-#include "kernel.h"
-#include "graphics/font.h"
+#include <algorithm>
+
 #include "workspace/workspace.h"
 
-static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window>;
+unique_ptr<Workspace> workspace = nullptr;
 
-Multicore::Multicore(CMemorySystem *memory):
-	CMultiCoreSupport (memory)
-{}
+Workspace::Workspace():
+    surface(make_shared<Surface>(screen->width(), screen->height())),
+    windowList(),
+    _dirty(true)
+{
+    guard (workspace == nullptr) else {
+        throw std::runtime_error("There can be only a single Workspace instance!");
+    }
+}
 
-Multicore::~Multicore() {}
+Workspace::~Workspace(){}
 
-method Multicore::Run(UInt32 core_id) -> Void {
-    switch (core_id) {
-    case 1: {
-            while (true) {
-                screen->updateDisplay();
-            }
-        }   
-        break;
-    case 2: {
-            var win1 = createWindow(300, 200);
-            var win2 = createWindow(200, 100);
-            while (true) {
-                workspace->draw();
-            }
-        }
-        break;
-    default:
+method Workspace::resize (unsigned width, unsigned height) -> Void {
+	surface.reset();
+    
+    surface = make_shared<Surface>(screen->width(), screen->height());
+
+    screen->acquire();
+    screen->resize(width, height);
+    screen->release();
+}
+
+method Workspace::draw() -> Void {
+    guard (_dirty == true) else {
         return;
     }
 
-    var log = CLogger::Get();
+    surface->acquire();
 
-    log->Write("Core 1", LogNotice, "Running!");
+    surface->clear(0, 15);
+
+    std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
+        if (win->isVisible()) {
+            win->draw();
+            this->surface->drawSurface(win->surface(), win->origin(), win->opacity());
+        }
+    });
+
+    surface->release();
+
+    screen->acquire();
+
+    screen->drawSurface(surface, Point(0, 0));
+
+    screen->release();
 }
 
-static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
-    var win = workspace->createWindow();
+method Workspace::createWindow() -> shared_ptr<Window> {
 
-    win->acquire();
+    windowList.push_back(make_shared<Window>());
 
-    win->resize(Size(450, 250));
-    win->move(Point(x, y));
+    var win = windowList.back();
 
-    win->clear(0, 22);
-    win->drawCircle(Point(50,50), 25, true, 0, 43);
-    win->drawCircle(Point(60,60), 25, true, 0, 57, 127);
-
-    win->drawRect(Rect(50,100,45,76), true, 0, 76);
-    win->drawRect(Rect(49,99,46,77), false, 0, 0);
-
-    var color = 0;
-    var box = make_shared<Surface>(256, 256);
-    var border = make_shared<Surface>(264, 264);
-    
-    border->acquire();
-    border->clear(0, 0);
-    border->release();
-
-    box->acquire();
-    box->clear(0, 0);
-    for (var row = 0; row < 16; row += 1) {     
-        for (var col = 0; col < 16; col += 1) {
-            var rect = Rect(col * 16, row * 16, 16, 16);
-            box->drawRect(rect, true, 0, color);
-            color += 1;
-        }
-    }
-    box->release();
-
-    var style = ParagraphStyle::DefaultStyle();
-    style->setColor(SystemPalette[0][15]);
-
-    win->drawSurface(border, Point(165, 10));
-    win->drawSurface(box, Point(169, 14));
-
-    win->drawText(VersionString(), style, Point(2, 215));
-
-    win->release();
+    _dirty = true;
 
     return win;
 }

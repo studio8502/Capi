@@ -24,15 +24,15 @@
 
 String Window::defaultTitle = "Default Title";
 
-Window::Window(String title, Point origin, Size size, Bool hasTitlebar, Bool isDecorated):
-    _title(title),
-    _x(origin.x),
-    _y(origin.y),
-    _width(size.width),
-    _height(size.height),
-    _isDecorated(isDecorated),
-    _hasTitlebar(hasTitlebar),
-    _isVisible(false),
+Window::Window():
+    _title(""),
+    _x(0),
+    _y(0),
+    _width(100),
+    _height(100),
+    _isDecorated(true),
+    _hasTitlebar(true),
+    _isVisible(true),
     _hasCloseButton(true),
     _hasRollUpButton(true),
     _opacity(255),
@@ -41,10 +41,14 @@ Window::Window(String title, Point origin, Size size, Bool hasTitlebar, Bool isD
     contentSurface(nullptr),
     drawCallback(nullptr)
 {
-    resize(size);
+    resize(Size(_width, _height));
 }
 
 Window::~Window() {}
+
+method Window::surface() -> shared_ptr<Surface> {
+    return windowSurface;
+}
 
 method Window::title() -> String {
     return _title;
@@ -54,16 +58,16 @@ method Window::setTitle(String title) -> Void {
     _title = title;
 }
 
-method Window::create(String title) -> shared_ptr<Window> {
-    return make_shared<Window>(title, Point(0,0), Size(200,100));
-}
-
 method Window::width() -> UInt64 {
     return _width;
 }
 
 method Window::height() -> UInt64 {
     return _height;
+}
+
+method Window::origin() -> Point {
+    return Point(_x, _y);
 }
 
 method Window::rect() -> Rect {
@@ -205,7 +209,6 @@ method Window::draw() -> Void{
     drawWindowContent();
     windowSurface->drawSurface(contentSurface, contentOrigin());
     drawWindowChrome();
-    screen->drawSurface(windowSurface, Point(_x, _y), _opacity);
 }
 
 // Draw the window chrome to the window's main surface.

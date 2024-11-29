@@ -109,8 +109,6 @@ private:
 	UInt16 mousebuttons;
 	Int16 mouseScroll; 
 
-	Screen screen;
-
 	Multicore multicore;
 };
 

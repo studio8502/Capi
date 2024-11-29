@@ -72,4 +72,4 @@ private:
 	CDMAChannel dma;
 };
 
-extern Screen *screen;
+extern unique_ptr<Screen> screen;

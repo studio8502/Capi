@@ -32,17 +32,19 @@ public:
 
     using WindowDrawCallback = function (*)(Window *) -> Void;
 
-    Window(String title, Point origin, Size size, Bool hasTitlebar = true, Bool isDecorated = true);
+    Window();
 
     ~Window();
 
     static String defaultTitle;
 
-    static method create(String title = Window::defaultTitle) -> shared_ptr<Window>;
-
     virtual method width() -> UInt64;
 
     virtual method height() -> UInt64;
+
+    method surface() -> shared_ptr<Surface>;
+
+    method origin() -> Point;
 
     method rect() -> Rect;
 
