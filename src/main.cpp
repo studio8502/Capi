@@ -23,6 +23,18 @@
 
 Kernel *kernel = new Kernel();
 
+function VersionString() -> char * {
+	static char buffer[255];
+
+	sprintf(buffer, "v%lu.%lu.%lu (%08lx-%04lx)", (unsigned long) &__VERSION_MAJOR, 
+								 	   	   		  (unsigned long) &__VERSION_MINOR, 
+								 	    		  (unsigned long) &__VERSION_MICRO,
+												  (unsigned long) &__BUILD_COMMIT,
+									    		  (unsigned long) &__BUILD_NUMBER);
+
+	return buffer;
+}
+
 using enum Kernel::ShutdownMode;
 
 int main (void)

@@ -170,6 +170,7 @@ method Kernel::run() -> ShutdownMode {
 
 	using enum Kernel::ShutdownMode;
 
+	log.Write ("Kernel", LogNotice, VersionString());
 	log.Write ("Kernel", LogNotice, "Compiled on: " __DATE__ " at " __TIME__);
 
 	// Mount file system

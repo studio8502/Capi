@@ -1,6 +1,6 @@
 include Config.mk
 
-SHELL := env PATH=$(TOOLCHAIN):$(PATH) /bin/sh
+SHELL := env PATH=$(TOOLCHAIN):$(PATH) /bin/bash
 
 
 NEWLIB_ARCH := aarch64-none-circle
@@ -32,11 +32,12 @@ include $(CIRCLEHOME)/Rules.mk
 
 # Create an auto-incrementing build number.
 BUILD_NUMBER_FILE=build_number.txt
-BUILD_NUMBER_LDFLAGS  = -Xlinker --defsym -Xlinker __BUILD_DATE=$$(date +'%Y%m%d')
-BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
-BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER_HEX=$$(printf "%04x\n" "`cat build_number.txt`")
-BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_BRANCH=$$(git branch | cut -f2 -d" ")
-BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_COMMIT=$$(git rev-parse --short HEAD)
+BUILD_NUMBER_LDFLAGS  = --defsym __BUILD_DATE=$$(date +'%Y%m%d')
+BUILD_NUMBER_LDFLAGS += --defsym __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MAJOR=$(VERSION_MAJOR)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MINOR=$(VERSION_MINOR) 
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MICRO=$(VERSION_MICRO)
+BUILD_NUMBER_LDFLAGS += --defsym __BUILD_COMMIT=$$(printf $$((16\#`git rev-parse --short HEAD`)))
 
 # Build number file.  Increment if any object file changes.
 $(BUILD_NUMBER_FILE): $(OBJS)
@@ -55,8 +56,7 @@ CPPFLAGS += --std=gnu++2b \
 			-MMD \
 			-O3 \
 			-Wno-sign-compare \
-			-Wfatal-errors \
-			$(BUILD_NUMBER_LDFLAGS)
+			-Wfatal-errors
 
 CFLAGS += -I include \
 		  -I include/fonts \
@@ -70,8 +70,9 @@ CFLAGS += -I include \
 		  -MMD \
 		  -O3 \
 		  -Wno-sign-compare \
-		  -Wfatal-errors \
-		  $(BUILD_NUMBER_LDFLAGS)
+		  -Wfatal-errors
+
+LDFLAGS += $(BUILD_NUMBER_LDFLAGS)
 
 -include $(OBJS:.o=.d)
 

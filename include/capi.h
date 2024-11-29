@@ -56,6 +56,8 @@
 #include <SDCard/emmc.h>
 #include <fatfs/ff.h>
 
+#define STRING(STR) __STRING(STR)
+
 #define method auto
 #define function auto
 #define var auto
@@ -92,3 +94,11 @@ using std::make_shared;
 
 using std::unique_ptr;
 using std::make_unique;
+
+function VersionString() -> char *;
+
+extern char __VERSION_MAJOR;
+extern char __VERSION_MINOR;
+extern char __VERSION_MICRO;
+extern char __BUILD_NUMBER;
+extern char __BUILD_COMMIT;
