@@ -34,9 +34,9 @@ include $(CIRCLEHOME)/Rules.mk
 BUILD_NUMBER_FILE=build_number.txt
 BUILD_NUMBER_LDFLAGS  = --defsym __BUILD_DATE=$$(date +'%Y%m%d')
 BUILD_NUMBER_LDFLAGS += --defsym __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MAJOR=$(VERSION_MAJOR)
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MINOR=$(VERSION_MINOR) 
-BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MICRO=$(VERSION_MICRO)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MAJOR=$$(git describe --tags | cut -d"." -f1)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MINOR=$$(git describe --tags | cut -d"." -f2)
+BUILD_NUMBER_LDFLAGS += --defsym __VERSION_MICRO=$$(git describe --tags | cut -d"." -f3)
 BUILD_NUMBER_LDFLAGS += --defsym __BUILD_COMMIT=$$(printf $$((16\#`git rev-parse --short HEAD`)))
 
 # Build number file.  Increment if any object file changes.
