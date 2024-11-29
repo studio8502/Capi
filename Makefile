@@ -34,6 +34,8 @@ include $(CIRCLEHOME)/Rules.mk
 BUILD_NUMBER_FILE=build_number.txt
 BUILD_NUMBER_LDFLAGS  = -Xlinker --defsym -Xlinker __BUILD_DATE=$$(date +'%Y%m%d')
 BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
+BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER_HEX=$$(printf "%04x\n" "`cat build_number.txt`")
+BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_BRANCH=$$(git branch | cut -f2 -d" ")
 BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_COMMIT=$$(git rev-parse --short HEAD)
 
 # Build number file.  Increment if any object file changes.
