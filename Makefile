@@ -34,6 +34,7 @@ include $(CIRCLEHOME)/Rules.mk
 BUILD_NUMBER_FILE=build_number.txt
 BUILD_NUMBER_LDFLAGS  = -Xlinker --defsym -Xlinker __BUILD_DATE=$$(date +'%Y%m%d')
 BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_NUMBER=$$(cat $(BUILD_NUMBER_FILE))
+BUILD_NUMBER_LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_COMMIT=$$(git rev-parse --short HEAD)
 
 # Build number file.  Increment if any object file changes.
 $(BUILD_NUMBER_FILE): $(OBJS)
@@ -48,6 +49,7 @@ CPPFLAGS += --std=gnu++2b \
 		  	-I lib/circle-stdlib/include \
 			-DSERIAL_BUF_SIZE=4096 \
 			-DKERNEL_MAX_SIZE=$(KERNEL_MAX_SIZE) \
+			-DMF_RLEFONT_INTERNALS=1 \
 			-MMD \
 			-O3 \
 			-Wno-sign-compare \
@@ -62,6 +64,7 @@ CFLAGS += -I include \
 		  -I lib/circle-stdlib/include \
 		  -DSERIAL_BUF_SIZE=4096 \
 		  -DKERNEL_MAX_SIZE=$(KERNEL_MAX_SIZE) \
+		  -DMF_RLEFONT_INTERNALS=1 \
 		  -MMD \
 		  -O3 \
 		  -Wno-sign-compare \
@@ -73,8 +76,8 @@ CFLAGS += -I include \
 $(TARGET).img: $(BUILD_NUMBER_FILE)
 
 $(MCUFONT):
-	@make -C vendor/mcufont
-	@cp -f vendor/mcufont/mcufont bin/mcufont
+	@make -C lib/mcufont
+	@cp -f lib/mcufont/encoder/mcufont bin/mcufont
 
 .PHONY:
 fonts: $(MCUFONT)
@@ -114,8 +117,6 @@ distclean:
 	@rm -f *.elf *.img *.lst *.map *.txz
 	@rm -f boot/*
 	@rm -f pkg/boot/*
-	@rm -f bin/*
-	@touch bin/.placeholder
 
 .PHONY:
 package: bootconfig $(TARGET).img 

@@ -32,9 +32,13 @@ public:
 
     using WindowDrawCallback = function (*)(Window *) -> Void;
 
-    Window(Point origin, Size size, Bool hasTitlebar = true, Bool isDecorated = true);
+    Window(String title, Point origin, Size size, Bool hasTitlebar = true, Bool isDecorated = true);
 
     ~Window();
+
+    static String defaultTitle;
+
+    static method create(String title = Window::defaultTitle) -> shared_ptr<Window>;
 
     virtual method width() -> UInt64;
 
@@ -44,7 +48,13 @@ public:
 
     method contentRect() -> Rect;
 
+    method move(Point point) -> Void;
+
     method resize(Size size) -> Void;
+
+    method title() -> String;
+
+    method setTitle(String title) -> Void;
 
     method setDrawCallback(WindowDrawCallback callback) -> Void;
 
@@ -56,15 +66,17 @@ public:
 
     method hasCloseButton() -> Bool;
 
-    method setHasCloseButton(Bool closeButton) -> Void ;
+    method setHasCloseButton(Bool closeButton) -> Void;
 
     method hasRollUpButton() -> Bool;
 
-    method setHasRollUpButton(Bool rollUpButton) -> Void ;
+    method setHasRollUpButton(Bool rollUpButton) -> Void;
 
     method opacity() -> UInt8;
 
     method setOpacity(UInt8 opacity) -> Void;
+
+    method contentOrigin() -> Point;
 
     method acquire() -> Void;
 
@@ -82,6 +94,8 @@ public:
 
     method drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha = 255) -> Void;
 
+    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
+
     method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
 
     virtual method draw() -> Void;
@@ -96,6 +110,7 @@ private:
 
     method translate(Point point) -> Point;
 
+    String _title;
     Int64 _x;
     Int64 _y;
     UInt64 _width;

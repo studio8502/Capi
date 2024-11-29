@@ -41,7 +41,6 @@ public:
 	public:
 		shared_ptr<ParagraphStyle> style; 
 		Point origin;
-		Rect clip;
 		Surface *surface;
 	};
 
@@ -77,7 +76,7 @@ public:
 
     method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
 
-    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void;
+    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
 
 private:
     UInt64 _width;

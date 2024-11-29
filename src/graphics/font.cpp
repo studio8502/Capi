@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/ui_font.h                                                        ║
+ ║ graphics/font.cpp                                                         ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,21 +19,16 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#pragma once
-
-#include "capi.h"
 #include "graphics/font.h"
+#include "mcufont.h"
+#include "fonts/fonts.h"
+#include "graphics/font_lexend.h"
 
-class UIFont: public Font {
-public:
 
-    UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular);
+method Font::widthForString(String str, UInt16 count) -> Int16 {
+    return mf_get_string_width(data(), str.c_str(), count, true);
+}
 
-    ~UIFont();
-
-    virtual method data() -> const FontData * override;
-
-private:
-    
-    const FontData *_fontData;
-};
+function Font::UIFont(Font::Size size, Font::Weight weight) -> shared_ptr<Font> {
+    return make_shared<LexendFont>(Font::Size::small);
+}

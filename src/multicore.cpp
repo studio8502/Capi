@@ -21,11 +21,12 @@
 
 #include "multicore.h"
 #include "kernel.h"
+#include "graphics/font.h"
 #include "workspace/window.h"
 
-static function draw() -> Void;
+static function newWindow(UInt16 x, UInt16 y) -> shared_ptr<Window>;
 
-static function drawWindow(UInt16 x, UInt16 y) -> Void;
+static function draw() -> Void;
 
 Multicore::Multicore(CMemorySystem *memory):
 	CMultiCoreSupport (memory)
@@ -60,27 +61,35 @@ method Multicore::Run(UInt32 core_id) -> Void {
 
 static function draw() -> Void {
 
+    var win = newWindow(400, 200);
+
     while (true) {
         screen->acquire();
         screen->clear();
 
-        drawWindow(400, 200);
+        win->draw();
 
         screen->release();
     }
 }
 
-static function drawWindow(UInt16 x, UInt16 y) -> Void {
-    var win = make_shared<Window>(Point(x, y), Size(450, 250));
+static function newWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
+
+    var win = Window::create();
 
     win->acquire();
+
+    win->resize(Size(450, 250));
+    win->move(Point(x, y));
 
     win->clear(0, 22);
     win->drawCircle(Point(50,50), 25, true, 0, 43);
     win->drawCircle(Point(60,60), 25, true, 0, 57, 127);
 
     win->drawRect(Rect(50,100,45,76), true, 0, 76);
-    win->drawRect(Rect(49,99,47,78), false, 0, 0);
+    win->drawRect(Rect(49,99,46,77), false, 0, 0);
+
+    win->drawText("Hellorld!", ParagraphStyle::DefaultStyle(), Point(20, 50));
 
     var color = 0;
     var box = make_shared<Surface>(256, 256);
@@ -105,5 +114,6 @@ static function drawWindow(UInt16 x, UInt16 y) -> Void {
     win->drawSurface(box, Point(104, 14));
 
     win->release();
-    win->draw();
+
+    return win;
 }

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "fonts/Lexend-Regular8.inc"
 #include "fonts/Lexend-Regular10.inc"
 #include "fonts/Lexend-Regular12.inc"

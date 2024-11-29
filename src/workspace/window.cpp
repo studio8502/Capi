@@ -22,7 +22,10 @@
 #include "workspace/window.h"
 #include "graphics/screen.h"
 
-Window::Window(Point origin, Size size, Bool hasTitlebar, Bool isDecorated):
+String Window::defaultTitle = "Default Title";
+
+Window::Window(String title, Point origin, Size size, Bool hasTitlebar, Bool isDecorated):
+    _title(title),
     _x(origin.x),
     _y(origin.y),
     _width(size.width),
@@ -42,6 +45,18 @@ Window::Window(Point origin, Size size, Bool hasTitlebar, Bool isDecorated):
 }
 
 Window::~Window() {}
+
+method Window::title() -> String {
+    return _title;
+}
+
+method Window::setTitle(String title) -> Void {
+    _title = title;
+}
+
+method Window::create(String title) -> shared_ptr<Window> {
+    return make_shared<Window>(title, Point(0,0), Size(200,100));
+}
 
 method Window::width() -> UInt64 {
     return _width;
@@ -70,6 +85,11 @@ method Window::contentRect() -> Rect {
     }
 
     return rect;
+}
+
+method Window::move(Point point) -> Void {
+    _x = point.x;
+    _y = point.y;
 }
 
 method Window::resize(Size size) -> Void {
@@ -153,8 +173,24 @@ method Window::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixel
     contentSurface->drawImageRectTransparent(rect, sourceRect, pixelBuffer, transparentColor, alpha);
 }
 
+method Window::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
+    contentSurface->drawText(message, style, origin);
+}
+
 method Window::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
     contentSurface->drawSurface(src, dest, alpha);
+}
+
+method Window::contentOrigin() -> Point {
+    var origin = Point(WINDOW_BORDER_WIDTH,0);
+    if (_isDecorated && _hasTitlebar) {
+        origin.y = WINDOW_TITLEBAR_HEIGHT;
+    } else if (_isDecorated) {
+        origin.y = WINDOW_BORDER_WIDTH;
+    } else {
+        origin.x = 0;
+    }
+    return origin;
 }
 
 method Window::draw() -> Void{
@@ -162,21 +198,14 @@ method Window::draw() -> Void{
         return;
     }
 
-    drawWindowChrome();
+    windowSurface->acquire();
+    windowSurface->clear(0, 12);
+    windowSurface->release();
+
     drawWindowContent();
-
-    var contentOrigin = Point(WINDOW_BORDER_WIDTH,0);
-    if (_isDecorated && _hasTitlebar) {
-        contentOrigin.y = WINDOW_TITLEBAR_HEIGHT;
-    } else if (_isDecorated) {
-        contentOrigin.y = WINDOW_BORDER_WIDTH;
-    } else {
-        contentOrigin.x = 0;
-    }
-    
-
-    windowSurface->drawSurface(contentSurface, contentOrigin);
-    screen->drawSurface(windowSurface, Point(_x, _y));
+    windowSurface->drawSurface(contentSurface, contentOrigin());
+    drawWindowChrome();
+    screen->drawSurface(windowSurface, Point(_x, _y), _opacity);
 }
 
 // Draw the window chrome to the window's main surface.
@@ -185,8 +214,6 @@ method Window::drawWindowChrome() -> Void {
         return;
     }
     windowSurface->acquire();
-
-    windowSurface->clear(0, 12);
 
     var windowBorder = Rect(0,0,_width - 1, _height - 1);
 

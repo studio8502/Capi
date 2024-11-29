@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/ui_font.cpp                                                      ║
+ ║ graphics/fonts.h                                                          ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,78 +19,34 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
+#pragma once
+
 #include "capi.h"
+#include "graphics/font.h"
+#include "mcufont.h"
 
-#include "graphics/ui_font.h"
-#include "fonts/fonts.h"
+class LexendFont: public Font {
+public:
+    LexendFont(Size size = Size::medium, Weight weight = Weight::regular);
 
-UIFont::UIFont(Font::Size size, Font::Weight weight)
-{
+    ~LexendFont();
 
-    var bold = weight == Font::Weight::bold;
+    virtual method size() -> Size;
 
-    switch (size) {
-    case Font::Size::xxSmall:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold8.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular8.font);
-        }
-        break;
-    case Font::Size::xSmall:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold10.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular10.font);
-        }
-        break;
-    case Font::Size::small:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold12.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular12.font);
-        }
-        break;
-    case Font::Size::medium:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold16.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular16.font);
-        }
-        break;
-    case Font::Size::large:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold20.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular20.font);
-        }
-        break;
-    case Font::Size::xLarge:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold32.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular32.font);
-        }
-        break;
-    case Font::Size::xxLarge:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold48.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular48.font);
-        }
-        break;
-    default:
-        if (bold) {
-            _fontData = &(mf_rlefont_Lexend_Bold12.font);
-        } else {
-            _fontData = &(mf_rlefont_Lexend_Regular12.font);
-        }
-        break;
-    }
-}
+    virtual method setSize(Size newSize) -> Void;
 
-UIFont::~UIFont() {}
+    virtual method weight() -> Weight;
 
-method UIFont::data() -> const FontData * {
-    return _fontData;
+    virtual method setWeight(Weight newWeight) -> Void;
+
+    virtual method style() -> Style;
+
+    virtual method setStyle(Style newStyle) -> Void;
+
+    virtual method data() -> const FontData *;
+
+private:
+    Size _size;
+    Weight _weight;
+    Style _style;
 };

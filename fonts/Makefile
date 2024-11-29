@@ -21,10 +21,11 @@ install: all
 
 fonts.h: Lexend.h
 	@printf '#pragma once\n\n' > $@
-	@printf '$(foreach font,$^,#include "fonts/$(font)"\n)' >> $@
+	@printf '#include "mcufont.h"\n\n' > $@
+	@printf '$(foreach font,$^,#include "fonts/$(font)"\n\n)' >> $@
 
 Lexend.h:
-	@printf '#pragma once\n\n' > Lato.h
+	@printf '#pragma once\n\n' > $@
 	@for F in $(foreach style,Regular Bold,Lexend-$(style) ); do \
 		for S in $(SIZES); do \
 			$(MCUFONT) import_ttf $$F.ttf $$S; \
@@ -32,7 +33,7 @@ Lexend.h:
 			$(MCUFONT) rlefont_optimize $$F$$S.dat $(OPTIMIZE_ITERATIONS); \
 			$(MCUFONT) rlefont_export $$F$$S.dat; \
 			mv $$F$$S.c $$F$$S.inc; \
-			printf "#include \"fonts/$$F$$S.inc\"\n" >> Lato.h; \
+			printf "#include \"fonts/$$F$$S.inc\"\n" >> $@; \
 		done \
 	done
 

@@ -23,13 +23,12 @@
 
 #include "capi.h"
 
-#include "mf_font.h"
+#include "mcufont.h"
 
 using FontData = mf_font_s;
 
 class Font {
 public:
-
     enum class Size {
         xxSmall = 8,
         xSmall = 10,
@@ -50,5 +49,21 @@ public:
         italic
     };
 
+    virtual method size() -> Size = 0;
+
+    virtual method setSize(Size newSize) -> Void = 0;
+
+    virtual method weight() -> Weight = 0;
+
+    virtual method setWeight(Weight newWeight) -> Void = 0;
+
+    virtual method style() -> Style = 0;
+
+    virtual method setStyle(Style newStyle) -> Void = 0;
+
     virtual method data() -> const FontData * = 0;
+
+    virtual method widthForString(String str, UInt16 count = 0) -> Int16;
+
+    static method UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular) -> shared_ptr<Font>;
 };

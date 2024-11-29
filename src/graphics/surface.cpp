@@ -427,9 +427,9 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) ->
     DataSyncBarrier();
 }
 
-method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin, Rect clip) -> Void {
+method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
 
-	var context = new Surface::TextDrawingContext(style, origin, clip, this);
+	var context = new Surface::TextDrawingContext(style, origin, this);
 
 	mf_render_aligned(context->style->font()->data(),
             		  context->origin.x, context->origin.y, 
@@ -439,7 +439,6 @@ method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point
 	
 	delete context;
 }
-
 
 static function line_callback(mf_str line, uint16_t count, void *state) -> Bool {
 
@@ -463,18 +462,16 @@ static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alph
 
     [[gnu::unused]]
 	var context = (Surface::TextDrawingContext *) state;
+    Surface *surface = context->surface;
+    Color *buffer = surface->data().get();
 
 	while (count--) {
-        if (Surface *surface = context->surface) {
-            Color *buffer = surface->data().get();
-            UInt32 offset = surface->width() * y + x;
-            var target = Point(x, y);
-            
-            if (context->clip.checkPoint(target) == true) {
-                buffer[offset] = alpha_blend(buffer[offset], context->style->color(), alpha);
-            }
-        } else {
-            return;
+        var offset = surface->width() * y + x;
+        var target = Point(x, y);
+        var clip = Rect(0,0,surface->width(), surface->height());
+        
+        if (clip.checkPoint(target) == true) {
+            buffer[offset] = alpha_blend(buffer[offset], context->style->color(), alpha);
         }
 		x++;
 	}
