@@ -66,4 +66,7 @@ public:
     virtual method widthForString(String str, UInt16 count = 0) -> Int16;
 
     static method UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular) -> shared_ptr<Font>;
+
+    class Lexend;
+
 };

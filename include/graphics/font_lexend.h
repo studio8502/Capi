@@ -21,15 +21,13 @@
 
 #pragma once
 
-#include "capi.h"
 #include "graphics/font.h"
-#include "mcufont.h"
 
-class LexendFont: public Font {
+class Font::Lexend: public Font {
 public:
-    LexendFont(Size size = Size::medium, Weight weight = Weight::regular);
+    Lexend(Size size = Size::medium, Weight weight = Weight::regular);
 
-    ~LexendFont();
+    ~Lexend();
 
     virtual method size() -> Size;
 

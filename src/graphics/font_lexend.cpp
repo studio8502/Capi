@@ -19,43 +19,44 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/font_lexend.h"
 #include "mcufont.h"
 #include "fonts/fonts.h"
+#include "graphics/font.h"
+#include "graphics/font_lexend.h"
 
-LexendFont::LexendFont(Size size, Weight weight):
+Font::Lexend::Lexend(Size size, Weight weight):
     _size(size),
     _weight(weight),
     _style(Font::Style::roman)
 {}
 
-LexendFont::~LexendFont() {}
+Font::Lexend::~Lexend() {}
 
-method LexendFont::size() -> Size {
+method Font::Lexend::size() -> Size {
     return _size;
 }
 
-method LexendFont::setSize(Size newSize) -> Void {
+method Font::Lexend::setSize(Size newSize) -> Void {
     _size = newSize;
 }
 
-method LexendFont::weight() -> Weight {
+method Font::Lexend::weight() -> Weight {
     return _weight;
 }
 
-method LexendFont::setWeight(Weight newWeight) -> Void {
+method Font::Lexend::setWeight(Weight newWeight) -> Void {
     _weight = newWeight;
 }
 
-method LexendFont::style() -> Style {
+method Font::Lexend::style() -> Style {
     return _style;
 }
 
-method LexendFont::setStyle(Style newStyle) -> Void {
+method Font::Lexend::setStyle(Style newStyle) -> Void {
     _style = newStyle;
 }
 
-method LexendFont::data() -> const FontData * {
+method Font::Lexend::data() -> const FontData * {
 
     var bold = _weight == Font::Weight::bold;
 

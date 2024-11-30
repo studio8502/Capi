@@ -30,5 +30,5 @@ method Font::widthForString(String str, UInt16 count) -> Int16 {
 }
 
 function Font::UIFont(Font::Size size, Font::Weight weight) -> shared_ptr<Font> {
-    return make_shared<LexendFont>(Font::Size::small);
+    return make_shared<Font::Lexend>(Font::Size::small);
 }
