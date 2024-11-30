@@ -33,18 +33,37 @@ Workspace::Workspace():
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
     }
+
+    guard(surface != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for workspace!"));
+    }
 }
 
 Workspace::~Workspace(){}
 
 method Workspace::resize (unsigned width, unsigned height) -> Void {
-	surface.reset();
+    var mouse = dynamic_cast<CMouseDevice *>(CDeviceNameService::Get()->GetDevice("mouse1", FALSE));
+
+    if (mouse != nullptr) {
+	    mouse->Release();
+    }
     
-    surface = make_shared<Surface>(screen->width(), screen->height());
+    surface.reset();
+    
+    surface = make_shared<Surface>(width, height);
+    guard(surface != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for workspace!"));
+    }
 
     screen->acquire();
     screen->resize(width, height);
     screen->release();
+
+    if (mouse != nullptr) {
+        mouse->Setup(width, height);
+        mouse->SetCursor(width/2, height/2);
+        mouse->ShowCursor(false);
+    }
 }
 
 method Workspace::draw() -> Void {
