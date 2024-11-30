@@ -37,9 +37,41 @@ Color& Palette::operator[] (int index) {
     return color[index];
 }
 
-// Given two colours and an alpha level, return the result of alpha blending
-// the second over the first with the supplied alpha level.
-auto alpha_blend(Color background, Color foreground, UInt8 alpha) -> Color {
+auto RGBA(UInt32 RGBA) -> Color {
+    UInt8 ALPHA = (RGBA >> 24) & 0xFF;
+    UInt8 RED = (RGBA >> 16) & 0xFF;
+    UInt8 GREEN = (RGBA >> 8) & 0xFF;
+    UInt8 BLUE = RGBA & 0xFF;
+
+    return COLOR32(RED, GREEN, BLUE, ALPHA);
+}
+
+auto alpha_blend(Color background, Color foreground) -> Color {
+
+    UInt8 alpha = foreground >> 24 & 0xFF;
+
+    if (alpha == 255) {
+        return foreground;
+    }
+
+    Double alpha_ratio = (1.0/255.0) * alpha;
+
+    Double background_red = 1.0 * ((background >> 16) & 0xFF);
+    Double background_green = 1.0 * ((background >> 8) & 0xFF);
+    Double background_blue = 1.0 * (background & 0xFF);
+
+    Double foreground_red = 1.0 * ((foreground >> 16) & 0xFF);
+    Double foreground_green = 1.0 * ((foreground >> 8) & 0xFF);
+    Double foreground_blue = 1.0 * (foreground & 0xFF);
+
+    UInt8 result_red = ceil(background_red + (foreground_red - background_red) * alpha_ratio);
+    UInt8 result_green = ceil(background_green + (foreground_green - background_green) * alpha_ratio);
+    UInt8 result_blue = ceil(background_blue + (foreground_blue - background_blue) * alpha_ratio);
+
+    return COLOR32(result_red, result_green, result_blue, 255);
+}
+
+auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Color {
 
     if (alpha == 255) {
         return foreground;

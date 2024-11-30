@@ -29,8 +29,14 @@
 
 using Color = TScreenColor;
 
+#define ALPHA(C, A) ({ \
+    ((((C)) & 0x00FFFFFF) | ((A))) \
+})
+
 // Take an RGB value in the form 0xAABBCC and turn it into a screen colour.
 auto RGB(UInt32 RGB) -> Color;
+
+auto RGBA(UInt32 RGBA) -> Color;
 
 struct Palette {
     Color color[256];
@@ -40,6 +46,8 @@ struct Palette {
 
 extern Palette SystemPalette[256];
 
-// Given two colours and an alpha level, return the result of alpha blending
-// the second over the first with the supplied alpha level.
-auto alpha_blend(Color background, Color foreground, UInt8 alpha) -> Color;
+// Given two colours return the result of alpha blending the second over the
+// first.
+auto alpha_blend(Color background, Color foreground) -> Color;
+
+auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Color;

@@ -71,8 +71,8 @@ static function drawWindow(Window *win) {win->clear(0, 22);
     win->drawCircle(Point(50,50), 25, true, 0, 43);
     win->drawCircle(Point(60,60), 25, true, 0, 57, 127);
 
-    win->drawRect(Rect(50,100,45,76), true, 0, 76);
-    win->drawRect(Rect(49,99,46,77), false, 0, 0);
+    win->drawRect(Rect(50,100,45,76), true, 0, 76, 127);
+    win->drawRect(Rect(49,99,46,77), false, 0, 0, 127);
 
 
     win->drawRect(Rect(-50,-50,10,10), true, 0, 76);

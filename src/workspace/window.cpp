@@ -56,6 +56,7 @@ method Window::title() -> String {
 
 method Window::setTitle(String title) -> Void {
     _title = title;
+    _dirty = true;
 }
 
 method Window::isDecorated() -> Bool {
@@ -64,6 +65,7 @@ method Window::isDecorated() -> Bool {
 
 method Window::setIsDecorated(Bool decorated) -> Void {
     _isDecorated = decorated;
+    _dirty = true;
 }
 
 method Window::width() -> UInt64 {
@@ -111,10 +113,12 @@ method Window::resize(Size size) -> Void {
     contentSurface.reset();
     windowSurface = make_shared<Surface>(size);
     contentSurface = make_shared<Surface>(contentRect().size());
+    _dirty = true;
 }
 
 method Window::setDrawCallback(WindowDrawCallback callback) -> Void {
     drawCallback = callback;
+    _dirty = true;
 }
 
 method Window::isVisible() -> Bool {
@@ -135,6 +139,7 @@ method Window::hasCloseButton() -> Bool {
 
 method Window::setHasCloseButton(Bool closeButton) -> Void {
     _hasCloseButton = closeButton;
+    _dirty = true;
 }
 
 method Window::hasRollUpButton() -> Bool {
@@ -143,6 +148,7 @@ method Window::hasRollUpButton() -> Bool {
 
 method Window::setHasRollUpButton(Bool rollUpButton) -> Void {
     _hasRollUpButton = rollUpButton;
+    _dirty = true;
 }
 
 method Window::opacity() -> UInt8 {
@@ -151,6 +157,7 @@ method Window::opacity() -> UInt8 {
 
 method Window::setOpacity(UInt8 opacity) -> Void {
     _opacity = opacity;
+    _dirty = true;
 }
 
 method Window::acquire() -> Void {
@@ -163,34 +170,42 @@ method Window::release() -> Void {
 
 method Window::clear(UInt8 palette, UInt8 color) -> Void {
     contentSurface->clear(palette, color);
+    _dirty = true;
 }
 
 method Window::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     contentSurface->drawLine(begin, end, palette, color, alpha);
+    _dirty = true;
 }
 
 method Window::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     contentSurface->drawRect(rect, fill, palette, color, alpha);
+    _dirty = true;
 }
 
 method Window::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
     contentSurface->drawCircle(origin, radius, fill, palette, color, alpha);
+    _dirty = true;
 }
 
 method Window::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha) -> Void {
     contentSurface->drawImageRect(rect, sourceRect, pixelBuffer, alpha);
+    _dirty = true;
 }
 
 method Window::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
     contentSurface->drawImageRectTransparent(rect, sourceRect, pixelBuffer, transparentColor, alpha);
+    _dirty = true;
 }
 
 method Window::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
     contentSurface->drawText(message, style, origin);
+    _dirty = true;
 }
 
 method Window::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
     contentSurface->drawSurface(src, dest, alpha);
+    _dirty = true;
 }
 
 method Window::contentOrigin() -> Point {
@@ -217,6 +232,8 @@ method Window::draw() -> Void{
     drawWindowContent();
     windowSurface->drawSurface(contentSurface, contentOrigin());
     drawWindowChrome();
+
+    _dirty = false;
 }
 
 // Draw the window chrome to the window's main surface.

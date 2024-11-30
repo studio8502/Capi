@@ -139,8 +139,7 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 
 			_buffer[target.y * _width + target.x] =
 				alpha_blend(_buffer[target.y * _width + target.x], 
-							pixelBuffer[i * src->width() + j], 
-							alpha);
+							pixelBuffer[i * src->width() + j]);
     	}
 	}
 	DataSyncBarrier();
