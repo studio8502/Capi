@@ -33,7 +33,11 @@ Multicore::Multicore(CMemorySystem *memory):
 Multicore::~Multicore() {}
 
 method Multicore::Run(UInt32 core_id) -> Void {
+
     switch (core_id) {
+    case 0: {
+		CScheduler::Get()->Sleep(5);
+    }
     case 1: {
             while (true) {
                 screen->updateDisplay();
@@ -60,17 +64,29 @@ method Multicore::Run(UInt32 core_id) -> Void {
 static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     var win = workspace->createWindow();
 
+    win->setTitle("Fancy Title");
+
     win->acquire();
 
-    win->resize(Size(450, 250));
+    win->resize(Size(450, 293));
     win->move(Point(x, y));
 
     win->clear(0, 22);
+    win->drawCircle(Point(0,0), 49 , true, 0, 15, 127);
+    win->drawCircle(Point(450,0), 49 , true, 0, 15, 127);
+    win->drawCircle(Point(0,293), 49 , true, 0, 15, 127);
+    win->drawCircle(Point(450, 293), 49 , true, 0, 15, 127);
     win->drawCircle(Point(50,50), 25, true, 0, 43);
     win->drawCircle(Point(60,60), 25, true, 0, 57, 127);
 
     win->drawRect(Rect(50,100,45,76), true, 0, 76);
     win->drawRect(Rect(49,99,46,77), false, 0, 0);
+
+
+    win->drawRect(Rect(-50,-50,10,10), true, 0, 76);
+    win->drawRect(Rect(-50,350,10,10), true, 0, 76);
+    win->drawRect(Rect(500,-50,10,10), true, 0, 76);
+    win->drawRect(Rect(500,350,10,10), true, 0, 76);
 
     var color = 0;
     var box = make_shared<Surface>(256, 256);
@@ -94,10 +110,10 @@ static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     var style = ParagraphStyle::DefaultStyle();
     style->setColor(SystemPalette[0][15]);
 
-    win->drawSurface(border, Point(165, 10));
-    win->drawSurface(box, Point(169, 14));
+    win->drawSurface(border, Point(175, 5));
+    win->drawSurface(box, Point(179, 9));
 
-    win->drawText(VersionString(), style, Point(2, 215));
+    win->drawText(VersionString(), style, Point(2, 255));
 
     win->release();
 

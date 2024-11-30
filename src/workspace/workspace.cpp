@@ -19,8 +19,6 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include <algorithm>
-
 #include "workspace/workspace.h"
 
 unique_ptr<Workspace> workspace = nullptr;
@@ -28,7 +26,8 @@ unique_ptr<Workspace> workspace = nullptr;
 Workspace::Workspace():
     surface(make_shared<Surface>(screen->width(), screen->height())),
     windowList(),
-    _dirty(true)
+    _dirty(true),
+    mouseCursor(make_shared<Surface>(8, 16))
 {
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
@@ -36,6 +35,10 @@ Workspace::Workspace():
 
     guard(surface != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for workspace!"));
+    }
+
+    guard(mouseCursor != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for mouse cursor!"));
     }
 }
 
@@ -100,4 +103,18 @@ method Workspace::createWindow() -> shared_ptr<Window> {
     _dirty = true;
 
     return win;
+}
+
+method Workspace::discardWindow(shared_ptr<Window> win) -> Void {
+    std::erase(windowList, win);
+}
+
+method Workspace::moveWindowToFront(shared_ptr<Window> win) -> Void {
+    std::erase(windowList, win);
+    windowList.insert(windowList.begin(), win);
+}
+
+method Workspace::moveWindowToBack(shared_ptr<Window> win) -> Void {
+    std::erase(windowList, win);
+    windowList.push_back(win);
 }

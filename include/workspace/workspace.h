@@ -40,12 +40,20 @@ public:
 
     method createWindow() -> shared_ptr<Window>;
 
+    method discardWindow(shared_ptr<Window> win) -> Void;
+
+    method moveWindowToFront(shared_ptr<Window> win) -> Void;
+
+    method moveWindowToBack(shared_ptr<Window> win) -> Void;
+
 private:
     shared_ptr<Surface> surface;
 
     std::vector<shared_ptr<Window>> windowList;
 
     bool _dirty;
+
+    shared_ptr<Surface> mouseCursor;
 };
 
 extern unique_ptr<Workspace> workspace;

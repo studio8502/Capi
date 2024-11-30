@@ -180,7 +180,7 @@ method Kernel::run() -> ShutdownMode {
 	using enum Kernel::ShutdownMode;
 
 	log.Write ("Kernel", LogNotice, VersionString());
-	log.Write ("Kernel", LogNotice, "Compiled on: " __DATE__ " at " __TIME__);
+	log.Write ("Kernel", LogNotice, "Built at " __TIME__ ", " __DATE__ "." );
 
 	// Mount file system
 	if (f_mount(&fatfs, "SD:", 1) != FR_OK) {
@@ -199,9 +199,7 @@ method Kernel::run() -> ShutdownMode {
 
 	multicore.Initialize();
 
-	while (true) {
-		CScheduler::Get()->Sleep(5);
-	}
+	multicore.Run(0);
 
 	return Halt;
 }

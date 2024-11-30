@@ -74,6 +74,10 @@ method Surface::clear(UInt8 palette, UInt8 color) -> Void {
 }
 
 method Surface::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+    var bounds = Rect(0,0,_width,_height);
+    guard (bounds.checkRect(rect) == true) else {
+        return;
+    }
 
     if (fill == true) {
 
@@ -160,11 +164,11 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
             target.x = begin.x;
             target.y = begin.y;
 
-            if (target.x > _width || target.y > _height) {
-                return;
-            } else if (target.x < 0 || target.y < 0) {
+            if (target.x > _width || target.x < 0 || target.y < 0) {
                 continue;
-            } 
+            } else if (target.y > _height) {
+                return;
+            }
 
 			buffer[width * begin.y + begin.x] = alpha_blend(buffer[width * begin.y + begin.x], lineColor, alpha);
 		}
@@ -184,11 +188,11 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
             target.x = begin.x;
             target.y = begin.y;
 
-            if (target.x > _width || target.y > _height) {
-                return;
-            } else if (target.x < 0 || target.y < 0) {
+            if (target.x > _width || target.x < 0 || target.y < 0) {
                 continue;
-            } 
+            } else if (target.y > _height) {
+                return;
+            }
 
 			buffer[width * begin.y + begin.x] = alpha_blend(buffer[width * begin.y + begin.x], lineColor, alpha);
 		}
@@ -196,6 +200,13 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
 }
 
 method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+
+    var area = Rect(origin.x - radius, origin.y - radius, radius * 2, radius * 2);
+    var bounds = Rect(0,0,_width,_height);
+    guard (bounds.checkRect(area) == true) else {
+        return;
+    }
+
     if (fill == true) {
         Color pixelValue = SystemPalette[palette][color];
         
@@ -220,11 +231,11 @@ method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette
                 target.x = nX + tx;
                 target.y = nY + ty;
 
-                if (target.x > _width || target.y > _height) {
-                    return;
-                } else if (target.x < 0 || target.y < 0) {
+                if (target.x > _width || target.x < 0 || target.y < 0) {
                     continue;
-                } 
+                } else if (target.y > _height) {
+                    return;
+                }
 
                 surface[width * (nY + ty) + nX + tx] = alpha_blend(surface[width * (nY + ty) + nX + tx], pixelValue, alpha);
             }
@@ -348,11 +359,11 @@ method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UI
             target.x = j + rect.x;
             target.y = rect.y + i;
 
-            if (target.x > _width || target.y > _height) {
-                return;
-            } else if (target.x < 0 || target.y < 0) {
+            if (target.x > _width || target.x < 0 || target.y < 0) {
                 continue;
-            } 
+            } else if (target.y > _height) {
+                return;
+            }
         
             buffer[(rect.y + i) * width + j + rect.x] = 
                 alpha_blend(buffer[(rect.y + i) * width + j + rect.x], 
@@ -377,11 +388,11 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixe
                 target.x = j + rect.x;
                 target.y = rect.y + i;
 
-                if (target.x > _width || target.y > _height) {
-                    return;
-                } else if (target.x < 0 || target.y < 0) {
+                if (target.x > _width || target.x < 0 || target.y < 0) {
                     continue;
-                } 
+                } else if (target.y > _height) {
+                    return;
+                }
             
                 buffer[(rect.y + i) * width + j + rect.x] = 
                     alpha_blend(buffer[(rect.y + i) * width + j + rect.x], 
@@ -412,9 +423,7 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) ->
 		{
             target.x = j + dest.x;
 		
-			if (target.x > _width || target.x > dest.x + src->width()) {
-				return;
-			} else if (target.x < 0) {
+			if (target.x < 0 || target.x > _width || target.x > dest.x + src->width()) {
 				continue;
 			}
 
@@ -469,10 +478,12 @@ static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alph
         var offset = surface->width() * y + x;
         var target = Point(x, y);
         var clip = Rect(0,0,surface->width(), surface->height());
-        
-        if (clip.checkPoint(target) == true) {
+            if (target.x > surface->width() || target.x < 0 || target.y < 0) {
+                continue;
+            } else if (target.y > surface->height()) {
+                return;
+            }
             buffer[offset] = alpha_blend(buffer[offset], context->style->color(), alpha);
-        }
 		x++;
 	}
 }

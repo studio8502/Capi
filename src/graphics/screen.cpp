@@ -33,7 +33,7 @@ Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
 	bufferSwapped(TRUE),
 	_bufferLock(),
 	_dirty(false),
-	dma(DMA_CHANNEL_EXTENDED, CInterruptSystem::Get())
+	dma(DMA_CHANNEL_NORMAL, CInterruptSystem::Get())
 {
     if (screen != nullptr) {
 		throw std::runtime_error("There can be only a single Screen instance!");
@@ -63,7 +63,7 @@ method Screen::initialize(void) -> Bool {
 		return false;
 	}
 	
-	return TRUE;
+	return true;
 }
 
 method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
@@ -156,11 +156,18 @@ method Screen::updateDisplay() -> Void {
 
 	if(vsync) {
 		framebuffer->WaitForVerticalSync();
-		memcpy(baseBuffer + bufferSwapped * _width * _height, _buffer, _width * _height * sizeof(Color));
+		dma.SetupMemCopy(baseBuffer + bufferSwapped * _width * _height, 
+						 _buffer, 
+						 _width * _height * sizeof(Color), 
+						 2, true);
+		dma.Start();
+		dma.Wait();
 		framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 		bufferSwapped = !bufferSwapped;
 	} else {
-		memcpy(baseBuffer, _buffer, _width * _height * sizeof(Color));
+		dma.SetupMemCopy(baseBuffer, _buffer, _width * _height * sizeof(Color), 2, true);
+		dma.Start();
+		dma.Wait();
 	}
 
 	_dirty = false;
