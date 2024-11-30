@@ -156,18 +156,11 @@ method Screen::updateDisplay() -> Void {
 
 	if(vsync) {
 		framebuffer->WaitForVerticalSync();
-		dma.SetupMemCopy(baseBuffer + bufferSwapped * _width * _height, 
-						 _buffer, 
-						 _width * _height * sizeof(Color), 
-						 2, true);
-		dma.Start();
-		dma.Wait();
+		memcpy(baseBuffer + bufferSwapped * _width * _height, _buffer, _width * _height * sizeof(Color));
 		framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 		bufferSwapped = !bufferSwapped;
 	} else {
-		dma.SetupMemCopy(baseBuffer, _buffer, _width * _height * sizeof(Color), 2, true);
-		dma.Start();
-		dma.Wait();
+		memcpy(baseBuffer, _buffer, _width * _height * sizeof(Color));
 	}
 
 	_dirty = false;
