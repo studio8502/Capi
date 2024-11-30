@@ -28,6 +28,8 @@
 #include "graphics/screen.h"
 #include "workspace/window.h"
 
+#define MENUBAR_HEIGHT 18
+
 class Workspace {
 public:
     Workspace();
@@ -54,6 +56,8 @@ private:
     bool _dirty;
 
     shared_ptr<Surface> mouseCursor;
+
+    shared_ptr<Window> menubar;
 };
 
 extern unique_ptr<Workspace> workspace;

@@ -27,7 +27,8 @@ Workspace::Workspace():
     surface(make_shared<Surface>(screen->width(), screen->height())),
     windowList(),
     _dirty(true),
-    mouseCursor(make_shared<Surface>(8, 16))
+    mouseCursor(make_shared<Surface>(8, 16)),
+    menubar(make_shared<Window>())
 {
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
@@ -40,6 +41,15 @@ Workspace::Workspace():
     guard(mouseCursor != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for mouse cursor!"));
     }
+
+    guard(menubar != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for menubar!"));
+    }
+
+    menubar->setIsDecorated(false);
+    menubar->move(Point(0, 0));
+    menubar->clear(0, 12);
+    menubar->resize(Size(screen->width(), MENUBAR_HEIGHT));
 }
 
 Workspace::~Workspace(){}
@@ -84,6 +94,9 @@ method Workspace::draw() -> Void {
             this->surface->drawSurface(win->surface(), win->origin(), win->opacity());
         }
     });
+
+    menubar->draw();
+    this->surface->drawSurface(menubar->surface(), menubar->origin(), menubar->opacity());
 
     surface->release();
 

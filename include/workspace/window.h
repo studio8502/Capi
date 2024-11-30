@@ -29,6 +29,7 @@
 
 class Window {
 public:
+    friend class Workspace;
 
     using WindowDrawCallback = function (*)(Window *) -> Void;
 
@@ -41,8 +42,6 @@ public:
     virtual method width() -> UInt64;
 
     virtual method height() -> UInt64;
-
-    method surface() -> shared_ptr<Surface>;
 
     method origin() -> Point;
 
@@ -65,6 +64,10 @@ public:
     method show() -> Void;
 
     method hide() -> Void;
+
+    method isDecorated() -> Bool;
+
+    method setIsDecorated(Bool decorated) -> Void;
 
     method hasCloseButton() -> Bool;
 
@@ -103,6 +106,8 @@ public:
     virtual method draw() -> Void;
 
 private:
+
+    method surface() -> shared_ptr<Surface>;
 
     virtual method drawWindowChrome() -> Void;
 

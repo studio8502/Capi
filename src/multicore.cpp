@@ -61,17 +61,9 @@ method Multicore::Run(UInt32 core_id) -> Void {
     log->Write("Core 1", LogNotice, "Running!");
 }
 
-static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
-    var win = workspace->createWindow();
-
-    win->setTitle("Fancy Title");
-
+static function drawWindow(Window *win) {win->clear(0, 22);
     win->acquire();
 
-    win->resize(Size(450, 293));
-    win->move(Point(x, y));
-
-    win->clear(0, 22);
     win->drawCircle(Point(0,0), 49 , true, 0, 15, 127);
     win->drawCircle(Point(450,0), 49 , true, 0, 15, 127);
     win->drawCircle(Point(0,293), 49 , true, 0, 15, 127);
@@ -116,6 +108,15 @@ static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     win->drawText(VersionString(), style, Point(2, 255));
 
     win->release();
+}
+
+static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
+    var win = workspace->createWindow();
+
+    win->setDrawCallback(drawWindow);
+    win->setTitle("Fancy Title");
+    win->resize(Size(450, 293));
+    win->move(Point(x, y));
 
     return win;
 }

@@ -20,7 +20,6 @@
  ****************************************************************************/
 
 #include "workspace/window.h"
-#include "graphics/screen.h"
 #include "graphics/font_lexend.h"
 
 String Window::defaultTitle = "Default Title";
@@ -57,6 +56,14 @@ method Window::title() -> String {
 
 method Window::setTitle(String title) -> Void {
     _title = title;
+}
+
+method Window::isDecorated() -> Bool {
+    return _isDecorated;
+}
+
+method Window::setIsDecorated(Bool decorated) -> Void {
+    _isDecorated = decorated;
 }
 
 method Window::width() -> UInt64 {
@@ -214,6 +221,7 @@ method Window::draw() -> Void{
 
 // Draw the window chrome to the window's main surface.
 method Window::drawWindowChrome() -> Void {
+
     if (_isDecorated == false) {
         return;
     }
@@ -297,6 +305,7 @@ method Window::drawWindowChrome() -> Void {
 // Draw the window content to the window's content surface.
 method Window::drawWindowContent() -> Void {
     contentSurface->acquire();
+    contentSurface->clear(0, 12);
     if (drawCallback != nullptr) {
         drawCallback(this);
     }
