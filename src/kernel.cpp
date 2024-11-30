@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "kernel.h"
+#include "event.h"
 #include "workspace/workspace.h"
 
 #define NTPServer "pool.ntp.org"
@@ -146,11 +147,15 @@ method Kernel::keyPressedHandler(const char *str) -> Void {
 
 method Kernel::mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove) -> Void {
 	switch (Event) {
-	case MouseEventMouseMove:
-		staticThis->mousePosition.x = nPosX;
-		staticThis->mousePosition.y = nPosY;
-		staticThis->mousebuttons = nButtons;
-		staticThis->mouseScroll = nWheelMove;
+	case MouseEventMouseMove: {
+			staticThis->mousePosition.x = nPosX;
+			staticThis->mousePosition.y = nPosY;
+			staticThis->mousebuttons = nButtons;
+			staticThis->mouseScroll = nWheelMove;
+
+			var evt = Event::mouseEvent(Event::MouseEventType::move, nPosX, nPosY);
+			eventQueue.push(evt);
+		}
 		break;
 	default:
 		break;
@@ -188,14 +193,14 @@ method Kernel::run() -> ShutdownMode {
 		
 	new CPUMonitor();
 
+	new USBPNPMonitor();
+
 	taskScheduler.ListTasks(&debugPort);
 
 	multicore.Initialize();
 
 	while (true) {
-		kernel->updateUSB();
-
-		CScheduler::Get()->Yield();
+		CScheduler::Get()->Sleep(5);
 	}
 
 	return Halt;
@@ -217,6 +222,26 @@ method Kernel::CPUMonitor::Run() -> Void {
 	
 	while (true) {
 		CCPUThrottle::Get()->Update();
-		CScheduler::Get()->Sleep(2);
+		CScheduler::Get()->Sleep(5);
+	}
+}
+
+Kernel::USBPNPMonitor::USBPNPMonitor() {
+
+}
+
+Kernel::USBPNPMonitor::~USBPNPMonitor() {
+
+}
+
+method Kernel::USBPNPMonitor::Run() -> Void {
+
+	SetName("USB PnP Monitor");
+
+	CCPUThrottle::Get()->SetSpeed(CPUSpeedMaximum);
+	
+	while (true) {
+		kernel->updateUSB();
+		CScheduler::Get()->Sleep(1);
 	}
 }

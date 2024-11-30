@@ -48,16 +48,24 @@ public:
 		method Run() -> Void;
 	};
 
+	class USBPNPMonitor: CTask {
+	public:
+		USBPNPMonitor();
+		~USBPNPMonitor();
+
+		method Run() -> Void;
+	};
+
 	Kernel();
 
 	method initialize() -> Bool;
+
+	method updateUSB() -> Void;
 
 	method run() -> ShutdownMode;
 
 private:
 	static method magicRebootStringHandler() -> Void;
-
-	method updateUSB() -> Void;
 	static method mouseRemovedHandler(CDevice *pDevice, void *pContext) -> Void;
 	static method keyboardRemovedHandler(CDevice *pDevice, void *pContext) -> Void;
 	static method gamePadRemovedHandler (CDevice *pad, void *context) -> Void;
