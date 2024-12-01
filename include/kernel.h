@@ -32,6 +32,7 @@ class Kernel
 {
 public:
 	friend class Multicore;
+	friend class FPSMonitor;
 
 	enum class ShutdownMode
 	{
@@ -55,6 +56,16 @@ public:
 
 		method Run() -> Void;
 	};
+
+	class FPSMonitor: CTask {
+	public:
+		FPSMonitor();
+		~FPSMonitor();
+
+		method Run() -> Void;
+	};
+
+	Double fps;
 
 	Kernel();
 

@@ -21,6 +21,7 @@
 
 #include "kernel.h"
 #include "event.h"
+#include "graphics/screen.h"
 #include "workspace/workspace.h"
 
 #define NTPServer "pool.ntp.org"
@@ -30,6 +31,7 @@ static const char *magicRebootString = "DEADC0DE";
 static Kernel *staticThis = nullptr;
 
 Kernel::Kernel():
+	fps(0.0),
 	irq(CInterruptSystem::Get()),
 	systemTimer(irq),
 	debugPort(irq, true, 0),
@@ -195,6 +197,8 @@ method Kernel::run() -> ShutdownMode {
 
 	new USBPNPMonitor();
 
+	new FPSMonitor();
+
 	taskScheduler.ListTasks(&debugPort);
 
 	multicore.Initialize();
@@ -240,6 +244,26 @@ method Kernel::USBPNPMonitor::Run() -> Void {
 	
 	while (true) {
 		kernel->updateUSB();
+		CScheduler::Get()->Sleep(1);
+	}
+}
+
+Kernel::FPSMonitor::FPSMonitor() {
+
+}
+
+Kernel::FPSMonitor::~FPSMonitor() {
+
+}
+
+method Kernel::FPSMonitor::Run() -> Void {
+
+	SetName("FPS Monitor");
+
+	while (true) {
+		kernel->fps = screen->fpsCounter;
+		screen->fpsCounter = 1.0;
+		workspace->setDirtyFlag();
 		CScheduler::Get()->Sleep(1);
 	}
 }

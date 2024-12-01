@@ -28,7 +28,9 @@
 class Screen {
 public:
 
-	Screen(UInt32 width, UInt32 height, Bool vsync = true, UInt8 display = 0);
+	Double fpsCounter;
+
+	Screen(UInt32 width, UInt32 height, UInt8 display = 0);
 
 	~Screen(void);
 
@@ -54,7 +56,6 @@ public:
 
     method updateDisplay() -> Void;
 	
-
 private:
 	UInt32 _width;
 	UInt32 _height;
@@ -64,7 +65,6 @@ private:
 	
     Color *baseBuffer;
 	Color *_buffer;
-	boolean vsync;
 	boolean bufferSwapped;
 	CSpinLock _bufferLock;
 	Bool _dirty;

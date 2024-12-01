@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "workspace/workspace.h"
+#include "kernel.h"
 
 unique_ptr<Workspace> workspace = nullptr;
 
@@ -93,6 +94,10 @@ method Workspace::draw() -> Void {
     });
 
     surface->drawSurface(menubar, Point(0, 0));
+
+    char buffer[255];
+    sprintf(buffer, "%.2ffps", kernel->fps);
+    surface->drawText(buffer, ParagraphStyle::DefaultStyle(), Point(3,525));
 
     screen->acquire();
 

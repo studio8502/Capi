@@ -23,13 +23,13 @@
 
 unique_ptr<Screen> screen;
 
-Screen::Screen(UInt32 width, UInt32 height, Bool vsync, UInt8 display):
+Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
+	fpsCounter(0.0),
  	_width(width),
 	_height(height),
 	display (display),
 	framebuffer(nullptr),
 	_buffer(nullptr),
-	vsync(vsync),
 	bufferSwapped(TRUE),
 	_bufferLock(),
 	_dirty(false),
@@ -146,29 +146,19 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 }
 
 method Screen::updateDisplay() -> Void {
-
-	if (_dirty == false) {
-		return;
-	}
-
 	_bufferLock.Acquire();
-
-	if(vsync) {
-		framebuffer->WaitForVerticalSync();
+	framebuffer->WaitForVerticalSync();
+	fpsCounter += 1.0;
+	if (_dirty == true) {
 		dma.SetupMemCopy(baseBuffer + bufferSwapped * _width * _height, 
-						 _buffer, 
-						 _width * _height * sizeof(Color), 
-						 2, true);
+							_buffer, 
+							_width * _height * sizeof(Color), 
+							2, true);
 		dma.Start();
 		dma.Wait();
 		framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 		bufferSwapped = !bufferSwapped;
-	} else {
-		dma.SetupMemCopy(baseBuffer, _buffer, _width * _height * sizeof(Color), 2, true);
-		dma.Start();
-		dma.Wait();
+		_dirty = false;
 	}
-
-	_dirty = false;
 	_bufferLock.Release();
 }

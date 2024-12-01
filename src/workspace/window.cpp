@@ -106,6 +106,7 @@ method Window::contentRect() -> Rect {
 method Window::move(Point point) -> Void {
     _x = point.x;
     _y = point.y;
+    workspace->setDirtyFlag();
 }
 
 method Window::resize(Size size) -> Void {
