@@ -36,17 +36,48 @@ Surface::Surface(Size size):
     _height(size.height),
     _data(shared_ptr<Color[]>(new Color[size.width * size.height])),
     _lock()
-{}
+{
+    reset(RGBA(0x00000000));
+}
 
 Surface::Surface(UInt32 width, UInt32 height):
     _width(width),
     _height(height),
     _data(shared_ptr<Color[]>(new Color[width * height])),
     _lock()
-{}
+{
+    reset(RGBA(0x00000000));
+}
 
 Surface::~Surface() {
     _data.reset();
+}
+
+method Surface::reset(Color color) -> Void {
+    var bounds = Rect(0,0,_width,_height);
+    
+    var buffer = _data.get();
+    var target = Point(0, 0);
+    
+    for(unsigned i = bounds.y; i < bounds.y + bounds.height; i += 1) {
+
+        target.y = i;
+    
+        if (target.y > _height) {
+            return;
+        } else if (target.y < 0) {
+            continue;
+        }
+
+        for(unsigned j = bounds.x; j < bounds.x + bounds.width; j += 1) {
+
+            target.x = j;
+
+            var offset = i * _width + j;
+            
+            buffer[offset] = color;
+        }
+    }
 }
 
 method Surface::width() -> UInt64 {
@@ -69,11 +100,11 @@ method Surface::release() -> Void {
     _lock.Release();
 }
 
-method Surface::clear(UInt8 palette, UInt8 color) -> Void {
-    drawRect(Rect(0,0,_width,_height), true, palette, color);
+method Surface::clear(Color color) -> Void {
+    drawRect(Rect(0,0,_width,_height), true, color);
 }
 
-method Surface::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Surface::drawRect(Rect rect, Bool fill, Color color) -> Void {
     var bounds = Rect(0,0,_width,_height);
     guard (bounds.checkRect(rect) == true) else {
         return;
@@ -83,7 +114,7 @@ method Surface::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8
 
         var buffer = _data.get();
         var target = Point(0, 0);
-        Color c = (SystemPalette[palette][color] & 0x00FFFFFF)| (alpha << 24 & 0xFF000000);
+        Color c = color;
         
         for(unsigned i = rect.y; i < rect.y + rect.height; i += 1) {
 
@@ -110,28 +141,28 @@ method Surface::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8
                 buffer[offset] = alpha_blend(buffer[offset], c);
             }
         }
-    } else {    
+    } else {   
         var begin = Point(rect.x, rect.y);
         var end = Point(rect.x + rect.width, rect.y);
-        drawLine(begin, end, palette, color, alpha);
+        drawLine(begin, end, color);
 
         begin = end;
         end.y += rect.height;
-        drawLine(begin, end, palette, color, alpha);
+        drawLine(begin, end, color);
 
         begin = end;
         end.x -= rect.width;
-        drawLine(begin, end, palette, color, alpha);
+        drawLine(begin, end, color);
 
         begin = end;
         end.y -= rect.height;
-        drawLine(begin, end, palette, color, alpha);
+        drawLine(begin, end, color);
     }
 }
 
-method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Surface::drawLine(Point begin, Point end, Color color) -> Void {
 
-    Color lineColor = (SystemPalette[palette][color] & 0x00FFFFFF)| (alpha << 24 & 0xFF000000);
+    Color lineColor = color;
 	
 	int dx = end.x - begin.x;
 	int dy = end.y - begin.y;
@@ -199,16 +230,16 @@ method Surface::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UIn
 	}
 }
 
-method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
+method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void {
 
     var area = Rect(origin.x - radius, origin.y - radius, radius * 2, radius * 2);
     var bounds = Rect(0,0,_width,_height);
+    Color pixelValue = color;
     guard (bounds.checkRect(area) == true) else {
         return;
     }
 
     if (fill == true) {
-        Color pixelValue = (SystemPalette[palette][color] & 0x00FFFFFF)| (alpha << 24 & 0xFF000000);
         
         unsigned nX = origin.x;
         unsigned nY = origin.y;
@@ -240,9 +271,7 @@ method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette
                 surface[width * (nY + ty) + nX + tx] = alpha_blend(surface[width * (nY + ty) + nX + tx], pixelValue);
             }
         }
-    } else {
-        Color pixelValue = SystemPalette[palette][color] | (alpha << 24 & 0xFF000000);
-            
+    } else {            
         unsigned nX = origin.x;
         unsigned nY = origin.y;
         var buffer = _data.get();
@@ -345,7 +374,7 @@ method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette
     }
 }
 
-method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha) -> Void {
+method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) -> Void {
     var target = Point(0 ,0);
 	var buffer = _data.get();
 	var width = _width;
@@ -366,12 +395,12 @@ method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UI
             }
         
             buffer[(rect.y + i) * width + j + rect.x] = 
-                alpha_blend_override(buffer[(rect.y + i) * width + j + rect.x], sourcePixel, alpha);
+                alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
 		}
 	}
 }
 
-method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
+method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor) -> Void {
     var target = Point(0, 0);
 	var buffer = _data.get();
 	var width = _width;
@@ -393,13 +422,13 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixe
                 }
             
                 buffer[(rect.y + i) * width + j + rect.x] = 
-                    alpha_blend_override(buffer[(rect.y + i) * width + j + rect.x], sourcePixel, alpha);
+                    alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
             }
 		}
 	}
 }
 
-method Surface::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
+method Surface::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
 
     var target = Point(0 ,0);
 	var pixelBuffer = src.get()->data();
@@ -424,8 +453,8 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) ->
 			}
 
 			buffer[target.y * _width + target.x] =
-				alpha_blend_override(buffer[target.y * _width + target.x], 
-							pixelBuffer[i * src->width() + j], alpha);
+				alpha_blend(buffer[target.y * _width + target.x], 
+							pixelBuffer[i * src->width() + j]);
     	}
 	}
     DataSyncBarrier();

@@ -28,7 +28,7 @@ Workspace::Workspace():
     windowList(),
     _dirty(true),
     mouseCursor(make_shared<Surface>(8, 16)),
-    menubar(make_shared<Window>())
+    menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT))
 {
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
@@ -45,14 +45,13 @@ Workspace::Workspace():
     guard(menubar != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for menubar!"));
     }
-
-    menubar->setIsDecorated(false);
-    menubar->move(Point(0, 0));
-    menubar->clear(0, 12);
-    menubar->resize(Size(screen->width(), MENUBAR_HEIGHT));
 }
 
 Workspace::~Workspace(){}
+
+method Workspace::setDirtyFlag() -> Void {
+    _dirty = true;
+}
 
 method Workspace::resize (unsigned width, unsigned height) -> Void {
     var mouse = dynamic_cast<CMouseDevice *>(CDeviceNameService::Get()->GetDevice("mouse1", FALSE));
@@ -84,27 +83,24 @@ method Workspace::draw() -> Void {
         return;
     }
 
-    surface->acquire();
-
-    surface->clear(0, 15);
+    surface->clear(SystemPalette[0][15]);
 
     std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
         if (win->isVisible()) {
             win->draw();
-            this->surface->drawSurface(win->surface(), win->origin(), win->opacity());
+            this->surface->drawSurface(win->surface(), win->origin());
         }
     });
 
-    menubar->draw();
-    this->surface->drawSurface(menubar->surface(), menubar->origin(), menubar->opacity());
-
-    surface->release();
+    surface->drawSurface(menubar, Point(0, 0));
 
     screen->acquire();
 
     screen->drawSurface(surface, Point(0, 0));
 
     screen->release();
+
+    _dirty = false;
 }
 
 method Workspace::createWindow() -> shared_ptr<Window> {
@@ -120,14 +116,20 @@ method Workspace::createWindow() -> shared_ptr<Window> {
 
 method Workspace::discardWindow(shared_ptr<Window> win) -> Void {
     std::erase(windowList, win);
+
+    _dirty = true;
 }
 
 method Workspace::moveWindowToFront(shared_ptr<Window> win) -> Void {
     std::erase(windowList, win);
     windowList.insert(windowList.begin(), win);
+
+    _dirty = true;
 }
 
 method Workspace::moveWindowToBack(shared_ptr<Window> win) -> Void {
     std::erase(windowList, win);
     windowList.push_back(win);
+
+    _dirty = true;
 }

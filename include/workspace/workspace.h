@@ -48,6 +48,8 @@ public:
 
     method moveWindowToBack(shared_ptr<Window> win) -> Void;
 
+    method setDirtyFlag() -> Void;
+
 private:
     shared_ptr<Surface> surface;
 
@@ -57,7 +59,7 @@ private:
 
     shared_ptr<Surface> mouseCursor;
 
-    shared_ptr<Window> menubar;
+    shared_ptr<Surface> menubar;
 };
 
 extern unique_ptr<Workspace> workspace;

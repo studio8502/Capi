@@ -30,7 +30,7 @@
 using Color = TScreenColor;
 
 #define ALPHA(C, A) ({ \
-    ((((C)) & 0x00FFFFFF) | ((A))) \
+    ((((C)) & 0x00FFFFFF) | ((A << 24))); \
 })
 
 // Take an RGB value in the form 0xAABBCC and turn it into a screen colour.

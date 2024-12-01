@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "workspace/window.h"
+#include "workspace/workspace.h"
 #include "graphics/font_lexend.h"
 
 String Window::defaultTitle = "Default Title";
@@ -32,7 +33,7 @@ Window::Window():
     _height(100),
     _isDecorated(true),
     _hasTitlebar(true),
-    _isVisible(true),
+    _isVisible(false),
     _hasCloseButton(true),
     _hasRollUpButton(true),
     _opacity(255),
@@ -66,6 +67,7 @@ method Window::isDecorated() -> Bool {
 method Window::setIsDecorated(Bool decorated) -> Void {
     _isDecorated = decorated;
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::width() -> UInt64 {
@@ -114,11 +116,13 @@ method Window::resize(Size size) -> Void {
     windowSurface = make_shared<Surface>(size);
     contentSurface = make_shared<Surface>(contentRect().size());
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::setDrawCallback(WindowDrawCallback callback) -> Void {
     drawCallback = callback;
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::isVisible() -> Bool {
@@ -127,10 +131,13 @@ method Window::isVisible() -> Bool {
 
 method Window::show() -> Void {
     _isVisible = true;
+    _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::hide() -> Void {
     _isVisible = false;
+    workspace->setDirtyFlag();
 }
 
 method Window::hasCloseButton() -> Bool {
@@ -140,6 +147,7 @@ method Window::hasCloseButton() -> Bool {
 method Window::setHasCloseButton(Bool closeButton) -> Void {
     _hasCloseButton = closeButton;
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::hasRollUpButton() -> Bool {
@@ -149,6 +157,7 @@ method Window::hasRollUpButton() -> Bool {
 method Window::setHasRollUpButton(Bool rollUpButton) -> Void {
     _hasRollUpButton = rollUpButton;
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::opacity() -> UInt8 {
@@ -158,6 +167,7 @@ method Window::opacity() -> UInt8 {
 method Window::setOpacity(UInt8 opacity) -> Void {
     _opacity = opacity;
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::acquire() -> Void {
@@ -168,44 +178,52 @@ method Window::release() -> Void {
     _lock.Release();
 }
 
-method Window::clear(UInt8 palette, UInt8 color) -> Void {
-    contentSurface->clear(palette, color);
+method Window::clear(Color color) -> Void {
+    contentSurface->clear(color);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
-    contentSurface->drawLine(begin, end, palette, color, alpha);
+method Window::drawLine(Point begin, Point end, Color color) -> Void {
+    contentSurface->drawLine(begin, end, color);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
-    contentSurface->drawRect(rect, fill, palette, color, alpha);
+method Window::drawRect(Rect rect, Bool fill, Color color) -> Void {
+    contentSurface->drawRect(rect, fill, color);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha) -> Void {
-    contentSurface->drawCircle(origin, radius, fill, palette, color, alpha);
+method Window::drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void {
+    contentSurface->drawCircle(origin, radius, fill, color);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha) -> Void {
-    contentSurface->drawImageRect(rect, sourceRect, pixelBuffer, alpha);
+method Window::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) -> Void {
+    contentSurface->drawImageRect(rect, sourceRect, pixelBuffer);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha) -> Void {
-    contentSurface->drawImageRectTransparent(rect, sourceRect, pixelBuffer, transparentColor, alpha);
+method Window::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor) -> Void {
+    contentSurface->drawImageRectTransparent(rect, sourceRect, pixelBuffer, transparentColor);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
     contentSurface->drawText(message, style, origin);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
-method Window::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
-    contentSurface->drawSurface(src, dest, alpha);
+method Window::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
+    contentSurface->drawSurface(src, dest);
     _dirty = true;
+    workspace->setDirtyFlag();
 }
 
 method Window::contentOrigin() -> Point {
@@ -226,7 +244,7 @@ method Window::draw() -> Void{
     }
 
     windowSurface->acquire();
-    windowSurface->clear(0, 12);
+    windowSurface->clear(SystemPalette[0][12]);
     windowSurface->release();
 
     drawWindowContent();
@@ -246,7 +264,7 @@ method Window::drawWindowChrome() -> Void {
 
     var windowBorder = Rect(0,0,_width - 1, _height - 1);
 
-    windowSurface->drawRect(windowBorder, false, 0, 3);
+    windowSurface->drawRect(windowBorder, false, SystemPalette[0][2]);
 
     var contentBorder = Rect(0,0,0,0);
 
@@ -266,22 +284,22 @@ method Window::drawWindowChrome() -> Void {
         contentBorder.height = _height - WINDOW_BORDER_WIDTH * 2 + 1;
     }
 
-    windowSurface->drawRect(contentBorder, false, 0, 4);
+    windowSurface->drawRect(contentBorder, false, SystemPalette[0][4]);
 
     if (_hasTitlebar == true) {
 
         var lineStart = Point(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1);
         var lineEnd = Point(_width - WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH -1);
-        windowSurface->drawLine(lineStart, lineEnd, 0, 0);
+        windowSurface->drawLine(lineStart, lineEnd, SystemPalette[0][0]);
         lineStart.y += 3;
         lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0, 0);
+        windowSurface->drawLine(lineStart, lineEnd, SystemPalette[0][0]);
         lineStart.y += 3;
         lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0, 0);
+        windowSurface->drawLine(lineStart, lineEnd, SystemPalette[0][0]);
         lineStart.y += 3;
         lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0, 0);
+        windowSurface->drawLine(lineStart, lineEnd, SystemPalette[0][0]);
 
         if (_hasCloseButton == true) {
             var closeButtonMargin = Rect(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1, 12, 12);
@@ -292,10 +310,10 @@ method Window::drawWindowChrome() -> Void {
             var closeSymbolStart2 = Point(WINDOW_BORDER_WIDTH + 2, WINDOW_BORDER_WIDTH + 5);
             var closeSymbolEnd2 = Point(WINDOW_BORDER_WIDTH + 5, WINDOW_BORDER_WIDTH + 2);
 
-            windowSurface->drawRect(closeButtonMargin, true, 0, 12);
-            windowSurface->drawRect(closeButtonBorder, false, 0, 0);
-            windowSurface->drawLine(closeSymbolStart1, closeSymbolEnd1, 0, 0);
-            windowSurface->drawLine(closeSymbolStart2, closeSymbolEnd2, 0, 0);
+            windowSurface->drawRect(closeButtonMargin, true, SystemPalette[0][12]);
+            windowSurface->drawRect(closeButtonBorder, false, SystemPalette[0][0]);
+            windowSurface->drawLine(closeSymbolStart1, closeSymbolEnd1, SystemPalette[0][0]);
+            windowSurface->drawLine(closeSymbolStart2, closeSymbolEnd2, SystemPalette[0][0]);
         }
 
         if (_hasRollUpButton == true) {
@@ -309,7 +327,7 @@ method Window::drawWindowChrome() -> Void {
             var centerX = _width / 2;
             var titleX = centerX - titleWidth / 2;
             var titleBGRect = Rect(titleX - 6, 1, titleWidth + 12, WINDOW_TITLEBAR_HEIGHT - 2);
-            windowSurface->drawRect(titleBGRect, true, 0, 12);
+            windowSurface->drawRect(titleBGRect, true, SystemPalette[0][12]);
             windowSurface->drawText(_title, titleStyle, Point(centerX, 1));
         }
     } else {
@@ -322,7 +340,7 @@ method Window::drawWindowChrome() -> Void {
 // Draw the window content to the window's content surface.
 method Window::drawWindowContent() -> Void {
     contentSurface->acquire();
-    contentSurface->clear(0, 12);
+    contentSurface->clear(SystemPalette[0][12]);
     if (drawCallback != nullptr) {
         drawCallback(this);
     }

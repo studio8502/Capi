@@ -47,6 +47,10 @@ method Multicore::Run(UInt32 core_id) -> Void {
     case 2: {
             var win1 = createWindow(300, 200);
             var win2 = createWindow(200, 100);
+
+            win1->show();
+            win2->show();
+
             while (true) {
                 workspace->draw();
             }
@@ -61,39 +65,40 @@ method Multicore::Run(UInt32 core_id) -> Void {
     log->Write("Core 1", LogNotice, "Running!");
 }
 
-static function drawWindow(Window *win) {win->clear(0, 22);
+static function drawWindow(Window *win) {
+    win->clear(SystemPalette[0][22]);
     win->acquire();
 
-    win->drawCircle(Point(0,0), 49 , true, 0, 15, 127);
-    win->drawCircle(Point(450,0), 49 , true, 0, 15, 127);
-    win->drawCircle(Point(0,293), 49 , true, 0, 15, 127);
-    win->drawCircle(Point(450, 293), 49 , true, 0, 15, 127);
-    win->drawCircle(Point(50,50), 25, true, 0, 43);
-    win->drawCircle(Point(60,60), 25, true, 0, 57, 127);
+    win->drawCircle(Point(0,0), 60 , true, ALPHA(SystemPalette[0][15], 127));
+    win->drawCircle(Point(450,0), 49 , true, ALPHA(SystemPalette[0][15], 127));
+    win->drawCircle(Point(0,293), 49 , true, ALPHA(SystemPalette[0][15], 127));
+    win->drawCircle(Point(450, 293), 49 , true, ALPHA(SystemPalette[0][15], 127));
+    win->drawCircle(Point(50,50), 25, true, SystemPalette[0][43]);
+    win->drawCircle(Point(60,60), 25, true, ALPHA(SystemPalette[0][57], 127));
 
-    win->drawRect(Rect(50,100,45,76), true, 0, 76, 127);
-    win->drawRect(Rect(49,99,46,77), false, 0, 0, 127);
+    win->drawRect(Rect(50,100,45,76), true, ALPHA(SystemPalette[0][15], 127));
+    win->drawRect(Rect(49,99,46,77), false, SystemPalette[0][0]);
 
 
-    win->drawRect(Rect(-50,-50,10,10), true, 0, 76);
-    win->drawRect(Rect(-50,350,10,10), true, 0, 76);
-    win->drawRect(Rect(500,-50,10,10), true, 0, 76);
-    win->drawRect(Rect(500,350,10,10), true, 0, 76);
+    win->drawRect(Rect(-50,-50,10,10), true, SystemPalette[0][15]);
+    win->drawRect(Rect(-50,350,10,10), true, SystemPalette[0][15]);
+    win->drawRect(Rect(500,-50,10,10), true, SystemPalette[0][15]);
+    win->drawRect(Rect(500,350,10,10), true, SystemPalette[0][15]);
 
     var color = 0;
     var box = make_shared<Surface>(256, 256);
     var border = make_shared<Surface>(264, 264);
     
     border->acquire();
-    border->clear(0, 0);
+    border->clear(SystemPalette[0][0]);
     border->release();
 
     box->acquire();
-    box->clear(0, 0);
+    box->clear(SystemPalette[0][0]);
     for (var row = 0; row < 16; row += 1) {     
         for (var col = 0; col < 16; col += 1) {
             var rect = Rect(col * 16, row * 16, 16, 16);
-            box->drawRect(rect, true, 0, color);
+            box->drawRect(rect, true, SystemPalette[0][color]);
             color += 1;
         }
     }

@@ -50,6 +50,8 @@ public:
     
     ~Surface();
 
+    method reset(Color color) -> Void;
+
     virtual method width() -> UInt64;
 
     virtual method height() -> UInt64;
@@ -62,19 +64,19 @@ public:
 
     // The functions below require holding the spinlock or crashes may result.
 
-	virtual method clear(UInt8 palette, UInt8 color) -> Void;
+    virtual method clear(Color color) -> Void;
 
-    method drawLine(Point begin, Point end, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+    method drawLine(Point begin, Point end, Color color) -> Void;
 
-    method drawRect(Rect rect, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+    method drawRect(Rect rect, Bool fill, Color color) -> Void;
 
-    method drawCircle(Point origin, UInt32 radius, Bool fill, UInt8 palette, UInt8 color, UInt8 alpha = 255) -> Void;
+    method drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void;
 
-    method drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer, UInt8 alpha = 255) -> Void;
+    method drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) -> Void;
 
-    method drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor, UInt8 alpha = 255) -> Void;
+    method drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor) -> Void;
 
-    method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
+    method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
 
     method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
 
