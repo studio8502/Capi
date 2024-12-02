@@ -262,7 +262,7 @@ method Kernel::FPSMonitor::Run() -> Void {
 
 	while (true) {
 		kernel->fps = screen->fpsCounter;
-		screen->fpsCounter = 1.0;
+		screen->fpsCounter = 0.0;
 		workspace->setDirtyFlag();
 		CScheduler::Get()->Sleep(1);
 	}

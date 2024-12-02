@@ -25,7 +25,7 @@
 unique_ptr<Workspace> workspace = nullptr;
 
 Workspace::Workspace():
-    surface(make_shared<Surface>(screen->width(), screen->height())),
+    buffer(nullptr),
     windowList(),
     _dirty(true),
     mouseCursor(make_shared<Surface>(8, 16)),
@@ -33,10 +33,6 @@ Workspace::Workspace():
 {
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
-    }
-
-    guard(surface != nullptr) else {
-        throw(std::runtime_error("Failed to allocate surface for workspace!"));
     }
 
     guard(mouseCursor != nullptr) else {
@@ -60,13 +56,6 @@ method Workspace::resize (unsigned width, unsigned height) -> Void {
     if (mouse != nullptr) {
 	    mouse->Release();
     }
-    
-    surface.reset();
-    
-    surface = make_shared<Surface>(width, height);
-    guard(surface != nullptr) else {
-        throw(std::runtime_error("Failed to allocate surface for workspace!"));
-    }
 
     screen->acquire();
     screen->resize(width, height);
@@ -79,29 +68,33 @@ method Workspace::resize (unsigned width, unsigned height) -> Void {
     }
 }
 
+char msg[256];
+
+method Workspace::update(Int64 delta) -> Void {
+    sprintf(msg, "%.2ffps", kernel->fps);
+}
+
 method Workspace::draw() -> Void {
     guard (_dirty == true) else {
-        return;
+       return;
     }
 
-    surface->clear(SystemPalette[0][15]);
+    screen->acquire();
+
+    screen->clear();
 
     std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
         if (win->isVisible()) {
             win->draw();
-            this->surface->drawSurface(win->surface(), win->origin());
+            screen->drawSurface(win->surface(), win->origin());
         }
     });
 
-    surface->drawSurface(menubar, Point(0, 0));
+    menubar->clear(SystemPalette[0][12]);
 
-    char buffer[255];
-    sprintf(buffer, "%.2ffps", kernel->fps);
-    surface->drawText(buffer, ParagraphStyle::DefaultStyle(), Point(3,525));
-
-    screen->acquire();
-
-    screen->drawSurface(surface, Point(0, 0));
+    menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,3));
+    
+    screen->drawSurface(menubar, Point(0, 0));
 
     screen->release();
 

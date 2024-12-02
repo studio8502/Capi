@@ -20,11 +20,14 @@
  ****************************************************************************/
 
 #include "graphics/screen.h"
+#include "workspace/workspace.h"
+#include "kernel.h"
 
 unique_ptr<Screen> screen;
 
 Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 	fpsCounter(0.0),
+	fps(0.0),
  	_width(width),
 	_height(height),
 	display (display),
@@ -104,9 +107,9 @@ method Screen::buffer() -> Color * {
 	return _buffer;
 }
 
-method Screen::clear(UInt8 palette, UInt8 color) -> Void {
+method Screen::clear() -> Void {
 
-    Color c = SystemPalette[palette][color];
+    Color c = RGBA(0xFFFFFFFF);
 
 	memset(_buffer, c, _width * _height * sizeof(Color));
 }
@@ -145,20 +148,33 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 	DataSyncBarrier();
 }
 
+method Screen::fpsLimit() -> UInt8 {
+	return (_width > 960) || (_height > 540) ? 30 : 60;
+}
+
 method Screen::updateDisplay() -> Void {
+	using namespace std::chrono;
+    using dsec = duration<double>;
+    var limit = duration_cast<system_clock::duration>(dsec{1.0/fpsLimit()});
+    var beginFrame = system_clock::now();
+    var endFrame = beginFrame + limit;
+
 	_bufferLock.Acquire();
 	framebuffer->WaitForVerticalSync();
-	fpsCounter += 1.0;
-	if (_dirty == true) {
-		dma.SetupMemCopy(baseBuffer + bufferSwapped * _width * _height, 
-							_buffer, 
-							_width * _height * sizeof(Color), 
-							2, true);
-		dma.Start();
-		dma.Wait();
-		framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
-		bufferSwapped = !bufferSwapped;
-		_dirty = false;
-	}
+	memcpy(baseBuffer + bufferSwapped * _width * _height, 
+						_buffer, 
+						_width * _height * sizeof(Color));
+	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
+	bufferSwapped = !bufferSwapped;
+	workspace->buffer = baseBuffer + bufferSwapped * _width * _height;
 	_bufferLock.Release();
+	
+	var workTime = endFrame - beginFrame;
+	while (workTime < limit)
+	{
+		endFrame = std::chrono::system_clock::now();
+		workTime = endFrame - beginFrame;
+	}
+
+	fpsCounter += 1.0;
 }

@@ -32,11 +32,15 @@
 
 class Workspace {
 public:
+    Color *buffer;
+    
     Workspace();
 
     ~Workspace();
 
     method resize(unsigned width, unsigned height) -> Void;
+
+    method update(Int64 delta) -> Void;
 
     method draw() -> Void;
 
@@ -51,7 +55,6 @@ public:
     method setDirtyFlag() -> Void;
 
 private:
-    shared_ptr<Surface> surface;
 
     std::vector<shared_ptr<Window>> windowList;
 

@@ -29,10 +29,13 @@ class Screen {
 public:
 
 	Double fpsCounter;
+	Double fps;
 
 	Screen(UInt32 width, UInt32 height, UInt8 display = 0);
 
 	~Screen(void);
+
+	method fpsLimit() -> UInt8;
 
 	method initialize(void) -> Bool;
     
@@ -50,7 +53,7 @@ public:
 
 	method buffer() -> Color *;
 
-	method clear(UInt8 palette = 0, UInt8 color = 15) -> Void;
+	method clear() -> Void;
 
     method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
 

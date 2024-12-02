@@ -26,6 +26,8 @@
 
 static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window>;
 
+static function now() -> UInt64;
+
 Multicore::Multicore(CMemorySystem *memory):
 	CMultiCoreSupport (memory)
 {}
@@ -38,11 +40,10 @@ method Multicore::Run(UInt32 core_id) -> Void {
     case 0: {
 		CScheduler::Get()->Sleep(5);
     }
-    case 1: {
-            while (true) {
-                screen->updateDisplay();
-            }
-        }   
+    case 1: 
+        while (true) {
+            screen->updateDisplay();  
+        }
         break;
     case 2: {
             var win1 = createWindow(300, 200);
@@ -51,8 +52,16 @@ method Multicore::Run(UInt32 core_id) -> Void {
             win1->show();
             win2->show();
 
+            Int64 begin = 0;
+            Int64 end = 0;
+            Int64 delta = end - begin;
+
             while (true) {
+                begin = now();
+                workspace->update(delta);
                 workspace->draw();
+                end = now();
+                delta = end - begin;
             }
         }
         break;
@@ -124,4 +133,12 @@ static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
     win->move(Point(x, y));
 
     return win;
+}
+
+static function now() -> UInt64 {
+    using namespace std::chrono;
+    var since_epoch = system_clock::now().time_since_epoch();
+    var millis = duration_cast<milliseconds>(since_epoch);
+    Int64 time = millis.count();
+    return time;
 }
