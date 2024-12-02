@@ -37,9 +37,11 @@ Multicore::~Multicore() {}
 method Multicore::Run(UInt32 core_id) -> Void {
 
     switch (core_id) {
-    case 0: {
-		CScheduler::Get()->Sleep(5);
-    }
+    case 0:
+        while (true) {
+            CScheduler::Get()->Sleep(5);
+        }
+        break;
     case 1: 
         while (true) {
             screen->updateDisplay();  
@@ -65,6 +67,10 @@ method Multicore::Run(UInt32 core_id) -> Void {
             }
         }
         break;
+    case 3: 
+        while (true) {
+            
+        }
     default:
         return;
     }
