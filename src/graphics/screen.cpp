@@ -124,7 +124,7 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 	{
 		target.y = dest.y + i;
 		
-		if (target.y > _height) {
+		if (target.y >= _height) {
 			return;
 		} else if (target.y < 0) {
 			continue;
@@ -134,8 +134,8 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 		{
             target.x = j + dest.x;
 		
-			if (target.x > _width || target.x > dest.x + src->width()) {
-				return;
+			if (target.x >= _width || target.x >= dest.x + src->width()) {
+				continue;
 			} else if (target.x < 0) {
 				continue;
 			}

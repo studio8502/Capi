@@ -21,7 +21,7 @@
 
 #include "workspace/window.h"
 #include "workspace/workspace.h"
-#include "graphics/font_lexend.h"
+#include "graphics/font_notosans.h"
 
 String Window::defaultTitle = "Default Title";
 
@@ -321,7 +321,7 @@ method Window::drawWindowChrome() -> Void {
 
         }
 
-        var titleFont = make_shared<Font::Lexend>(Font::Size::xSmall);
+        var titleFont = make_shared<Font::NotoSans>(Font::Size::small, Font::Weight::bold);
         var titleStyle = make_shared<ParagraphStyle>(titleFont, 0, 0, ParagraphStyle::Align::center);
         var titleWidth = titleStyle->font()->widthForString(_title);
         if (titleWidth != 0) {
@@ -329,7 +329,7 @@ method Window::drawWindowChrome() -> Void {
             var titleX = centerX - titleWidth / 2;
             var titleBGRect = Rect(titleX - 6, 1, titleWidth + 12, WINDOW_TITLEBAR_HEIGHT - 2);
             windowSurface->drawRect(titleBGRect, true, SystemPalette[0][12]);
-            windowSurface->drawText(_title, titleStyle, Point(centerX, 1));
+            windowSurface->drawText(_title, titleStyle, Point(centerX, 0));
         }
     } else {
 

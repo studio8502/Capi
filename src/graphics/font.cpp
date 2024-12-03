@@ -22,7 +22,7 @@
 #include "graphics/font.h"
 #include "mcufont.h"
 #include "fonts/fonts.h"
-#include "graphics/font_lexend.h"
+#include "graphics/font_notosans.h"
 
 
 method Font::widthForString(String str, UInt16 count) -> Int16 {
@@ -30,5 +30,5 @@ method Font::widthForString(String str, UInt16 count) -> Int16 {
 }
 
 function Font::UIFont(Font::Size size, Font::Weight weight) -> shared_ptr<Font> {
-    return make_shared<Font::Lexend>(Font::Size::small);
+    return make_shared<Font::NotoSans>(Font::Size::small);
 }

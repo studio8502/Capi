@@ -49,7 +49,9 @@ method Multicore::Run(UInt32 core_id) -> Void {
         break;
     case 2: {
             var win1 = createWindow(300, 200);
+            win1->setTitle("Window One");
             var win2 = createWindow(200, 100);
+            win2->setTitle("Window Two: Window Harder");
 
             win1->show();
             win2->show();

@@ -33,6 +33,7 @@ class Kernel
 public:
 	friend class Multicore;
 	friend class FPSMonitor;
+	friend class Workspace;
 
 	enum class ShutdownMode
 	{

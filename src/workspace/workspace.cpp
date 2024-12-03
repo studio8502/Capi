@@ -42,6 +42,8 @@ Workspace::Workspace():
     guard(menubar != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for menubar!"));
     }
+
+    mouseCursor->clear(0);
 }
 
 Workspace::~Workspace(){}
@@ -76,7 +78,7 @@ method Workspace::update(Int64 delta) -> Void {
 
 method Workspace::draw() -> Void {
     guard (_dirty == true) else {
-       return;
+    //   return;
     }
 
     screen->acquire();
@@ -95,6 +97,8 @@ method Workspace::draw() -> Void {
     menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,3));
     
     screen->drawSurface(menubar, Point(0, 0));
+    
+    screen->drawSurface(mouseCursor, kernel->mousePosition);
 
     screen->release();
 

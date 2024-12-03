@@ -67,6 +67,9 @@ public:
 
     static method UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular) -> shared_ptr<Font>;
 
-    class Lexend;
+    class NotoSans;
+    class NotoSerif;
+    class NotoMono;
+
 
 };

@@ -1,0 +1,16 @@
+#pragma once
+
+#include "fonts/NotoSansMono-Regular8.inc"
+#include "fonts/NotoSansMono-Regular10.inc"
+#include "fonts/NotoSansMono-Regular12.inc"
+#include "fonts/NotoSansMono-Regular16.inc"
+#include "fonts/NotoSansMono-Regular20.inc"
+#include "fonts/NotoSansMono-Regular32.inc"
+#include "fonts/NotoSansMono-Regular48.inc"
+#include "fonts/NotoSansMono-Bold8.inc"
+#include "fonts/NotoSansMono-Bold10.inc"
+#include "fonts/NotoSansMono-Bold12.inc"
+#include "fonts/NotoSansMono-Bold16.inc"
+#include "fonts/NotoSansMono-Bold20.inc"
+#include "fonts/NotoSansMono-Bold32.inc"
+#include "fonts/NotoSansMono-Bold48.inc"
