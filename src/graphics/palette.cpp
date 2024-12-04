@@ -21,21 +21,9 @@
 
 #include "graphics/palette.h"
 
-Palette SystemPalette[] = {{{
+Color SystemPalette[] = {
 #include "graphics/aurora.hex"
-}}};
-
-auto RGB(UInt32 RGB) -> Color {
-    UInt8 RED = (RGB >> 16) & 0xFF;
-    UInt8 GREEN = (RGB >> 8) & 0xFF;
-    UInt8 BLUE = RGB & 0xFF;
-
-    return COLOR32(RED, GREEN, BLUE, 0xFF);
-}
-
-Color& Palette::operator[] (int index) {
-    return color[index];
-}
+};
 
 auto RGBA(UInt32 RGBA) -> Color {
     UInt8 ALPHA = (RGBA >> 24) & 0xFF;
@@ -43,12 +31,12 @@ auto RGBA(UInt32 RGBA) -> Color {
     UInt8 GREEN = (RGBA >> 8) & 0xFF;
     UInt8 BLUE = RGBA & 0xFF;
 
-    return COLOR32(RED, GREEN, BLUE, ALPHA);
+    return BLUE | (GREEN << 8) | (RED << 16) | (ALPHA < 24);
 }
 
 auto alpha_blend(Color background, Color foreground) -> Color {
 
-    UInt8 alpha = foreground >> 24 & 0xFF;
+    UInt8 alpha = (foreground >> 24) & 0xFF;
 
     if (alpha == 255) {
         return foreground;
@@ -56,19 +44,23 @@ auto alpha_blend(Color background, Color foreground) -> Color {
 
     Double alpha_ratio = (1.0/255.0) * alpha;
 
+    Double background_alpha = 1.0 * ((background >> 24) & 0xFF);
     Double background_red = 1.0 * ((background >> 16) & 0xFF);
     Double background_green = 1.0 * ((background >> 8) & 0xFF);
     Double background_blue = 1.0 * (background & 0xFF);
 
+    Double foreground_alpha = 1.0 * ((foreground >> 24) & 0xFF);
     Double foreground_red = 1.0 * ((foreground >> 16) & 0xFF);
     Double foreground_green = 1.0 * ((foreground >> 8) & 0xFF);
     Double foreground_blue = 1.0 * (foreground & 0xFF);
 
+    UInt8 result_alpha = ceil(255.0 * (1.0 - (1.0 - foreground_alpha) * (1.0 - background_alpha)));
     UInt8 result_red = ceil(background_red + (foreground_red - background_red) * alpha_ratio);
     UInt8 result_green = ceil(background_green + (foreground_green - background_green) * alpha_ratio);
     UInt8 result_blue = ceil(background_blue + (foreground_blue - background_blue) * alpha_ratio);
 
-    return COLOR32(result_red, result_green, result_blue, 255);
+
+    return result_blue | (result_green << 8) | (result_red << 16) | (255 << 24);
 }
 
 auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Color {
@@ -91,5 +83,5 @@ auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Co
     UInt8 result_green = ceil(background_green + (foreground_green - background_green) * alpha_ratio);
     UInt8 result_blue = ceil(background_blue + (foreground_blue - background_blue) * alpha_ratio);
 
-    return COLOR32(result_red, result_green, result_blue, 255);
+    return result_blue | (result_green << 8) | (result_red << 16) | (0xFF << 24);
 }

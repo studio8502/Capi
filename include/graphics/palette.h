@@ -30,7 +30,7 @@
 using Color = TScreenColor;
 
 #define ALPHA(C, A) ({ \
-    ((((C)) & 0x00FFFFFF) | ((A << 24))); \
+    ((((C)) & 0x00FFFFFF) | ((((A) & 0xFF)) << 24)); \
 })
 
 // Take an RGB value in the form 0xAABBCC and turn it into a screen colour.
@@ -38,13 +38,7 @@ auto RGB(UInt32 RGB) -> Color;
 
 auto RGBA(UInt32 RGBA) -> Color;
 
-struct Palette {
-    Color color[256];
-
-    Color& operator[] (int index);
-};
-
-extern Palette SystemPalette[256];
+extern Color SystemPalette[256];
 
 // Given two colours return the result of alpha blending the second over the
 // first.

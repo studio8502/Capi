@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/paragraph_style.h                                                ║
+ ║ graphics/image.h                                                          ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,49 +19,33 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-
 #pragma once
 
 #include "capi.h"
-#include "graphics/font.h"
+#include "graphics/geometry.h"
 #include "graphics/palette.h"
 
-using std::shared_ptr;
-
-class ParagraphStyle {
+class Image {
 public:
+    Image(String filename);
 
-    enum class Align {
-        left,
-        center,
-        centre = center,
-        right,
-        justify
-    };
+    ~Image();
 
-    ParagraphStyle(shared_ptr<Font> font, Color color, Align align = Align::left);
+    static method imageFromFile(String filename) -> shared_ptr<Image>;
 
-    ~ParagraphStyle();
+    static method imageFromURL(String url) -> shared_ptr<Image>;
 
-    static method DefaultStyle() -> shared_ptr<ParagraphStyle>;
+    static method RGBAtoBGRA(Color pixel) -> Color;
 
-    method color() -> Color;
+    method rect() -> Rect;
 
-    method setColor(Color newColor) -> Void;
-    
-    method align() -> Align;
+    Color operator[](std::size_t idx);
+    const Color operator[](std::size_t idx) const;
 
-    method setAlign(Align newAlign) -> Void;
-
-    method font() -> shared_ptr<Font>;
-
-    method setFont(shared_ptr<Font> newFont) -> Void;
+    Int32 _width;
+    Int32 _height;
+    Int32 _channels;
+    Color *data;
 
 private:
-
-    Color _color;
-
-    Align _align;
-
-    shared_ptr<Font> _font;
 };

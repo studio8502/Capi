@@ -28,7 +28,7 @@ Workspace::Workspace():
     buffer(nullptr),
     windowList(),
     _dirty(true),
-    mouseCursor(make_shared<Surface>(8, 16)),
+    mouseCursor(make_shared<Surface>(32, 32)),
     menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT))
 {
     guard (workspace == nullptr) else {
@@ -44,6 +44,14 @@ Workspace::Workspace():
     }
 
     mouseCursor->clear(0);
+    
+    try {
+        var image = Image::imageFromFile("SD:/basn2c08.png");
+        var rect = Rect(0,0,mouseCursor->width(), mouseCursor->height());
+        mouseCursor->drawImageRect(rect, rect, image);
+    } catch (const std::runtime_error& err) {
+        CLogger::Get()->Write("Image", LogNotice, err.what());
+    }
 }
 
 Workspace::~Workspace(){}
@@ -92,7 +100,7 @@ method Workspace::draw() -> Void {
         }
     });
 
-    menubar->clear(SystemPalette[0][12]);
+    menubar->clear(0xFFCCCCCC);
 
     menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,3));
     

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/paragraph_style.h                                                ║
+ ║ graphics/image.cpp                                                        ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,49 +19,46 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
+#include "graphics/image.h"
 
-#pragma once
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "graphics/stb_image.h"
 
-#include "capi.h"
-#include "graphics/font.h"
-#include "graphics/palette.h"
+static UInt8 desired_channels = 4;
+static char exceptionMessage[256];
 
-using std::shared_ptr;
+Image::Image(String filename) {
+    data = (Color *) stbi_load(filename.c_str(), &_width, &_height, &_channels, desired_channels);
+    if (data == nullptr) {
+        sprintf(exceptionMessage, "Failed to load file \"%s\"", filename.c_str());
+        throw(std::runtime_error(exceptionMessage));
+    }
 
-class ParagraphStyle {
-public:
+    // TODO: Reverse this again when saving from an Image object to a file.
+    for (UInt64 row = 0; row < _height; row += 1) {
+        for (UInt64 col = 0; col < _height; col += 1) {
+            Color value = data[row * _width + col];
+            
+            UInt8 alpha = (value >> 24) & 0xFF;
+            UInt8 blue = (value >> 16) & 0xFF;
+            UInt8 green = (value >> 8) & 0xFF;
+            UInt8 red = value & 0xFF;
 
-    enum class Align {
-        left,
-        center,
-        centre = center,
-        right,
-        justify
-    };
+            Color eulav = blue | (green << 8) | (red << 16) | (alpha << 24);
 
-    ParagraphStyle(shared_ptr<Font> font, Color color, Align align = Align::left);
+            data[row * _width + col] = eulav;
+        }
+    }
+}
 
-    ~ParagraphStyle();
+Image::~Image() {}
 
-    static method DefaultStyle() -> shared_ptr<ParagraphStyle>;
 
-    method color() -> Color;
+method Image::imageFromFile(String filename) -> shared_ptr<Image> {
+    return make_shared<Image>(filename);
+}
 
-    method setColor(Color newColor) -> Void;
-    
-    method align() -> Align;
-
-    method setAlign(Align newAlign) -> Void;
-
-    method font() -> shared_ptr<Font>;
-
-    method setFont(shared_ptr<Font> newFont) -> Void;
-
-private:
-
-    Color _color;
-
-    Align _align;
-
-    shared_ptr<Font> _font;
-};
+method Image::rect() -> Rect {
+    return Rect(0, 0, _width, _height);
+}

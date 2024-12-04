@@ -61,9 +61,19 @@ method Kernel::initialize() -> Bool {
 
 	log.Initialize(&debugPort);
 
+	log.Write ("Kernel", LogNotice, VersionString());
+	log.Write ("Kernel", LogNotice, "Built at " __TIME__ ", " __DATE__ "." );
+
 	usb.Initialize();
 
 	mmc.Initialize();
+
+	// Mount file system
+	if (f_mount(&fatfs, "SD:", 1) != FR_OK) {
+		log.Write("Kernel", LogPanic, "Cannot mount drive SD:");
+	} else {
+		log.Write("Kernel", LogNotice, "Mounted drive SD:");
+	}
 
 	net.Initialize();
 
@@ -180,16 +190,6 @@ method Kernel::gamePadRemovedHandler(CDevice *pad, void *context) -> Void {
 method Kernel::run() -> ShutdownMode {
 
 	using enum Kernel::ShutdownMode;
-
-	log.Write ("Kernel", LogNotice, VersionString());
-	log.Write ("Kernel", LogNotice, "Built at " __TIME__ ", " __DATE__ "." );
-
-	// Mount file system
-	if (f_mount(&fatfs, "SD:", 1) != FR_OK) {
-		log.Write("Kernel", LogPanic, "Cannot mount drive SD:");
-	} else {
-		log.Write("Kernel", LogNotice, "Mounted drive SD:");
-	}
 
 	deviceNameService.ListDevices(auto(&debugPort));
 		

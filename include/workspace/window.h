@@ -95,9 +95,9 @@ public:
 
     method drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void;
 
-    method drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) -> Void;
+    method drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void;
 
-    method drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor) -> Void;
+    method drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void;
 
     method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
 

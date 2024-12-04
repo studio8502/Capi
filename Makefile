@@ -57,7 +57,8 @@ CPPFLAGS += --std=gnu++2b \
 			-MMD \
 			-O3 \
 			-Wno-sign-compare \
-			-Wfatal-errors
+			-Wfatal-errors \
+			-Wno-unused-function
 
 CFLAGS += -I include \
 		  -I include/fonts \
@@ -71,7 +72,8 @@ CFLAGS += -I include \
 		  -MMD \
 		  -O3 \
 		  -Wno-sign-compare \
-		  -Wfatal-errors
+		  -Wfatal-errors \
+		  -Wno-unused-function
 
 LDFLAGS += $(BUILD_NUMBER_LDFLAGS)
 
@@ -139,6 +141,8 @@ reboot:
 reflash: bootconfig $(TARGET).img reboot
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
+	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/basn2c08.png
+	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
 	@echo "Rebooting target..."
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img monitor

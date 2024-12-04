@@ -22,8 +22,8 @@
 #include "graphics/paragraph_style.h"
 #include "graphics/font.h"
 
-ParagraphStyle::ParagraphStyle(shared_ptr<Font> font, UInt8 palette, UInt8 color, ParagraphStyle::Align align):
-    _color(SystemPalette[palette][color]),
+ParagraphStyle::ParagraphStyle(shared_ptr<Font> font, Color color, ParagraphStyle::Align align):
+    _color(SystemPalette[color]),
     _align(align),
     _font(font)
 {}
@@ -33,7 +33,7 @@ ParagraphStyle::~ParagraphStyle() {}
 method ParagraphStyle::DefaultStyle() -> shared_ptr<ParagraphStyle> {
     var font = Font::UIFont();
     var align = Align::left;
-    return make_shared<ParagraphStyle>(font, 0, 0, align);
+    return make_shared<ParagraphStyle>(font, 0, align);
 }
 
 method ParagraphStyle::color() -> Color {

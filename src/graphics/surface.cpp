@@ -22,13 +22,10 @@
 #include "graphics/surface.h"
 #include "mcufont.h"
 
-[[gnu::unused]]
 static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
 
-[[gnu::unused]]
 static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t;
 
-[[gnu::unused]]
 static function line_callback(mf_str line, uint16_t count, void *state) -> Bool;
 
 Surface::Surface(Size size):
@@ -37,7 +34,7 @@ Surface::Surface(Size size):
     _data(shared_ptr<Color[]>(new Color[size.width * size.height])),
     _lock()
 {
-    reset(RGBA(0x00000000));
+    reset();
 }
 
 Surface::Surface(UInt32 width, UInt32 height):
@@ -46,15 +43,17 @@ Surface::Surface(UInt32 width, UInt32 height):
     _data(shared_ptr<Color[]>(new Color[width * height])),
     _lock()
 {
-    reset(RGBA(0x00000000));
+    reset();
 }
 
 Surface::~Surface() {
     _data.reset();
 }
 
-method Surface::reset(Color color) -> Void {
+method Surface::reset() -> Void {
     var bounds = Rect(0,0,_width,_height);
+
+    Color color = 0xFFFFFFFF;
     
     var buffer = _data.get();
     var target = Point(0, 0);
@@ -374,7 +373,7 @@ method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, Color color) 
     }
 }
 
-method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) -> Void {
+method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void {
     var target = Point(0 ,0);
 	var buffer = _data.get();
 	var width = _width;
@@ -383,24 +382,24 @@ method Surface::drawImageRect(Rect rect, Rect sourceRect, Color *pixelBuffer) ->
 	{
 		for(unsigned j = 0; j < rect.width; j++)
 		{
-			Color sourcePixel = pixelBuffer[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
+			Color sourcePixel = (image->data)[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
 
             target.x = j + rect.x;
             target.y = rect.y + i;
 
-            if (target.x > _width || target.x < 0 || target.y < 0) {
+            if (target.x >= _width || target.x < 0 || target.y < 0) {
                 continue;
-            } else if (target.y > _height) {
+            } else if (target.y >= _height) {
                 return;
             }
         
-            buffer[(rect.y + i) * width + j + rect.x] = 
+            buffer[(rect.y + i) * width + j + rect.x] = \
                 alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
 		}
 	}
 }
 
-method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixelBuffer, Color transparentColor) -> Void {
+method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void {
     var target = Point(0, 0);
 	var buffer = _data.get();
 	var width = _width;
@@ -409,7 +408,7 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, Color *pixe
 	{
 		for(unsigned j = 0; j < rect.width; j++)
 		{
-			Color sourcePixel = pixelBuffer[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
+			Color sourcePixel = (image->data)[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
 			if(sourcePixel != transparentColor)
 			{
                 target.x = j + rect.x;
@@ -493,7 +492,6 @@ static function char_callback(int16_t x0, int16_t y0, mf_char character, void *s
 // Pixel callback
 static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
 
-    [[gnu::unused]]
 	var context = (Surface::TextDrawingContext *) state;
     Surface *surface = context->surface;
     Color *buffer = surface->data().get();
@@ -508,7 +506,7 @@ static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alph
             } else if (target.y > surface->height()) {
                 return;
             }
-            buffer[offset] = alpha_blend(buffer[offset], textColor);
+            buffer[offset] = alpha_blend_override(buffer[offset], textColor, alpha);
 		x++;
 	}
 }
