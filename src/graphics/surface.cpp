@@ -32,6 +32,7 @@ Surface::Surface(Size size):
     _width(size.width),
     _height(size.height),
     _data(shared_ptr<Color[]>(new Color[size.width * size.height])),
+    _opacity(255),
     _lock()
 {
     reset();
@@ -41,6 +42,7 @@ Surface::Surface(UInt32 width, UInt32 height):
     _width(width),
     _height(height),
     _data(shared_ptr<Color[]>(new Color[width * height])),
+    _opacity(255),
     _lock()
 {
     reset();
@@ -50,10 +52,18 @@ Surface::~Surface() {
     _data.reset();
 }
 
+method Surface::opacity() -> UInt8 {
+    return _opacity;
+}
+
+method Surface::setOpacity(UInt8 newValue) -> Void {
+    _opacity = newValue;
+}
+
 method Surface::reset() -> Void {
     var bounds = Rect(0,0,_width,_height);
 
-    Color color = 0xFFFFFFFF;
+    Color color = 0x00FFFFFF;
     
     var buffer = _data.get();
     var target = Point(0, 0);
@@ -373,7 +383,7 @@ method Surface::drawCircle(Point origin, UInt32 radius, Bool fill, Color color) 
     }
 }
 
-method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void {
+method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image, Bool replace) -> Void {
     var target = Point(0 ,0);
 	var buffer = _data.get();
 	var width = _width;
@@ -392,9 +402,13 @@ method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> imag
             } else if (target.y >= _height) {
                 return;
             }
-        
-            buffer[(rect.y + i) * width + j + rect.x] = \
-                alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
+            
+            if (replace == false) {
+                buffer[(rect.y + i) * width + j + rect.x] = \
+                    alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
+            } else {
+                buffer[(rect.y + i) * width + j + rect.x] = sourcePixel;
+            }
 		}
 	}
 }
@@ -453,7 +467,7 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
 
 			buffer[target.y * _width + target.x] =
 				alpha_blend(buffer[target.y * _width + target.x], 
-							pixelBuffer[i * src->width() + j]);
+							         pixelBuffer[i * src->width() + j]);
     	}
 	}
     DataSyncBarrier();
@@ -496,17 +510,19 @@ static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alph
     Surface *surface = context->surface;
     Color *buffer = surface->data().get();
 
-	while (count--) {
+    for (var c = 0; c < count; c += 1) {
         Color textColor = (context->style->color() & 0x00FFFFFF) | (alpha << 24);
         var offset = surface->width() * y + x;
         var target = Point(x, y);
-        var clip = Rect(0,0,surface->width(), surface->height());
-            if (target.x > surface->width() || target.x < 0 || target.y < 0) {
-                continue;
-            } else if (target.y > surface->height()) {
-                return;
-            }
-            buffer[offset] = alpha_blend_override(buffer[offset], textColor, alpha);
-		x++;
+        
+        if (target.x > surface->width() || target.x < 0 || target.y < 0) {
+            continue;
+        } else if (target.y > surface->height()) {
+            return;
+        }
+
+        buffer[offset] = alpha_blend(buffer[offset], textColor);
+		
+        x += 1;
 	}
 }

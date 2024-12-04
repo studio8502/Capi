@@ -43,5 +43,3 @@ extern Color SystemPalette[256];
 // Given two colours return the result of alpha blending the second over the
 // first.
 auto alpha_blend(Color background, Color foreground) -> Color;
-
-auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Color;

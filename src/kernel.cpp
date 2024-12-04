@@ -51,8 +51,6 @@ Kernel::Kernel():
 
 method Kernel::initialize() -> Bool {
 
-	activityLED.Blink(5);
-
 	systemTimer.Initialize();
 	
 	debugPort.Initialize(115200);

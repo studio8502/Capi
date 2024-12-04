@@ -42,13 +42,11 @@ Workspace::Workspace():
     guard(menubar != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for menubar!"));
     }
-
-    mouseCursor->clear(0);
     
     try {
-        var image = Image::imageFromFile("SD:/basn2c08.png");
+        var image = Image::imageFromFile("SD:/cursor_arrow.png");
         var rect = Rect(0,0,mouseCursor->width(), mouseCursor->height());
-        mouseCursor->drawImageRect(rect, rect, image);
+        mouseCursor->drawImageRect(Rect(-11, -5, mouseCursor->width(), mouseCursor->height()), rect, image, false);
     } catch (const std::runtime_error& err) {
         CLogger::Get()->Write("Image", LogNotice, err.what());
     }

@@ -57,6 +57,10 @@ public:
 
     virtual method height() -> UInt64;
 
+    virtual method opacity() -> UInt8;
+
+    virtual method setOpacity(UInt8 newValue) -> Void;
+
     virtual method data() -> shared_ptr<Color[]>;
 
     method acquire() -> Void;
@@ -73,7 +77,7 @@ public:
 
     method drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void;
 
-    method drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void;
+    method drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image, Bool replace = false) -> Void;
 
     method drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void;
 
@@ -85,6 +89,7 @@ private:
     UInt64 _width;
     UInt64 _height;
     shared_ptr<Color[]> _data;
+    UInt8 _opacity; 
 
     CSpinLock _lock;
 };

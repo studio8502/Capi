@@ -36,52 +36,33 @@ auto RGBA(UInt32 RGBA) -> Color {
 
 auto alpha_blend(Color background, Color foreground) -> Color {
 
-    UInt8 alpha = (foreground >> 24) & 0xFF;
+    Double alpha_ratio = (1.0/255.0);
 
-    if (alpha == 255) {
-        return foreground;
-    }
+    Double background_alpha = alpha_ratio * ((background >> 24) & 0xFF);
+    Double background_red = alpha_ratio * ((background >> 16) & 0xFF);
+    Double background_green = alpha_ratio * ((background >> 8) & 0xFF);
+    Double background_blue = alpha_ratio * (background & 0xFF);
 
-    Double alpha_ratio = (1.0/255.0) * alpha;
+    Double foreground_alpha = alpha_ratio * ((foreground >> 24) & 0xFF);
+    Double foreground_red = alpha_ratio * ((foreground >> 16) & 0xFF);
+    Double foreground_green = alpha_ratio * ((foreground >> 8) & 0xFF);
+    Double foreground_blue = alpha_ratio * (foreground & 0xFF);
+/*
+r.A = 1 - (1 - fg.A) * (1 - bg.A);
+if (r.A < 1.0e-6) return r; // Fully transparent -- R,G,B not important
+r.R = fg.R * fg.A / r.A + bg.R * bg.A * (1 - fg.A) / r.A;
+r.G = fg.G * fg.A / r.A + bg.G * bg.A * (1 - fg.A) / r.A;
+r.B = fg.B * fg.A / r.A + bg.B * bg.A * (1 - fg.A) / r.A;
+*/
+    Double result_alpha = 1 - (1 - foreground_alpha) * (1 - background_alpha);
+    Double result_red = foreground_red * foreground_alpha / result_alpha + background_red * background_alpha * (1 - foreground_alpha) / result_alpha;
+    Double result_green = foreground_green * foreground_alpha / result_alpha + background_green * background_alpha * (1 - foreground_alpha) / result_alpha;
+    Double result_blue = foreground_blue * foreground_alpha / result_alpha + background_blue * background_alpha * (1 - foreground_alpha) / result_alpha;
 
-    Double background_alpha = 1.0 * ((background >> 24) & 0xFF);
-    Double background_red = 1.0 * ((background >> 16) & 0xFF);
-    Double background_green = 1.0 * ((background >> 8) & 0xFF);
-    Double background_blue = 1.0 * (background & 0xFF);
+    UInt8 result_alpha_u8 = ceil(255.0 * result_alpha);
+    UInt8 result_red_u8 = ceil(255.0 * result_red);
+    UInt8 result_green_u8 = ceil(255.0 * result_green);
+    UInt8 result_blue_u8 = ceil(255.0 * result_blue);
 
-    Double foreground_alpha = 1.0 * ((foreground >> 24) & 0xFF);
-    Double foreground_red = 1.0 * ((foreground >> 16) & 0xFF);
-    Double foreground_green = 1.0 * ((foreground >> 8) & 0xFF);
-    Double foreground_blue = 1.0 * (foreground & 0xFF);
-
-    UInt8 result_alpha = ceil(255.0 * (1.0 - (1.0 - foreground_alpha) * (1.0 - background_alpha)));
-    UInt8 result_red = ceil(background_red + (foreground_red - background_red) * alpha_ratio);
-    UInt8 result_green = ceil(background_green + (foreground_green - background_green) * alpha_ratio);
-    UInt8 result_blue = ceil(background_blue + (foreground_blue - background_blue) * alpha_ratio);
-
-
-    return result_blue | (result_green << 8) | (result_red << 16) | (255 << 24);
-}
-
-auto alpha_blend_override(Color background, Color foreground, UInt8 alpha) -> Color {
-
-    if (alpha == 255) {
-        return foreground;
-    }
-
-    Double alpha_ratio = (1.0/255.0) * alpha;
-
-    Double background_red = 1.0 * ((background >> 16) & 0xFF);
-    Double background_green = 1.0 * ((background >> 8) & 0xFF);
-    Double background_blue = 1.0 * (background & 0xFF);
-
-    Double foreground_red = 1.0 * ((foreground >> 16) & 0xFF);
-    Double foreground_green = 1.0 * ((foreground >> 8) & 0xFF);
-    Double foreground_blue = 1.0 * (foreground & 0xFF);
-
-    UInt8 result_red = ceil(background_red + (foreground_red - background_red) * alpha_ratio);
-    UInt8 result_green = ceil(background_green + (foreground_green - background_green) * alpha_ratio);
-    UInt8 result_blue = ceil(background_blue + (foreground_blue - background_blue) * alpha_ratio);
-
-    return result_blue | (result_green << 8) | (result_red << 16) | (0xFF << 24);
+    return result_blue_u8 | (result_green_u8 << 8) | (result_red_u8 << 16) | (result_alpha_u8 << 24);
 }
