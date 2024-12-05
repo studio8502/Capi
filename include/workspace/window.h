@@ -48,6 +48,8 @@ public:
 
     method rect() -> Rect;
 
+    method titlebarRect() -> Rect;
+
     method contentRect() -> Rect;
 
     method move(Point point) -> Void;
@@ -106,7 +108,7 @@ public:
 
     virtual method draw() -> Void;
 
-    method handleEvent(shared_ptr<MouseEvent> event) -> Void;
+    method handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>sharedThis) -> Void;
 
 private:
 

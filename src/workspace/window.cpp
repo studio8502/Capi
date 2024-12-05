@@ -86,6 +86,10 @@ method Window::rect() -> Rect {
     return Rect(_x, _y, _width, _height);
 }
 
+method Window::titlebarRect() -> Rect {
+    return Rect(_x, _y, _width, WINDOW_TITLEBAR_HEIGHT);
+}
+
 method Window::contentRect() -> Rect {
     var rect = Rect(_x, _y, _width, _height);
     if (_isDecorated && _hasTitlebar) {
@@ -348,13 +352,18 @@ method Window::drawWindowContent() -> Void {
     contentSurface->release();
 }
 
-method Window::handleEvent(shared_ptr<MouseEvent> event) -> Void {
+method Window::handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>sharedThis) -> Void {
     switch (event->type) {
     case MouseEvent::EventType::buttonDown:
         switch (event->button) {
         case MouseEvent::MouseButton::left: {
+            workspace->moveWindowToFront(sharedThis);
             workspace->clearDragContext();
-            workspace->setDragContextForWindow(this, event->position());
+
+            if (titlebarRect().checkPoint(event->position())) {
+                workspace->setDragContextForWindow(this, event->position());
+            }
+            
             break;
         }
         case MouseEvent::MouseButton::right: {

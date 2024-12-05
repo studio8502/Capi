@@ -54,6 +54,10 @@ public:
 
     method draw() -> Void;
 
+    method frontSurface() -> shared_ptr<Surface>;
+
+    method backSurface() -> shared_ptr<Surface>;
+
     method createWindow() -> shared_ptr<Window>;
 
     method discardWindow(shared_ptr<Window> win) -> Void;
@@ -77,12 +81,17 @@ private:
     std::vector<shared_ptr<Window>> windowList;
 
     bool _dirty;
+    bool _screenFlag;
 
     shared_ptr<Surface> mouseCursor;
 
     shared_ptr<Surface> menubar;
 
-    shared_ptr<Surface> surface;
+    shared_ptr<Surface> surface1;
+
+    shared_ptr<Surface> surface2;
+
+    bool _surfaceFlipped;
 
     UInt32 mouseX;
     UInt32 mouseY;

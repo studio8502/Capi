@@ -29,9 +29,15 @@ Workspace::Workspace():
     dragContext(false, Point(0,0), nullptr),
     windowList(),
     _dirty(true),
+    _screenFlag(true),
     mouseCursor(make_shared<Surface>(32, 32)),
     menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT)),
-    surface(make_shared<Surface>(screen->width(), screen->height())),
+    surface1(make_shared<Surface>(screen->width(), screen->height())),
+    surface2(make_shared<Surface>(screen->width(), screen->height())),
+    _surfaceFlipped(false),
+    leftButtonDown(false),
+    rightButtonDown(false),
+    middleButtonDown(false),
     ups(0.0),
     upsCounter(0.0),
     fps(0.0),
@@ -42,7 +48,11 @@ Workspace::Workspace():
         throw std::runtime_error("There can be only a single Workspace instance!");
     }
 
-    guard(surface != nullptr) else {
+    guard(surface1 != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for workspace!"));
+    }
+
+    guard(surface2 != nullptr) else {
         throw(std::runtime_error("Failed to allocate surface for workspace!"));
     }
 
@@ -69,7 +79,15 @@ method Workspace::setDirtyFlag() -> Void {
     _dirty = true;
 }
 
-method Workspace::resize (unsigned width, unsigned height) -> Void {
+method Workspace::frontSurface() -> shared_ptr<Surface> {
+    return _surfaceFlipped ? surface2 : surface1;
+}
+
+method Workspace::backSurface() -> shared_ptr<Surface> {
+    return _surfaceFlipped ? surface1 : surface2;
+}
+
+method Workspace::resize(unsigned width, unsigned height) -> Void {
     var mouse = dynamic_cast<CMouseDevice *>(CDeviceNameService::Get()->GetDevice("mouse1", FALSE));
 
     if (mouse != nullptr) {
@@ -175,19 +193,17 @@ method Workspace::draw() -> Void {
         goto done;
     }
 
-    surface->acquire();
-
-    surface->clear(0xFFAAAAAA);
+    backSurface()->clear(0xFFAAAAAA);
 
     std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
         if (win->isVisible()) {
             win->draw();
-            surface->drawSurface(win->surface(), win->origin());
+            backSurface()->drawSurface(win->surface(), win->origin());
         }
     });
 
     menubar->clear(0xFFCCCCCC);
-
+    
     menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,3));
     menubar->drawText(msg2, ParagraphStyle::DefaultStyle(), Point(150,3));
     menubar->drawText(msg3, ParagraphStyle::DefaultStyle(), Point(350,3));
@@ -204,16 +220,17 @@ method Workspace::draw() -> Void {
         menubar->drawText("R", ParagraphStyle::DefaultStyle(), Point(950,3));
     }
 
-    surface->drawSurface(menubar, Point(0, 0));
-    surface->drawSurface(mouseCursor, Point(mouseX, mouseY), true);
+    backSurface()->drawSurface(menubar, Point(0, 0));
+    backSurface()->drawSurface(mouseCursor, Point(mouseX, mouseY), true);
 
-    surface->release();
     _dirty = false;
-
+/*
     screen->acquire();
     screen->drawSurface(surface, Point(0,0));
     screen->release();
-
+*/
+    _surfaceFlipped = !_surfaceFlipped;
+    _screenFlag = true;
 done:
     fpsCounter += 1.0;
 }
@@ -235,12 +252,21 @@ method Workspace::discardWindow(shared_ptr<Window> win) -> Void {
     _dirty = true;
 }
 
+method Workspace::moveWindowToFront(shared_ptr<Window> win) -> Void {
+    std::erase(windowList, win);
+
+    windowList.insert(windowList.begin(), win);
+
+    _dirty = true;
+
+}
+
 method Workspace::dispatchEvent(shared_ptr<MouseEvent> event) -> Bool {
     // Compare event->mousePosition for each window's rect, starting at the top.
 
     for (var win : windowList) {
         if (win->isVisible() && win->rect().checkPoint(event->position())) {
-            win->handleEvent(event);
+            win->handleEvent(event, win);
             return true;
         }
     }

@@ -131,17 +131,19 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 			_buffer[target.y * _width + target.x] = pixelBuffer[i * src->width() + j];
     	}
 	}
-	DataSyncBarrier();
 }
 
 method Screen::updateDisplay() -> Void {
 	framebuffer->WaitForVerticalSync();
 
-	memcpy(baseBuffer + bufferSwapped * _width * _height, 
-						_buffer, 
-						_width * _height * sizeof(Color));
-	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
-	bufferSwapped = !bufferSwapped;
+	if (workspace->_screenFlag == true) {
+		memcpy(baseBuffer + bufferSwapped * _width * _height, 
+							workspace->frontSurface()->data().get(), 
+							_width * _height * sizeof(Color));
+		framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
+		bufferSwapped = !bufferSwapped;
+		workspace->_screenFlag == false;
+	}
 
 	fpsCounter += 1.0;
 }

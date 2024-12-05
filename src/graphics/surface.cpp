@@ -413,7 +413,7 @@ method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> imag
 	}
 }
 
-method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void {
+method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor, Bool alpha) -> Void {
     var target = Point(0, 0);
 	var buffer = _data.get();
 	var width = _width;
@@ -433,9 +433,13 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<
                 } else if (target.y > _height) {
                     return;
                 }
-            
-                buffer[(rect.y + i) * width + j + rect.x] = 
-                    alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
+
+                if (alpha == true) {
+                    buffer[(rect.y + i) * width + j + rect.x] = 
+                        alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
+                } else {
+                    buffer[(rect.y + i) * width + j + rect.x] = sourcePixel;
+                }
             }
 		}
 	}
@@ -451,9 +455,7 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> 
 	{
 		target.y = dest.y + i;
 		
-		if (target.y >= _height) {
-			return;
-		} else if (target.y < 0) {
+		if (target.y >= _height || target.y < 0) {
 			continue;
 		}
 
@@ -474,7 +476,6 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> 
             }
     	}
 	}
-    DataSyncBarrier();
 }
 
 method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
