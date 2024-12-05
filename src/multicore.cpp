@@ -39,7 +39,7 @@ method Multicore::Run(UInt32 core_id) -> Void {
     switch (core_id) {
     case 0:
         while (true) {
-            CScheduler::Get()->Sleep(5);
+            CScheduler::Get()->Sleep(1);
         }
         break;
     case 1: 
@@ -63,7 +63,6 @@ method Multicore::Run(UInt32 core_id) -> Void {
             while (true) {
                 begin = now();
                 workspace->update(delta);
-                workspace->draw();
                 end = now();
                 delta = end - begin;
             }
@@ -71,15 +70,11 @@ method Multicore::Run(UInt32 core_id) -> Void {
         break;
     case 3: 
         while (true) {
-            
+            workspace->draw();
         }
     default:
         return;
     }
-
-    var log = CLogger::Get();
-
-    log->Write("Core 1", LogNotice, "Running!");
 }
 
 static function drawWindow(Window *win) {

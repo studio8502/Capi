@@ -441,7 +441,7 @@ method Surface::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<
 	}
 }
 
-method Surface::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
+method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> Void {
 
     var target = Point(0 ,0);
 	var pixelBuffer = src.get()->data();
@@ -451,7 +451,7 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
 	{
 		target.y = dest.y + i;
 		
-		if (target.y > _height) {
+		if (target.y >= _height) {
 			return;
 		} else if (target.y < 0) {
 			continue;
@@ -461,13 +461,17 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
 		{
             target.x = j + dest.x;
 		
-			if (target.x < 0 || target.x > _width || target.x > dest.x + src->width()) {
+			if (target.x < 0 || target.x >= _width || target.x >= dest.x + src->width()) {
 				continue;
 			}
 
-			buffer[target.y * _width + target.x] =
-				alpha_blend(buffer[target.y * _width + target.x], 
-							         pixelBuffer[i * src->width() + j]);
+            if (alpha == false) {
+			    buffer[target.y * _width + target.x] = pixelBuffer[i * src->width() + j];
+            } else {
+                buffer[target.y * _width + target.x] =
+                    alpha_blend(buffer[target.y * _width + target.x], 
+                                        pixelBuffer[i * src->width() + j]);
+            }
     	}
 	}
     DataSyncBarrier();

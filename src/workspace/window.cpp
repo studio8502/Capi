@@ -347,3 +347,41 @@ method Window::drawWindowContent() -> Void {
     }
     contentSurface->release();
 }
+
+method Window::handleEvent(shared_ptr<MouseEvent> event) -> Void {
+    switch (event->type) {
+    case MouseEvent::EventType::buttonDown:
+        switch (event->button) {
+        case MouseEvent::MouseButton::left: {
+            workspace->clearDragContext();
+            workspace->setDragContextForWindow(this, event->position());
+            break;
+        }
+        case MouseEvent::MouseButton::right: {
+            break;
+        }
+        case MouseEvent::MouseButton::middle: {
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    case MouseEvent::EventType::buttonUp:
+        switch (event->button) {
+        case MouseEvent::MouseButton::left: {
+            workspace->clearDragContext();
+            break;
+        }
+        case MouseEvent::MouseButton::right: {
+            break;
+        }
+        case MouseEvent::MouseButton::middle: {
+            break;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+}

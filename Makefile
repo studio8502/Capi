@@ -141,7 +141,6 @@ reboot:
 reflash: bootconfig $(TARGET).img reboot
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/basn2c08.png
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/cursor_arrow.png
 	@echo "Rebooting target..."

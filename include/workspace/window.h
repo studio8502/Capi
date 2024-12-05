@@ -23,6 +23,7 @@
 
 #include "capi.h"
 #include "graphics/surface.h"
+#include "event.h"
 
 #define WINDOW_BORDER_WIDTH 4
 #define WINDOW_TITLEBAR_HEIGHT 16
@@ -104,6 +105,8 @@ public:
     method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
 
     virtual method draw() -> Void;
+
+    method handleEvent(shared_ptr<MouseEvent> event) -> Void;
 
 private:
 

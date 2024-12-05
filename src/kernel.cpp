@@ -158,13 +158,54 @@ method Kernel::keyPressedHandler(const char *str) -> Void {
 method Kernel::mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove) -> Void {
 	switch (Event) {
 	case MouseEventMouseMove: {
-			staticThis->mousePosition.x = nPosX;
-			staticThis->mousePosition.y = nPosY;
-			staticThis->mousebuttons = nButtons;
-			staticThis->mouseScroll = nWheelMove;
+			var evt = MouseEvent::Move(nPosX, nPosY);
+			mouseEventQueue.push(evt);
+		}
+		break;
+	case MouseEventMouseDown:
+		switch (nButtons) {
+		case MOUSE_BUTTON_LEFT: {
+			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::left, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		case MOUSE_BUTTON_RIGHT: {
+			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::right, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		case MOUSE_BUTTON_MIDDLE: {
+			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::middle, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		default: 
+			break;
+		}
+		break;
+	case MouseEventMouseUp:
+		switch (nButtons) {
+		case MOUSE_BUTTON_LEFT: {
+			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::left, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		case MOUSE_BUTTON_RIGHT: {
+			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::right, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		case MOUSE_BUTTON_MIDDLE: {
+			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::middle, nPosX, nPosY);
+			mouseEventQueue.push(evt);
+			break;
+		}
+		default: 
+			break;
+		}
+		break;
+	case MouseEventMouseWheel: {
 
-			var evt = Event::mouseEvent(Event::MouseEventType::move, nPosX, nPosY);
-			eventQueue.push(evt);
 		}
 		break;
 	default:
@@ -196,6 +237,8 @@ method Kernel::run() -> ShutdownMode {
 	new USBPNPMonitor();
 
 	new FPSMonitor();
+
+	new WorkspaceMonitor();
 
 	taskScheduler.ListTasks(&debugPort);
 
@@ -261,6 +304,28 @@ method Kernel::FPSMonitor::Run() -> Void {
 	while (true) {
 		kernel->fps = screen->fpsCounter;
 		screen->fpsCounter = 0.0;
+		workspace->setDirtyFlag();
+		CScheduler::Get()->Sleep(1);
+	}
+}
+
+Kernel::WorkspaceMonitor::WorkspaceMonitor() {
+
+}
+
+Kernel::WorkspaceMonitor::~WorkspaceMonitor() {
+
+}
+
+method Kernel::WorkspaceMonitor::Run() -> Void {
+
+	SetName("Workspace Monitor");
+
+	while (true) {
+		workspace->fps = workspace->fpsCounter;
+		workspace->fpsCounter = 0.0;
+		workspace->ups = workspace->upsCounter;
+		workspace->upsCounter = 0.0;
 		workspace->setDirtyFlag();
 		CScheduler::Get()->Sleep(1);
 	}

@@ -21,28 +21,39 @@
 
 #include "event.h"
 
-std::queue<shared_ptr<Event>> eventQueue = std::queue<shared_ptr<Event>>();
+std::queue<shared_ptr<MouseEvent>> mouseEventQueue = std::queue<shared_ptr<MouseEvent>>();
 
-Event::Event(EventType type):
-    type(type)
-{}
+MouseEvent::~MouseEvent() {}
 
-method Event::mouseEvent(Event::MouseEventType mouseEventType, UInt32 x, UInt32 y) -> shared_ptr<Event> {
-    return make_shared<Event::MouseEvent>(mouseEventType, x, y);
+method MouseEvent::Move(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
+    return make_shared<MouseEvent>(EventType::move, x, y);
 }
 
-Event::MouseEvent::MouseEvent(Event::MouseEventType mouseEventType, UInt32 x, UInt32 y):
-    Event(Event::EventType::mouse),
-    mouseEventType(mouseEventType),
+method MouseEvent::ButtonUp(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
+    return make_shared<MouseEvent>(EventType::buttonUp, button, x, y);
+}
+
+method MouseEvent::ButtonDown(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
+    return make_shared<MouseEvent>(EventType::buttonDown, button, x, y);
+}
+
+method MouseEvent::Scroll(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
+    return make_shared<MouseEvent>(EventType::scroll, x, y);
+}
+
+MouseEvent::MouseEvent(EventType type, UInt32 x, UInt32 y):
+    type(type),
     _x(x),
     _y(y)
 {}
 
-method Event::MouseEvent::position() -> Point {
-    return Point(_x, _y);
-}
+MouseEvent::MouseEvent(EventType type, MouseButton button, UInt32 x, UInt32 y):
+    type(type),
+    button(button),
+    _x(x),
+    _y(y)
+{}
 
-method Event::MouseEvent::setPosition(Point position) {
-    _x = position.x;
-    _y = position.y;
+method MouseEvent::position() -> Point {
+    return Point(_x, _y);
 }

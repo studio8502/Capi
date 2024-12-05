@@ -21,18 +21,29 @@
 
 #include "workspace/workspace.h"
 #include "kernel.h"
+#include "event.h"
 
 unique_ptr<Workspace> workspace = nullptr;
 
 Workspace::Workspace():
-    buffer(nullptr),
+    dragContext(false, Point(0,0), nullptr),
     windowList(),
     _dirty(true),
     mouseCursor(make_shared<Surface>(32, 32)),
-    menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT))
+    menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT)),
+    surface(make_shared<Surface>(screen->width(), screen->height())),
+    ups(0.0),
+    upsCounter(0.0),
+    fps(0.0),
+    fpsCounter(0.0)
 {
+
     guard (workspace == nullptr) else {
         throw std::runtime_error("There can be only a single Workspace instance!");
+    }
+
+    guard(surface != nullptr) else {
+        throw(std::runtime_error("Failed to allocate surface for workspace!"));
     }
 
     guard(mouseCursor != nullptr) else {
@@ -76,46 +87,142 @@ method Workspace::resize (unsigned width, unsigned height) -> Void {
     }
 }
 
-char msg[256];
+static char msg[256];
+static char msg2[256];
+static char msg3[256];
 
 method Workspace::update(Int64 delta) -> Void {
-    sprintf(msg, "%.2ffps", kernel->fps);
+    sprintf(msg, "%.2f frames/sec", kernel->fps);
+    sprintf(msg2, "%.2f updates/sec", ups);
+    sprintf(msg3, "%.2f draws/sec", fps);
+
+    // Consume queued mouse events.
+    while (mouseEventQueue.empty() == false) {
+        var event = mouseEventQueue.front();
+        mouseEventQueue.pop();
+
+        switch (event->type) {
+        case MouseEvent::EventType::move:
+            mouseX = event->position().x;
+            mouseY = event->position().y;
+            break;
+        case MouseEvent::EventType::buttonDown:
+            mouseX = event->position().x;
+            mouseY = event->position().y;
+            switch (event->button) {
+            case MouseEvent::MouseButton::left: {
+                leftButtonDown = true;
+                break;
+            }
+            case MouseEvent::MouseButton::right: {
+                rightButtonDown = true;
+                break;
+            }
+            case MouseEvent::MouseButton::middle: {
+                middleButtonDown = true;
+                break;
+            }
+            default:
+                break;
+            }
+            dispatchEvent(event);
+            break;
+        case MouseEvent::EventType::buttonUp:
+            mouseX = event->position().x;
+            mouseY = event->position().y;
+            switch (event->button) {
+            case MouseEvent::MouseButton::left: {
+                leftButtonDown = false;
+                clearDragContext();
+                break;
+            }
+            case MouseEvent::MouseButton::right: {
+                rightButtonDown = false;
+                break;
+            }
+            case MouseEvent::MouseButton::middle: {
+                middleButtonDown = false;
+                break;
+            }
+            default:
+                break;
+            }
+            dispatchEvent(event);
+            break;
+        case MouseEvent::EventType::scroll:
+            mouseX = event->position().x;
+            mouseY = event->position().y;
+            dispatchEvent(event);
+            break;
+        default:
+            break;
+        }
+
+        mouseX = std::min(mouseX, screen->width());
+        mouseY = std::min(mouseY, screen->height());
+        _dirty = true;
+    }
+
+    if (dragContext.active == true) {
+        updateDragContext(Point(mouseX, mouseY));
+    }
+
+    upsCounter += 1.0;
 }
 
 method Workspace::draw() -> Void {
     guard (_dirty == true) else {
-    //   return;
+        goto done;
     }
 
-    screen->acquire();
+    surface->acquire();
 
-    screen->clear();
+    surface->clear(0xFFAAAAAA);
 
     std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
         if (win->isVisible()) {
             win->draw();
-            screen->drawSurface(win->surface(), win->origin());
+            surface->drawSurface(win->surface(), win->origin());
         }
     });
 
     menubar->clear(0xFFCCCCCC);
 
     menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,3));
+    menubar->drawText(msg2, ParagraphStyle::DefaultStyle(), Point(150,3));
+    menubar->drawText(msg3, ParagraphStyle::DefaultStyle(), Point(350,3));
     
-    screen->drawSurface(menubar, Point(0, 0));
+    if (leftButtonDown == true) {
+        menubar->drawText("L", ParagraphStyle::DefaultStyle(), Point(930,3));
+    }
     
-    screen->drawSurface(mouseCursor, kernel->mousePosition);
+    if (middleButtonDown == true) {
+        menubar->drawText("M", ParagraphStyle::DefaultStyle(), Point(940,3));
+    }
+    
+    if (rightButtonDown == true) {
+        menubar->drawText("R", ParagraphStyle::DefaultStyle(), Point(950,3));
+    }
 
+    surface->drawSurface(menubar, Point(0, 0));
+    surface->drawSurface(mouseCursor, Point(mouseX, mouseY), true);
+
+    surface->release();
+    _dirty = false;
+
+    screen->acquire();
+    screen->drawSurface(surface, Point(0,0));
     screen->release();
 
-    _dirty = false;
+done:
+    fpsCounter += 1.0;
 }
 
 method Workspace::createWindow() -> shared_ptr<Window> {
 
-    windowList.push_back(make_shared<Window>());
+    windowList.insert(windowList.begin(), make_shared<Window>());
 
-    var win = windowList.back();
+    var win = windowList.front();
 
     _dirty = true;
 
@@ -128,16 +235,37 @@ method Workspace::discardWindow(shared_ptr<Window> win) -> Void {
     _dirty = true;
 }
 
-method Workspace::moveWindowToFront(shared_ptr<Window> win) -> Void {
-    std::erase(windowList, win);
-    windowList.insert(windowList.begin(), win);
+method Workspace::dispatchEvent(shared_ptr<MouseEvent> event) -> Bool {
+    // Compare event->mousePosition for each window's rect, starting at the top.
 
-    _dirty = true;
+    for (var win : windowList) {
+        if (win->isVisible() && win->rect().checkPoint(event->position())) {
+            win->handleEvent(event);
+            return true;
+        }
+    }
+
+    return false;
 }
 
-method Workspace::moveWindowToBack(shared_ptr<Window> win) -> Void {
-    std::erase(windowList, win);
-    windowList.push_back(win);
+method Workspace::setDragContextForWindow(Window *window, Point dragOrigin) -> Void {
+    dragContext.active = true;
+    dragContext.window = window;
+    dragContext.previousLocation = dragOrigin;
+}
 
-    _dirty = true;
+method Workspace::updateDragContext(Point newLocation) -> Void {
+    guard (dragContext.window != nullptr) else {
+        return;
+    }
+    Int deltaX = dragContext.previousLocation.x - newLocation.x;
+    Int deltaY = dragContext.previousLocation.y - newLocation.y;
+    dragContext.previousLocation = newLocation;
+    var newWindowOrigin = Point(dragContext.window->_x + -deltaX, dragContext.window->_y + -deltaY);
+    dragContext.window->move(newWindowOrigin);
+}
+
+method Workspace::clearDragContext() -> Void {
+    dragContext.active = false;
+    dragContext.window = nullptr;
 }

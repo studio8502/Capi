@@ -27,12 +27,22 @@
 #include "graphics/surface.h"
 #include "graphics/screen.h"
 #include "workspace/window.h"
+#include "kernel.h"
 
 #define MENUBAR_HEIGHT 18
 
 class Workspace {
 public:
-    Color *buffer;
+    friend class Kernel::WorkspaceMonitor;
+    friend class Screen;
+
+    struct DragContext {
+        Bool active;
+        Point previousLocation;
+        Window *window;
+    };
+
+    DragContext dragContext;
     
     Workspace();
 
@@ -54,6 +64,14 @@ public:
 
     method setDirtyFlag() -> Void;
 
+    method dispatchEvent(shared_ptr<MouseEvent> event) -> Bool;
+
+    method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
+
+    method updateDragContext(Point newLocation) -> Void;
+
+    method clearDragContext() -> Void;
+
 private:
 
     std::vector<shared_ptr<Window>> windowList;
@@ -63,6 +81,21 @@ private:
     shared_ptr<Surface> mouseCursor;
 
     shared_ptr<Surface> menubar;
+
+    shared_ptr<Surface> surface;
+
+    UInt32 mouseX;
+    UInt32 mouseY;
+
+    Bool leftButtonDown;
+    Bool rightButtonDown;
+    Bool middleButtonDown;
+
+    Double ups;
+    Double upsCounter;
+
+    Double fps;
+    Double fpsCounter;
 };
 
 extern unique_ptr<Workspace> workspace;

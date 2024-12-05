@@ -81,7 +81,7 @@ public:
 
     method drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void;
 
-    method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
+    method drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha = false) -> Void;
 
     method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
 

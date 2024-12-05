@@ -123,58 +123,25 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 	for(unsigned i = 0; i < src->height(); i += 1)
 	{
 		target.y = dest.y + i;
-		
-		if (target.y >= _height) {
-			return;
-		} else if (target.y < 0) {
-			continue;
-		}
 
 		for(unsigned j = 0; j < src->width(); j += 1)
 		{
             target.x = j + dest.x;
-		
-			if (target.x >= _width || target.x >= dest.x + src->width()) {
-				continue;
-			} else if (target.x < 0) {
-				continue;
-			}
 
-			_buffer[target.y * _width + target.x] =
-				alpha_blend(_buffer[target.y * _width + target.x], 
-							pixelBuffer[i * src->width() + j]);
+			_buffer[target.y * _width + target.x] = pixelBuffer[i * src->width() + j];
     	}
 	}
 	DataSyncBarrier();
 }
 
-method Screen::fpsLimit() -> UInt8 {
-	return (_width > 960) || (_height > 540) ? 30 : 60;
-}
-
 method Screen::updateDisplay() -> Void {
-	using namespace std::chrono;
-    using dsec = duration<double>;
-    var limit = duration_cast<system_clock::duration>(dsec{1.0/fpsLimit()});
-    var beginFrame = system_clock::now();
-    var endFrame = beginFrame + limit;
-
-	_bufferLock.Acquire();
 	framebuffer->WaitForVerticalSync();
+
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
 						_buffer, 
 						_width * _height * sizeof(Color));
 	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 	bufferSwapped = !bufferSwapped;
-	workspace->buffer = baseBuffer + bufferSwapped * _width * _height;
-	_bufferLock.Release();
-	
-	var workTime = endFrame - beginFrame;
-	while (workTime < limit)
-	{
-		endFrame = std::chrono::system_clock::now();
-		workTime = endFrame - beginFrame;
-	}
 
 	fpsCounter += 1.0;
 }

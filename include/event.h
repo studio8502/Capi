@@ -26,15 +26,9 @@
 #include "capi.h"
 #include "graphics/geometry.h"
 
-class Event {
+class MouseEvent {
 public:
     enum class EventType {
-        mouse,
-        keyboard,
-        gamepad
-    };
-
-    enum class MouseEventType {
         buttonUp,
         buttonDown,
         buttonClicked,
@@ -42,31 +36,35 @@ public:
         move
     };
 
-    static method mouseEvent(MouseEventType mouseEventType, UInt32 x, UInt32 y) -> shared_ptr<Event>;
+    enum class MouseButton {
+        left = MOUSE_BUTTON_LEFT,
+        right = MOUSE_BUTTON_RIGHT,
+        middle = MOUSE_BUTTON_MIDDLE
+    };
 
-    Event(EventType type);
+    MouseEvent(EventType type, UInt32 x, UInt32 y);
 
-    virtual ~Event(){}
+    MouseEvent(EventType type, MouseButton button, UInt32 x, UInt32 y);
 
-    EventType type;
-private:
-    class MouseEvent;
-};
+    ~MouseEvent();
 
-class Event::MouseEvent: public Event {
-public:
-    MouseEvent(Event::MouseEventType mouseEventType, UInt32 x, UInt32 y);
+    static method Move(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
 
-    virtual ~MouseEvent() {}
+    static method ButtonUp(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+
+    static method ButtonDown(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+
+    static method Scroll(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
 
     method position() -> Point;
 
-    method setPosition(Point position);
+    MouseEvent::EventType type;
+    MouseButton button;
 
 private:
-    Event::MouseEventType mouseEventType;
     UInt32 _x;
     UInt32 _y;
+    MouseButton _button;
 };
 
-extern std::queue<shared_ptr<Event>> eventQueue;
+extern std::queue<shared_ptr<MouseEvent>> mouseEventQueue;
