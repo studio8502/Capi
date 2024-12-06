@@ -25,46 +25,68 @@
 
 #include "capi.h"
 #include "graphics/geometry.h"
+#include "workspace/window.h"
 
-class MouseEvent {
+class Window;
+
+class Event {
 public:
-    enum class EventType {
-        buttonUp,
-        buttonDown,
-        buttonClicked,
-        scroll,
-        move
+    
+    enum class Type {
+        mouseMoved,
+        leftMouseDown,
+        leftMouseDragged,
+        leftMouseUp,
+        middleMouseDown,
+        middleMouseDragged,
+        middleMouseUp,
+        rightMouseDown,
+        rightMouseDragged,
+        rightMouseUp,
+        mouseEntered,
+        mouseExited,
+        keyDown,
+        keyUp,
+        scrollWheel
     };
 
-    enum class MouseButton {
-        left = MOUSE_BUTTON_LEFT,
-        right = MOUSE_BUTTON_RIGHT,
-        middle = MOUSE_BUTTON_MIDDLE
-    };
+    Event(Event::Type type);
 
-    MouseEvent(EventType type, UInt32 x, UInt32 y);
+    ~Event();
 
-    MouseEvent(EventType type, MouseButton button, UInt32 x, UInt32 y);
+    static method mouseMoved() -> shared_ptr<Event>;
 
-    ~MouseEvent();
+    static method leftMouseDown() -> shared_ptr<Event>;
 
-    static method Move(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+    static method leftMouseDragged() -> shared_ptr<Event>;
 
-    static method ButtonUp(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+    static method leftMouseUp() -> shared_ptr<Event>;
 
-    static method ButtonDown(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+    static method middleMouseDown() -> shared_ptr<Event>;
 
-    static method Scroll(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent>;
+    static method middleMouseDragged() -> shared_ptr<Event>;
 
-    method position() -> Point;
+    static method middleMouseUp() -> shared_ptr<Event>;
 
-    MouseEvent::EventType type;
-    MouseButton button;
+    static method rightMouseDown() -> shared_ptr<Event>;
 
-private:
-    UInt32 _x;
-    UInt32 _y;
-    MouseButton _button;
+    static method rightMouseDragged() -> shared_ptr<Event>;
+
+    static method rightMouseUp() -> shared_ptr<Event>;
+
+    static method scrollWheel() -> shared_ptr<Event>;
+
+    Type type;
+
+    Double deltaX;
+    Double deltaY;
+    Double deltaW;
+    Point position;
+
+    UInt8 clickCount;
+
+    Point locationInWindow;
+    shared_ptr<Window> window;
 };
 
-extern std::queue<shared_ptr<MouseEvent>> mouseEventQueue;
+extern std::queue<shared_ptr<Event>> eventQueue;

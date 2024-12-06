@@ -28,6 +28,8 @@
 #define WINDOW_BORDER_WIDTH 4
 #define WINDOW_TITLEBAR_HEIGHT 16
 
+class Event;
+
 class Window {
 public:
     friend class Workspace;
@@ -90,25 +92,13 @@ public:
 
     method release() -> Void;
 
-	method clear(Color color) -> Void;
-
-    method drawLine(Point begin, Point end, Color color) -> Void;
-
-    method drawRect(Rect rect, Bool fill, Color color) -> Void;
-
-    method drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void;
-
-    method drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void;
-
-    method drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void;
-
     method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
 
     method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
 
     virtual method draw() -> Void;
 
-    method handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>sharedThis) -> Void;
+    method handleEvent(shared_ptr<Event> event, shared_ptr<Window>sharedThis) -> Void;
 
 private:
 
@@ -134,6 +124,7 @@ private:
     Bool _hasRollUpButton;
     UInt8 _opacity;
     Bool _dirty;
+    Bool isBeingDragged;
 
     shared_ptr<Surface> windowSurface;
     shared_ptr<Surface> contentSurface;

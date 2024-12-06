@@ -21,39 +21,63 @@
 
 #include "event.h"
 
-std::queue<shared_ptr<MouseEvent>> mouseEventQueue = std::queue<shared_ptr<MouseEvent>>();
+std::queue<shared_ptr<Event>> eventQueue = std::queue<shared_ptr<Event>>();
 
-MouseEvent::~MouseEvent() {}
+// Get the current time, in milliseconds since the epoch began
+static function now() -> UInt64;
 
-method MouseEvent::Move(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
-    return make_shared<MouseEvent>(EventType::move, x, y);
-}
-
-method MouseEvent::ButtonUp(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
-    return make_shared<MouseEvent>(EventType::buttonUp, button, x, y);
-}
-
-method MouseEvent::ButtonDown(MouseButton button, UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
-    return make_shared<MouseEvent>(EventType::buttonDown, button, x, y);
-}
-
-method MouseEvent::Scroll(UInt32 x, UInt32 y) -> shared_ptr<MouseEvent> {
-    return make_shared<MouseEvent>(EventType::scroll, x, y);
-}
-
-MouseEvent::MouseEvent(EventType type, UInt32 x, UInt32 y):
+Event::Event(Event::Type type):
     type(type),
-    _x(x),
-    _y(y)
+    deltaX(0.0),
+    deltaY(0.0),
+    position(Point(0,0)),
+    clickCount(0),
+    locationInWindow(Point(0,0)),
+    window(nullptr)
 {}
 
-MouseEvent::MouseEvent(EventType type, MouseButton button, UInt32 x, UInt32 y):
-    type(type),
-    button(button),
-    _x(x),
-    _y(y)
-{}
+Event::~Event() {}
 
-method MouseEvent::position() -> Point {
-    return Point(_x, _y);
+method Event::mouseMoved() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::mouseMoved);
+}
+
+method Event::leftMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseDown);
+}
+
+method Event::leftMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseDragged);
+}
+
+method Event::leftMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseUp);
+}
+
+method Event::middleMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseDown);
+}
+
+method Event::middleMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseDragged);
+}
+
+method Event::middleMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseUp);
+}
+
+method Event::rightMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseDown);
+}
+
+method Event::rightMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseDragged);
+}
+
+method Event::rightMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseUp);
+}
+
+method Event::scrollWheel() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::scrollWheel);
 }

@@ -33,7 +33,7 @@
 
 class Workspace {
 public:
-    friend class Kernel::WorkspaceMonitor;
+    friend class Kernel::FPSMonitor;
     friend class Screen;
 
     struct DragContext {
@@ -50,7 +50,7 @@ public:
 
     method resize(unsigned width, unsigned height) -> Void;
 
-    method update(Int64 delta) -> Void;
+    method update() -> Void;
 
     method draw() -> Void;
 
@@ -68,7 +68,7 @@ public:
 
     method setDirtyFlag() -> Void;
 
-    method dispatchEvent(shared_ptr<MouseEvent> event) -> Bool;
+    method dispatchEvent(shared_ptr<Event> event) -> Bool;
 
     method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
 
@@ -82,6 +82,8 @@ private:
 
     bool _dirty;
     bool _screenFlag;
+
+    shared_ptr<Surface> wallpaper;
 
     shared_ptr<Surface> mouseCursor;
 

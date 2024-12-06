@@ -26,11 +26,11 @@
 String Window::defaultTitle = "Default Title";
 
 Window::Window():
-    _title(""),
-    _x(0),
-    _y(0),
-    _width(100),
-    _height(100),
+    _title("Default Title"),
+    _x(100),
+    _y(100),
+    _width(400),
+    _height(300),
     _isDecorated(true),
     _hasTitlebar(true),
     _isVisible(false),
@@ -38,6 +38,7 @@ Window::Window():
     _hasRollUpButton(true),
     _opacity(255),
     _dirty(true),
+    isBeingDragged(false),
     windowSurface(nullptr),
     contentSurface(nullptr),
     drawCallback(nullptr)
@@ -91,17 +92,22 @@ method Window::titlebarRect() -> Rect {
 }
 
 method Window::contentRect() -> Rect {
-    var rect = Rect(_x, _y, _width, _height);
+    var rect = Rect(0, 0, 0, 0);
     if (_isDecorated && _hasTitlebar) {
-        rect.x += WINDOW_BORDER_WIDTH;
-        rect.y += WINDOW_TITLEBAR_HEIGHT;
-        rect.width -= WINDOW_BORDER_WIDTH * 2;
-        rect.height -= WINDOW_BORDER_WIDTH + WINDOW_TITLEBAR_HEIGHT;
+        rect.x = WINDOW_BORDER_WIDTH;
+        rect.y = WINDOW_TITLEBAR_HEIGHT;
+        rect.width = _width - WINDOW_BORDER_WIDTH * 2;
+        rect.height = _height - WINDOW_BORDER_WIDTH - WINDOW_TITLEBAR_HEIGHT;
     } else if (_isDecorated) {
-        rect.x += WINDOW_BORDER_WIDTH;
-        rect.y += WINDOW_BORDER_WIDTH;
-        rect.width -= WINDOW_BORDER_WIDTH * 2;
-        rect.height -= WINDOW_BORDER_WIDTH * 2;
+        rect.x = WINDOW_BORDER_WIDTH;
+        rect.y = WINDOW_BORDER_WIDTH;
+        rect.width = _width - WINDOW_BORDER_WIDTH * 2;
+        rect.height = _height - WINDOW_BORDER_WIDTH * 2;
+    } else {
+        rect.x = 0;
+        rect.y = 0;
+        rect.width = _width;
+        rect.height = _height;
     }
 
     return rect;
@@ -183,42 +189,6 @@ method Window::release() -> Void {
     _lock.Release();
 }
 
-method Window::clear(Color color) -> Void {
-    contentSurface->clear(color);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawLine(Point begin, Point end, Color color) -> Void {
-    contentSurface->drawLine(begin, end, color);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawRect(Rect rect, Bool fill, Color color) -> Void {
-    contentSurface->drawRect(rect, fill, color);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void {
-    contentSurface->drawCircle(origin, radius, fill, color);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image) -> Void {
-    contentSurface->drawImageRect(rect, sourceRect, image);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor) -> Void {
-    contentSurface->drawImageRectTransparent(rect, sourceRect, image, transparentColor);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
 method Window::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
     contentSurface->drawText(message, style, origin);
     _dirty = true;
@@ -248,10 +218,6 @@ method Window::draw() -> Void{
         return;
     }
 
-    windowSurface->acquire();
-    windowSurface->clear(0xFFCCCCCC);
-    windowSurface->release();
-
     drawWindowContent();
     windowSurface->drawSurface(contentSurface, contentOrigin());
     drawWindowChrome();
@@ -262,69 +228,35 @@ method Window::draw() -> Void{
 // Draw the window chrome to the window's main surface.
 method Window::drawWindowChrome() -> Void {
 
-    if (_isDecorated == false) {
-        return;
-    }
     windowSurface->acquire();
 
-    var windowBorder = Rect(0,0,_width - 1, _height - 1);
+    windowSurface->rectangle(0, 0, _width - 1, _height - 1);
 
-    windowSurface->drawRect(windowBorder, false, 0xFF222222);
+    windowSurface->setColor(BrushType::fill, 0xFFCCCCCC);
+    windowSurface->fill();
 
-    var contentBorder = Rect(0,0,0,0);
+    windowSurface->setColor(BrushType::fill, 0xFF000000);
+    windowSurface->setLineWidth(1);
+    windowSurface->stroke();
 
-    contentBorder.x = WINDOW_BORDER_WIDTH - 1;
-    
-    if (_isDecorated && _hasTitlebar) {
-        contentBorder.y = WINDOW_TITLEBAR_HEIGHT - 1;
-    } else if (_isDecorated) {
-        contentBorder.y = WINDOW_BORDER_WIDTH - 1;
+    if (_hasTitlebar) {
+        var rect = contentRect();
+        windowSurface->beginPath();
+        windowSurface->rectangle(rect.x, rect.y, rect.width - 1, rect.height);
+        windowSurface->setColor(BrushType::fill, 0xFFFFFFFF);
+        windowSurface->fill();
+        windowSurface->stroke();
     }
 
-    contentBorder.width = _width - WINDOW_BORDER_WIDTH * 2 + 1;
-    
-    if (_isDecorated && _hasTitlebar) {
-        contentBorder.height = _height - WINDOW_TITLEBAR_HEIGHT - WINDOW_BORDER_WIDTH + 1;
-    } else if (_isDecorated) {
-        contentBorder.height = _height - WINDOW_BORDER_WIDTH * 2 + 1;
+    if (_hasTitlebar && _hasCloseButton) {
+        windowSurface->beginPath();
+        windowSurface->rectangle(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, 9, 9);
+        windowSurface->stroke();
     }
 
-    windowSurface->drawRect(contentBorder, false, 0xFF444444);
+    windowSurface->render();
 
-    if (_hasTitlebar == true) {
-
-        var lineStart = Point(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1);
-        var lineEnd = Point(_width - WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH -1);
-        windowSurface->drawLine(lineStart, lineEnd, 0xFF000000);
-        lineStart.y += 3;
-        lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0xFF000000);
-        lineStart.y += 3;
-        lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0xFF000000);
-        lineStart.y += 3;
-        lineEnd.y = lineStart.y; 
-        windowSurface->drawLine(lineStart, lineEnd, 0xFF000000);
-
-        if (_hasCloseButton == true) {
-            var closeButtonMargin = Rect(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1, 12, 12);
-            var closeButtonBorder = Rect(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1, 9, 9);
-            var closeSymbolStart1 = Point(WINDOW_BORDER_WIDTH + 2, WINDOW_BORDER_WIDTH + 2);
-            var closeSymbolEnd1 = Point(WINDOW_BORDER_WIDTH + 5, WINDOW_BORDER_WIDTH + 5);
-
-            var closeSymbolStart2 = Point(WINDOW_BORDER_WIDTH + 2, WINDOW_BORDER_WIDTH + 5);
-            var closeSymbolEnd2 = Point(WINDOW_BORDER_WIDTH + 5, WINDOW_BORDER_WIDTH + 2);
-
-            windowSurface->drawRect(closeButtonMargin, true, 0xFFCCCCCC);
-            windowSurface->drawRect(closeButtonBorder, false, 0xFF000000);
-            windowSurface->drawLine(closeSymbolStart1, closeSymbolEnd1, 0xFF000000);
-            windowSurface->drawLine(closeSymbolStart2, closeSymbolEnd2, 0xFF000000);
-        }
-
-        if (_hasRollUpButton == true) {
-
-        }
-
+    if (_hasTitlebar) {
         var titleFont = make_shared<Font::NotoSans>(Font::Size::small, Font::Weight::bold);
         var titleStyle = make_shared<ParagraphStyle>(titleFont, 0, ParagraphStyle::Align::center);
         var titleWidth = titleStyle->font()->widthForString(_title);
@@ -332,27 +264,46 @@ method Window::drawWindowChrome() -> Void {
             var centerX = _width / 2;
             var titleX = centerX - titleWidth / 2;
             var titleBGRect = Rect(titleX - 6, 1, titleWidth + 12, WINDOW_TITLEBAR_HEIGHT - 2);
-            windowSurface->drawRect(titleBGRect, true, 0xFFCCCCCC);
-            windowSurface->drawText(_title, titleStyle, Point(centerX, 0));
+            windowSurface->drawText(_title, titleStyle, Point(centerX, 1));
         }
-    } else {
-
     }
 
     windowSurface->release();
+
 }
 
 // Draw the window content to the window's content surface.
 method Window::drawWindowContent() -> Void {
     contentSurface->acquire();
-    contentSurface->clear(SystemPalette[12]);
     if (drawCallback != nullptr) {
         drawCallback(this);
     }
     contentSurface->release();
 }
 
-method Window::handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>sharedThis) -> Void {
+method Window::handleEvent(shared_ptr<Event> event, shared_ptr<Window>sharedThis) -> Void {
+
+    switch (event->type) {
+    case Event::Type::mouseMoved:
+        if (isBeingDragged == true) {
+            _x += event->deltaX;
+            _y += event->deltaY;
+        }
+        break;
+    case Event::Type::leftMouseDown:
+        workspace->moveWindowToFront(sharedThis);
+        if (titlebarRect().checkPoint(event->position)) {
+            workspace->setDragContextForWindow(this, event->position);
+        }
+        break;
+    case Event::Type::leftMouseUp:
+        workspace->clearDragContext();
+        break;
+    default:
+        break;
+    }
+
+/*
     switch (event->type) {
     case MouseEvent::EventType::buttonDown:
         switch (event->button) {
@@ -363,7 +314,7 @@ method Window::handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>share
             if (titlebarRect().checkPoint(event->position())) {
                 workspace->setDragContextForWindow(this, event->position());
             }
-            
+
             break;
         }
         case MouseEvent::MouseButton::right: {
@@ -392,5 +343,10 @@ method Window::handleEvent(shared_ptr<MouseEvent> event, shared_ptr<Window>share
             break;
         }
         break;
+    case MouseEvent::EventType::scroll:
+        break;
+    default:
+        break;
     }
+    */
 }

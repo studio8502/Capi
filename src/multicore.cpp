@@ -24,8 +24,6 @@
 #include "graphics/font.h"
 #include "workspace/workspace.h"
 
-static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window>;
-
 static function now() -> UInt64;
 
 Multicore::Multicore(CMemorySystem *memory):
@@ -37,94 +35,33 @@ Multicore::~Multicore() {}
 method Multicore::Run(UInt32 core_id) -> Void {
 
     switch (core_id) {
-    case 0:
+    case 0: {
         while (true) {
             CScheduler::Get()->Sleep(1);
         }
-        break;
-    case 1: 
-        while (true) {
-            screen->updateDisplay();  
-        }
-        break;
-    case 2: {
-            var win1 = createWindow(300, 200);
-            win1->setTitle("Window One");
-            var win2 = createWindow(200, 100);
-            win2->setTitle("Window Two: Window Harder");
-
-            win1->show();
-            win2->show();
-
-            Int64 begin = 0;
-            Int64 end = 0;
-            Int64 delta = end - begin;
+    }
+    case 1: {
+            var win = workspace->createWindow();
+            win->show();
 
             while (true) {
-                begin = now();
-                workspace->update(delta);
-                end = now();
-                delta = end - begin;
+                workspace->update();
             }
+        }
+        break;
+    case 2: 
+        while (true) {
+    		workspace->draw();
         }
         break;
     case 3: 
         while (true) {
-            workspace->draw();
+		    screen->updateDisplay();  
         }
+        break;
     default:
-        return;
+        break;
     }
-}
-
-static function drawWindow(Window *win) {
-    win->clear(SystemPalette[22]);
-    win->acquire();
-
-    win->drawCircle(Point(0,0), 60 , true, 0x7FFF0000);
-
-    var color = 0;
-    var box = make_shared<Surface>(256, 256);
-    var border = make_shared<Surface>(264, 264);
-    
-    border->acquire();
-    border->clear(SystemPalette[0]);
-    border->release();
-
-    box->acquire();
-    box->clear(SystemPalette[0]);
-    for (var row = 0; row < 16; row += 1) {     
-        for (var col = 0; col < 16; col += 1) {
-            var rect = Rect(col * 16, row * 16, 16, 16);
-            box->drawRect(rect, true, SystemPalette[color]);
-            color += 1;
-        }
-    }
-    box->release();
-
-    var style = ParagraphStyle::DefaultStyle();
-    style->setColor(SystemPalette[15]);
-
-    win->drawSurface(border, Point(175, 5));
-    win->drawSurface(box, Point(179, 9));
-
-    var image = Image::imageFromFile("SD:/sample.png");
-    win->drawImageRect(Rect(0, 0, 528, 528), Rect(0, 0, 528, 528), image);
-
-    win->drawText(VersionString(), style, Point(2, 255));
-
-    win->release();
-}
-
-static function createWindow(UInt16 x, UInt16 y) -> shared_ptr<Window> {
-    var win = workspace->createWindow();
-
-    win->setDrawCallback(drawWindow);
-    win->setTitle("Fancy Title");
-    win->resize(Size(450, 293));
-    win->move(Point(x, y));
-
-    return win;
 }
 
 static function now() -> UInt64 {

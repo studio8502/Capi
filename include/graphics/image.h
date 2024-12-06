@@ -25,6 +25,8 @@
 #include "graphics/geometry.h"
 #include "graphics/palette.h"
 
+class Surface;
+
 class Image {
 public:
     Image(String filename);
@@ -32,6 +34,8 @@ public:
     ~Image();
 
     static method imageFromFile(String filename) -> shared_ptr<Image>;
+
+    static method imageSurfaceFromFile(String filename) -> shared_ptr<Surface>;
 
     static method imageFromURL(String url) -> shared_ptr<Image>;
 

@@ -21,6 +21,7 @@
 
 #include "kernel.h"
 #include "event.h"
+#include "mouse.h"
 #include "graphics/screen.h"
 #include "workspace/workspace.h"
 
@@ -98,7 +99,7 @@ method Kernel::updateUSB() -> Void {
 			mouse = dynamic_cast<CMouseDevice *>(deviceNameService.GetDevice("mouse1", FALSE));
 			if (mouse != nullptr) {
 				mouse->RegisterRemovedHandler(mouseRemovedHandler);
-				mouse->RegisterEventHandler(mouseEventHandler);
+				mouse->RegisterStatusHandler(Mouse::statusHandler);
 				mouse->Setup(kernelOptions.GetWidth(), kernelOptions.GetHeight());
 				mouse->SetCursor(kernelOptions.GetWidth()/2, kernelOptions.GetHeight()/2);
 				mouse->ShowCursor(false);
@@ -155,64 +156,6 @@ method Kernel::keyPressedHandler(const char *str) -> Void {
 	staticThis->log.Write("Keyboard", LogDebug, str);
 }
 
-method Kernel::mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove) -> Void {
-	switch (Event) {
-	case MouseEventMouseMove: {
-			var evt = MouseEvent::Move(nPosX, nPosY);
-			mouseEventQueue.push(evt);
-		}
-		break;
-	case MouseEventMouseDown:
-		switch (nButtons) {
-		case MOUSE_BUTTON_LEFT: {
-			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::left, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		case MOUSE_BUTTON_RIGHT: {
-			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::right, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		case MOUSE_BUTTON_MIDDLE: {
-			var evt = MouseEvent::ButtonDown(MouseEvent::MouseButton::middle, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		default: 
-			break;
-		}
-		break;
-	case MouseEventMouseUp:
-		switch (nButtons) {
-		case MOUSE_BUTTON_LEFT: {
-			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::left, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		case MOUSE_BUTTON_RIGHT: {
-			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::right, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		case MOUSE_BUTTON_MIDDLE: {
-			var evt = MouseEvent::ButtonUp(MouseEvent::MouseButton::middle, nPosX, nPosY);
-			mouseEventQueue.push(evt);
-			break;
-		}
-		default: 
-			break;
-		}
-		break;
-	case MouseEventMouseWheel: {
-
-		}
-		break;
-	default:
-		break;
-	}
-}
-
 method Kernel::gamePadStatusHandler(unsigned pad, const TGamePadState *state) -> Void {
 
 }
@@ -237,8 +180,6 @@ method Kernel::run() -> ShutdownMode {
 	new USBPNPMonitor();
 
 	new FPSMonitor();
-
-	new WorkspaceMonitor();
 
 	taskScheduler.ListTasks(&debugPort);
 
@@ -304,24 +245,6 @@ method Kernel::FPSMonitor::Run() -> Void {
 	while (true) {
 		kernel->fps = screen->fpsCounter;
 		screen->fpsCounter = 0.0;
-		workspace->setDirtyFlag();
-		CScheduler::Get()->Sleep(1);
-	}
-}
-
-Kernel::WorkspaceMonitor::WorkspaceMonitor() {
-
-}
-
-Kernel::WorkspaceMonitor::~WorkspaceMonitor() {
-
-}
-
-method Kernel::WorkspaceMonitor::Run() -> Void {
-
-	SetName("Workspace Monitor");
-
-	while (true) {
 		workspace->fps = workspace->fpsCounter;
 		workspace->fpsCounter = 0.0;
 		workspace->ups = workspace->upsCounter;

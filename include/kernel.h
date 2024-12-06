@@ -66,14 +66,6 @@ public:
 		method Run() -> Void;
 	};
 
-	class WorkspaceMonitor: CTask {
-	public:
-		WorkspaceMonitor();
-		~WorkspaceMonitor();
-
-		method Run() -> Void;
-	};
-
 	Double fps;
 
 	Kernel();

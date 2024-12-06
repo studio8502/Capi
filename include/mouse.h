@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/image.cpp                                                        ║
+ ║ mouse.h                                                                   ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,41 +19,25 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/image.h"
+#pragma once
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-#define STBI_ONLY_JPEG
-#include "graphics/stb_image.h"
-#include "graphics/surface.h"
+#include "capi.h"
 
-static UInt8 desired_channels = 4;
-static char exceptionMessage[256];
+class Mouse {
+public: 
 
-Image::Image(String filename) {
-    data = (Color *) stbi_load(filename.c_str(), &_width, &_height, &_channels, desired_channels);
-    if (data == nullptr) {
-        sprintf(exceptionMessage, "Failed to load file \"%s\"", filename.c_str());
-        throw(std::runtime_error(exceptionMessage));
-    }
-}
+    Mouse();
 
-Image::~Image() {
-    stbi_image_free(data);
-}
+    ~Mouse();
 
-method Image::imageFromFile(String filename) -> shared_ptr<Image> {
-    return make_shared<Image>(filename);
-}
+    static method statusHandler(UInt buttons, 
+                                Int deltaX, 
+                                Int deltaY, 
+                                Int deltaW) -> Void;
 
-method Image::imageSurfaceFromFile(String filename) -> shared_ptr<Surface> {
-    var image = make_shared<Image>(filename);
-    var surface = make_shared<Surface>(image->rect().width, image->rect().height);
-    surface->drawImage(image, Point(0,0));
-    surface->render();
-    return surface;
-}
+    Bool leftButtonDown;
+    Bool middleButtonDown;
+    Bool rightButtonDown;
+};
 
-method Image::rect() -> Rect {
-    return Rect(0, 0, _width, _height);
-}
+extern Mouse *mouse;

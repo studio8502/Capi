@@ -22,12 +22,16 @@
 #pragma once
 
 #include "capi.h"
+#include "graphics/canvas.h"
 #include "graphics/geometry.h"
 #include "graphics/paragraph_style.h"
 #include "graphics/image.h"
 
 using std::shared_ptr;
 using std::weak_ptr;
+
+using Canvas = canvas_ity::canvas;
+using namespace canvas_ity;
 
 // The Surface class manages a 2D surface of arbitrary width and height,
 // to which graphics and text can be drawn. Surfaces are protected with
@@ -37,6 +41,11 @@ class Surface {
 public:
 
     friend class Screen;
+
+    enum class BrushType {
+        fill = fill_style,
+        stroke = stroke_style
+    };
 
 	struct TextDrawingContext {
 	public:
@@ -52,6 +61,10 @@ public:
     ~Surface();
 
     method reset() -> Void;
+
+    method canvas() -> shared_ptr<Canvas>;
+
+    method render() -> Void;
 
     virtual method width() -> UInt64;
 
@@ -69,17 +82,23 @@ public:
 
     // The functions below require holding the spinlock or crashes may result.
 
-    virtual method clear(Color color) -> Void;
+    method clear(Color color) -> Void;
 
-    method drawLine(Point begin, Point end, Color color) -> Void;
+    method setColor(BrushType type, Color color) -> Void;
 
-    method drawRect(Rect rect, Bool fill, Color color) -> Void;
+    method setLineWidth(Int width) -> Void;
 
-    method drawCircle(Point origin, UInt32 radius, Bool fill, Color color) -> Void;
+    method fill() -> Void;
 
-    method drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image, Bool replace = false) -> Void;
+    method fillRect(Rect rect) -> Void;
 
-    method drawImageRectTransparent(Rect rect, Rect sourceRect, shared_ptr<Image> image, Color transparentColor, Bool alpha = false) -> Void;
+    method stroke() -> Void;
+
+    method beginPath() -> Void;
+
+    method rectangle(Int x, Int y, Int width, Int height) -> Void;
+
+    method drawImage(shared_ptr<Image> image, Point dest) -> Void;
 
     method drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha = false) -> Void;
 
@@ -91,5 +110,9 @@ private:
     shared_ptr<Color[]> _data;
     UInt8 _opacity; 
 
+    shared_ptr<Canvas> _canvas;
+
     CSpinLock _lock;
 };
+
+using BrushType = Surface::BrushType;
