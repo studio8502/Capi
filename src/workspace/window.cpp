@@ -21,7 +21,6 @@
 
 #include "workspace/window.h"
 #include "workspace/workspace.h"
-#include "graphics/font_notosans.h"
 
 String Window::defaultTitle = "Default Title";
 
@@ -189,8 +188,8 @@ method Window::release() -> Void {
     _lock.Release();
 }
 
-method Window::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
-    contentSurface->drawText(message, style, origin);
+method Window::drawText(String message, Point origin) -> Void {
+    contentSurface->fillText(message, origin);
     _dirty = true;
     workspace->setDirtyFlag();
 }
@@ -230,44 +229,38 @@ method Window::drawWindowChrome() -> Void {
 
     windowSurface->acquire();
 
-    windowSurface->rectangle(0, 0, _width - 1, _height - 1);
-
-    windowSurface->setColor(BrushType::fill, 0xFFCCCCCC);
+    windowSurface->rectangle(Rect(0, 0, _width - 1, _height - 1));
+    windowSurface->setFillColor(0xFFCCCCCC);
     windowSurface->fill();
-
-    windowSurface->setColor(BrushType::fill, 0xFF000000);
+    windowSurface->setStrokeColor(0xFF000000);
     windowSurface->setLineWidth(1);
     windowSurface->stroke();
 
     if (_hasTitlebar) {
         var rect = contentRect();
         windowSurface->beginPath();
-        windowSurface->rectangle(rect.x, rect.y, rect.width - 1, rect.height);
-        windowSurface->setColor(BrushType::fill, 0xFFFFFFFF);
+        windowSurface->rectangle(Rect(rect.x, rect.y, rect.width - 1, rect.height));
+        windowSurface->setFillColor(0xFFFFFFFF);
         windowSurface->fill();
         windowSurface->stroke();
+
+        windowSurface->setFont(Font::DefaultWindowTitleFont(), 14.0);
+        windowSurface->setFillColor(0xFF000000);
+
+        var titleWidth = windowSurface->measureText(_title);
+        var centerX = _width / 2;
+        var titleX = centerX - titleWidth / 2;
+        
+        windowSurface->fillText(_title, Point(titleX, WINDOW_TITLEBAR_HEIGHT - 3));
     }
 
     if (_hasTitlebar && _hasCloseButton) {
         windowSurface->beginPath();
-        windowSurface->rectangle(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, 9, 9);
+        windowSurface->rectangle(Rect(WINDOW_BORDER_WIDTH, WINDOW_BORDER_WIDTH, 9, 9));
         windowSurface->stroke();
     }
 
     windowSurface->render();
-
-    if (_hasTitlebar) {
-        var titleFont = make_shared<Font::NotoSans>(Font::Size::small, Font::Weight::bold);
-        var titleStyle = make_shared<ParagraphStyle>(titleFont, 0, ParagraphStyle::Align::center);
-        var titleWidth = titleStyle->font()->widthForString(_title);
-        if (titleWidth != 0) {
-            var centerX = _width / 2;
-            var titleX = centerX - titleWidth / 2;
-            var titleBGRect = Rect(titleX - 6, 1, titleWidth + 12, WINDOW_TITLEBAR_HEIGHT - 2);
-            windowSurface->drawText(_title, titleStyle, Point(centerX, 1));
-        }
-    }
-
     windowSurface->release();
 
 }

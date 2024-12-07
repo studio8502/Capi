@@ -92,7 +92,7 @@ public:
 
     method release() -> Void;
 
-    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
+    method drawText(String message, Point origin) -> Void;
 
     method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
 

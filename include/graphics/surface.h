@@ -26,12 +26,14 @@
 #include "graphics/geometry.h"
 #include "graphics/paragraph_style.h"
 #include "graphics/image.h"
+#include "graphics/font.h"
 
 using std::shared_ptr;
 using std::weak_ptr;
 
 using Canvas = canvas_ity::canvas;
-using namespace canvas_ity;
+
+
 
 // The Surface class manages a 2D surface of arbitrary width and height,
 // to which graphics and text can be drawn. Surfaces are protected with
@@ -42,9 +44,51 @@ public:
 
     friend class Screen;
 
+    // A structure representing the top two rows of
+    // a 3x3 matrix expression of an affine transformation.
+    // The bottom row is implicitly {0.0, 0.0, 1.0}.
+    struct AffineTransform {
+        float horizontalScale;
+        float verticalSkew;
+        float horizontalSkew;
+        float verticalScale;
+        float horizontalTranslation;
+        float verticalTranslation;
+    };
+
+    // An enumerated type that defines the various compositing operations
+    // possible.
+    enum class CompositeOperation {
+        sourceAtop = canvas_ity::source_atop,    // Show new over old where old is opaque.
+        sourceCopy = canvas_ity::source_copy,    // Replace old with new.
+        sourceIn = canvas_ity::source_in,        // Replace old with new where old was opaque.
+        sourceOut = canvas_ity::source_out,      // Replace old with new where old was transparent.
+        sourceOver = canvas_ity::source_over,    // Show new over old.
+        destAtop = canvas_ity::destination_atop, // Show old over new where new is opaque.
+        destIn = canvas_ity::destination_in,     // Clear old where new is transparent.
+        destOut = canvas_ity::destination_out,   // Clear old where new is opaque.
+        destOver = canvas_ity::destination_over, // Show new under old.
+        exclusiveOr = canvas_ity::exclusive_or,          // Show new and old but clear where both are opaque.
+        lighten = canvas_ity::lighter            // Sum the new with the old.
+    };
+
+    // An enumerated type that defines the line-cap styles available.
+    enum class LineCapStyle {
+        butt = canvas_ity::butt,
+        square = canvas_ity::square,
+        circle = canvas_ity::circle
+    };
+
+    // An enumerated type that defines the line join styles available.
+    enum class LineJoinStyle {
+        mitered = canvas_ity::miter,
+        beveled = canvas_ity::bevel,
+        rounded = canvas_ity::rounded
+    };
+
     enum class BrushType {
-        fill = fill_style,
-        stroke = stroke_style
+        fill = canvas_ity::fill_style,
+        stroke = canvas_ity::stroke_style
     };
 
 	struct TextDrawingContext {
@@ -82,11 +126,71 @@ public:
 
     // The functions below require holding the spinlock or crashes may result.
 
+    // Push the state of the canvas to an internal stack;
+    method saveState() -> Void;
+
+    // Pop the most recently saved state from the stack.
+    method restoreState() -> Void;
+
+    // Reset the transform to the default state.
+    method resetTransform() -> Void;
+
+    // Scale the current transform.
+    //
+    // Arguments:
+    //      x: Horizontal scale factor
+    //      y: Vertical scale factor
+    method scaleTransform(Single x, Single y) -> Void;
+
+    // Rotate the current transform.
+    //
+    // Arguments:
+    //      angle: Rotation angle in radians
+    method rotateTransform(Single angle) -> Void;
+
+    // Translate the current transform.
+    //
+    // Arguments:
+    //      x: Distance to move horizontally
+    //      y: Distance to move vertically
+    method translateTransform(Single x, Single y) -> Void;
+
+    // Append an arbitrary transform to the current one.
+    //
+    // Arguments:
+    //      transform: Structure representing the transform.
+    method appendTransform(AffineTransform &transform);
+
+    // Replace the current transform entirely with a new one.
+    //
+    // Arguments:
+    //      transform: Structure representing the transform.
+    method replaceTransform(AffineTransform &transform);
+
+    // Set the global compositing operation to be applied.
+    method setCompositeOperation(CompositeOperation op) -> Void;
+
     method clear(Color color) -> Void;
 
-    method setColor(BrushType type, Color color) -> Void;
+    method setFillColor(Color color) -> Void;
+
+    method setStrokeColor(Color color) -> Void;
+
+    method setShadowColor(Color color) -> Void;
+
+    method setShadowHorizontalOffset(Single offset) -> Void;
+
+    method setShadowVerticallOffset(Single offset) -> Void;
+
+    method setShadowBlur(Single blur) -> Void;
 
     method setLineWidth(Int width) -> Void;
+
+    method setLineCapStyle(LineCapStyle style) -> Void;
+
+    method setLineJoinStyle(LineJoinStyle style) -> Void;
+
+    method setMiterLimit(Single limit) -> Void;
 
     method fill() -> Void;
 
@@ -96,15 +200,22 @@ public:
 
     method beginPath() -> Void;
 
-    method rectangle(Int x, Int y, Int width, Int height) -> Void;
+    method rectangle(Rect rect) -> Void;
 
     method drawImage(shared_ptr<Image> image, Point dest) -> Void;
 
     method drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha = false) -> Void;
 
-    method drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void;
+    method setFont(shared_ptr<Font> font, Double size) -> Void;
+
+    method measureText(String message) -> Single;
+
+    method fillText(String message, Point origin) -> Void;
 
 private:
+
+    method setColor(BrushType type, Color color) -> Void;
+    
     UInt64 _width;
     UInt64 _height;
     shared_ptr<Color[]> _data;

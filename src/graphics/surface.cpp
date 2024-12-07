@@ -20,13 +20,7 @@
  ****************************************************************************/
 
 #include "graphics/surface.h"
-#include "mcufont.h"
-
-static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void;
-
-static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t;
-
-static function line_callback(mf_str line, uint16_t count, void *state) -> Bool;
+#include "filesystem.h"
 
 Surface::Surface(Size size):
     _width(size.width),
@@ -116,12 +110,56 @@ method Surface::release() -> Void {
     _lock.Release();
 }
 
+method Surface::saveState() -> Void {
+    _canvas->save();
+}
+
+method Surface::restoreState() -> Void {
+    _canvas->restore();
+}
+
+method Surface::resetTransform() -> Void {
+    _canvas->set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+}
+
+method Surface::scaleTransform(Single x, Single y) -> Void {
+    _canvas->scale(x, y);
+}
+
+method Surface::rotateTransform(Single angle) -> Void {
+    _canvas->rotate(angle);
+}
+
+method Surface::translateTransform(Single x, Single y) -> Void {
+    _canvas->translate(x, y);
+}
+
+method Surface::appendTransform(AffineTransform &transform) {
+    _canvas->transform(transform.horizontalScale,
+                       transform.verticalSkew,
+                       transform.horizontalSkew,
+                       transform.verticalScale,
+                       transform.horizontalTranslation,
+                       transform.verticalTranslation);
+}
+
+method Surface::replaceTransform(AffineTransform &transform) {
+    _canvas->set_transform(transform.horizontalScale,
+                           transform.verticalSkew,
+                           transform.horizontalSkew,
+                           transform.verticalScale,
+                           transform.horizontalTranslation,
+                           transform.verticalTranslation);
+}
+
+method Surface::setCompositeOperation(CompositeOperation op) -> Void {
+    _canvas->global_composite_operation = (canvas_ity::composite_operation) op;
+}
+
 method Surface::clear(Color color) -> Void {
     _canvas->save();
-    setColor(BrushType::fill, color);
-
+    setFillColor(color);
     fillRect(Rect(0, 0, _width, _height));
-
     _canvas->restore();
 }
 
@@ -130,11 +168,52 @@ method Surface::setColor(BrushType type, Color color) -> Void {
     var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
     var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
     var a = ((color >> 24) & 0xFF) * (1.0 / 255.0);
-    _canvas->set_color((brush_type) type, r, g, b, a);
+    _canvas->set_color((canvas_ity::brush_type) type, r, g, b, a);
+}
+
+method Surface::setFillColor(Color color) -> Void {
+    setColor(BrushType::fill, color);
+}
+
+method Surface::setStrokeColor(Color color) -> Void {
+    setColor(BrushType::stroke, color);
+}
+
+method Surface::setShadowColor(Color color) -> Void {
+    var b = (color & 0xFF) * (1.0 / 255.0);
+    var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
+    var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
+    var a = ((color >> 24) & 0xFF) * (1.0 / 255.0);
+    _canvas->set_shadow_color(r, g, b, a);
+}
+
+method Surface::setShadowHorizontalOffset(Single offset) -> Void {
+    _canvas->shadow_offset_x = offset;
+}
+
+method Surface::setShadowVerticallOffset(Single offset) -> Void {
+    _canvas->shadow_offset_y = offset;
+}
+
+method Surface::setShadowBlur(Single blur) -> Void {
+    _canvas->set_shadow_blur(blur);
 }
 
 method Surface::setLineWidth(Int width) -> Void {
     _canvas->set_line_width(width);
+}
+
+method Surface::setLineCapStyle(LineCapStyle style) -> Void {
+    _canvas->line_cap = (canvas_ity::cap_style) style;
+}
+
+
+method Surface::setLineJoinStyle(LineJoinStyle style) -> Void {
+    _canvas->line_join = (canvas_ity::join_style) style;
+}
+
+method Surface::setMiterLimit(Single limit) -> Void {
+    _canvas->set_miter_limit(limit);
 }
 
 method Surface::fill() -> Void {
@@ -153,8 +232,8 @@ method Surface::beginPath() -> Void {
     _canvas->begin_path();
 }
 
-method Surface::rectangle(Int x, Int y, Int width, Int height) -> Void {
-    _canvas->rectangle(x, y, width, height);
+method Surface::rectangle(Rect rect) -> Void {
+    _canvas->rectangle(rect.x, rect.y, rect.width, rect.height);
 }
 
 method Surface::drawImage(shared_ptr<Image> image, Point dest) -> Void {
@@ -166,6 +245,34 @@ method Surface::drawImage(shared_ptr<Image> image, Point dest) -> Void {
                          dest.y,
                          image->rect().width, 
                          image->rect().height);
+}
+
+method Surface::measureText(String message) -> Single {
+    return _canvas->measure_text(message.c_str());
+}
+
+method Surface::setFont(shared_ptr<Font> font, Double size) -> Void {
+    var status = _canvas->set_font((unsigned char const *) font->data, font->length, size);
+    if (status != true) {
+        CLogger::Get()->Write("Surface", LogNotice, "Failed to set font!");
+    }
+}
+
+method Surface::fillText(String message, Point origin) -> Void {
+    _canvas->fill_text(message.c_str(), origin.x, origin.y);
+/*
+
+    /// @param text           null-terminated UTF-8 string of text to fill
+    /// @param x              horizontal coordinate of the anchor point
+    /// @param y              vertical coordinate of the anchor point
+    /// @param maximum_width  horizontal width to condense wider text to
+    ///
+    void fill_text(
+        char const *text,
+        float x,
+        float y,
+        float maximum_width = 1.0e30f );
+*/
 }
 
 method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> Void {
@@ -198,59 +305,5 @@ method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> 
                                         pixelBuffer[i * src->width() + j]);
             }
     	}
-	}
-}
-
-method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
-
-	var context = new Surface::TextDrawingContext(style, origin, this);
-
-	mf_render_aligned(context->style->font()->data(),
-            		  context->origin.x, context->origin.y, 
-					  (mf_align_t) context->style->align(), 
-					  message.c_str(), 0, 
-					  &char_callback, (void *) context);
-	
-	delete context;
-}
-
-static function line_callback(mf_str line, uint16_t count, void *state) -> Bool {
-
-    [[gnu::unused]]
-	var context = (Surface::TextDrawingContext *) state;
-	
-	return false;
-}
-
-// Character callback
-static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t {
-
-    [[gnu::unused]]
-	var context = (Surface::TextDrawingContext *) state;
-
-    return mf_render_character(context->style->font()->data(), x0, y0, character, &pixel_callback, state);
-}
-
-// Pixel callback
-static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
-
-	var context = (Surface::TextDrawingContext *) state;
-    Surface *surface = context->surface;
-    Color *buffer = surface->data().get();
-
-    for (var c = 0; c < count; c += 1) {
-        Color textColor = (context->style->color() & 0x00FFFFFF) | (alpha << 24);
-        var offset = surface->width() * y + x;
-        var target = Point(x, y);
-        
-        if (target.x > surface->width() || target.x < 0 || target.y < 0) {
-            continue;
-        } else if (target.y > surface->height()) {
-            return;
-        }
-
-        buffer[offset] = alpha_blend(buffer[offset], textColor);
-		
-        x += 1;
 	}
 }

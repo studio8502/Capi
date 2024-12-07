@@ -30,38 +30,4 @@ using std::shared_ptr;
 
 class ParagraphStyle {
 public:
-
-    enum class Align {
-        left,
-        center,
-        centre = center,
-        right,
-        justify
-    };
-
-    ParagraphStyle(shared_ptr<Font> font, Color color, Align align = Align::left);
-
-    ~ParagraphStyle();
-
-    static method DefaultStyle() -> shared_ptr<ParagraphStyle>;
-
-    method color() -> Color;
-
-    method setColor(Color newColor) -> Void;
-    
-    method align() -> Align;
-
-    method setAlign(Align newAlign) -> Void;
-
-    method font() -> shared_ptr<Font>;
-
-    method setFont(shared_ptr<Font> newFont) -> Void;
-
-private:
-
-    Color _color;
-
-    Align _align;
-
-    shared_ptr<Font> _font;
 };

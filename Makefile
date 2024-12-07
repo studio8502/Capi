@@ -11,16 +11,11 @@ FLASHY_OPTS ?= --cpu-boost:yes \
 			   --baud:$(FLASHY_BAUD) \
 			   --flashBaud:$(FLASHY_BAUD)
 
-MCUFONT := bin/mcufont
-MFDIR := lib/mcufont/decoder
-include lib/mcufont/decoder/mcufont.mk
-
 FLASHY_CMD_REBOOT_LOADER := exec "reboot"
 FLASHY_CMD_REBOOT := reboot $(FLASHY_REBOOT_MAGIC_WORD)
 
 CXX_SRCS := $(shell find src -type f -name "*.cpp")
-C_SRCS := $(shell find src -type f -name "*.c") \
-		  $(shell find lib/mcufont/decoder -type f -name "*.c")
+C_SRCS := $(shell find src -type f -name "*.c") 
 
 OBJS := $(CXX_SRCS:.cpp=.o) \
 		$(C_SRCS:.c=.o)
@@ -46,8 +41,6 @@ $(BUILD_NUMBER_FILE): $(OBJS)
 
 CPPFLAGS += --std=gnu++2b \
 			-I include \
-			-I include/fonts \
-		  	-I $(MFINC) \
 		  	-I $(NEWLIBDIR)/include \
 		  	-I $(STDDEF_INCPATH) \
 		  	-I lib/circle-stdlib/include \
@@ -61,8 +54,6 @@ CPPFLAGS += --std=gnu++2b \
 			-Wno-unused-function
 
 CFLAGS += -I include \
-		  -I include/fonts \
-		  -I $(MFINC) \
 		  -I $(NEWLIBDIR)/include \
 		  -I $(STDDEF_INCPATH) \
 		  -I lib/circle-stdlib/include \
@@ -118,8 +109,6 @@ font-clean:
 distclean:
 	@find src -type f -name "*.o" -delete
 	@find src -type f -name "*.d" -delete
-	@find $(MFDIR) -type f -name "*.o" -delete
-	@find $(MFDIR) -type f -name "*.d" -delete
 	@rm -f *.elf *.img *.lst *.map *.txz
 	@rm -f boot/*
 	@rm -f pkg/boot/*
@@ -137,13 +126,16 @@ reboot:
 	@echo "Rebooting target..."
 	@flashy $(FLASHY_TARGET) $(FLASHY_CMD_REBOOT)
 
+flash_fonts:
+	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push fonts/*.ttf  
+
 .PHONY:
 reflash: bootconfig $(TARGET).img reboot
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/cursor_arrow.png
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/wallpaper.jpg
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/cursor_arrow.png
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/wallpaper.jpg
 	@echo "Rebooting target..."
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img monitor

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/font_notoserif.h                                                 ║
+ ║ filesystem.h                                                              ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,32 +19,12 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#pragma once
+#include "capi.h"
 
-#include "graphics/font.h"
+using FileData = unsigned char *;
 
-class Font::NotoSerif: public Font {
-public:
-    NotoSerif(Size size = Size::medium, Weight weight = Weight::regular, Style style = Style::roman);
+namespace Filesystem {
 
-    ~NotoSerif();
+    function readFile(String path, UInt *length) -> FileData;
 
-    virtual method size() -> Size;
-
-    virtual method setSize(Size newSize) -> Void;
-
-    virtual method weight() -> Weight;
-
-    virtual method setWeight(Weight newWeight) -> Void;
-
-    virtual method style() -> Style;
-
-    virtual method setStyle(Style newStyle) -> Void;
-
-    virtual method data() -> const FontData *;
-
-private:
-    Size _size;
-    Weight _weight;
-    Style _style;
-};
+}

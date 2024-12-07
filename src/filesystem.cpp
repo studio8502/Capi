@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/font_notoserif.h                                                 ║
+ ║ filesystem.cpp                                                            ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,32 +19,39 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#pragma once
+#include "filesystem.h"
 
-#include "graphics/font.h"
+function Filesystem::readFile(String path, UInt *length) -> FileData {
+    FileData data;
+    FIL file;
+    FILINFO fileInfo;
+    UInt bytesRead;
+    FRESULT status;
+    
+    status = f_stat(path.c_str(), &fileInfo);
+    if (status != FR_OK) {
+        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to stat file!");
+        *length = 0;
+        return nullptr;
+    }
+    
+    *length = fileInfo.fsize;
 
-class Font::NotoMono: public Font {
-public:
-    NotoMono(Size size = Size::medium, Weight weight = Weight::regular, Style style = Style::roman);
+    data = (FileData) malloc(*length + 1);
 
-    ~NotoMono();
+    status = f_open(&file, path.c_str(), FA_READ);
+    if (status != FR_OK) {
+        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to open file!");
+        *length = 0;
+        return nullptr;
+    }
 
-    virtual method size() -> Size;
+    status = f_read(&file, data, *length, &bytesRead);
+    if (status != FR_OK) {
+        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to read file!");
+        *length = 0;
+        return nullptr;
+    }
 
-    virtual method setSize(Size newSize) -> Void;
-
-    virtual method weight() -> Weight;
-
-    virtual method setWeight(Weight newWeight) -> Void;
-
-    virtual method style() -> Style;
-
-    virtual method setStyle(Style newStyle) -> Void;
-
-    virtual method data() -> const FontData *;
-
-private:
-    Size _size;
-    Weight _weight;
-    Style _style;
-};
+    return data;
+}

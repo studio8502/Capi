@@ -73,6 +73,8 @@ Workspace::Workspace():
     } catch (const std::runtime_error& err) {
         CLogger::Get()->Write("Image", LogNotice, err.what());
     }
+
+    Font::init();
 }
 
 Workspace::~Workspace(){}
@@ -214,24 +216,27 @@ method Workspace::draw() -> Void {
     });
 
     menubar->clear(0xFFCCCCCC);
-    menubar->render();
     
-    menubar->drawText(msg, ParagraphStyle::DefaultStyle(), Point(3,1));
-    menubar->drawText(msg2, ParagraphStyle::DefaultStyle(), Point(150,1));
-    menubar->drawText(msg3, ParagraphStyle::DefaultStyle(), Point(350,1));
-    menubar->drawText(VersionString(), ParagraphStyle::DefaultStyle(), Point(750, 1));
+    menubar->setFont(Font::DefaultUIFont(), 16.0);
+    menubar->setFillColor(0xFF000000);
+    menubar->fillText(msg, Point(3,15));
+    menubar->fillText(msg2, Point(150,15));
+    menubar->fillText(msg3, Point(350,15));
+    menubar->fillText(VersionString(), Point(650, 15));
     
     if (leftButtonDown == true) {
-        menubar->drawText("L", ParagraphStyle::DefaultStyle(), Point(920,1));
+        menubar->fillText("L", Point(920,15));
     }
     
     if (middleButtonDown == true) {
-        menubar->drawText("M", ParagraphStyle::DefaultStyle(), Point(930,1));
+        menubar->fillText("M", Point(930,15));
     }
     
     if (rightButtonDown == true) {
-        menubar->drawText("R", ParagraphStyle::DefaultStyle(), Point(945,1));
+        menubar->fillText("R", Point(945,15));
     }
+
+    menubar->render();
 
     backSurface()->drawSurface(menubar, Point(0, 0));
 

@@ -26,7 +26,12 @@
 #include <cmath>
 #include <cstring>
 #include <cstdint>
+#include <cstdlib>
+#include <cstdio>
 #include <ctime>  
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <memory>

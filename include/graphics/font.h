@@ -23,22 +23,10 @@
 
 #include "capi.h"
 
-#include "mcufont.h"
+using FontData = unsigned char const *;
 
-using FontData = mf_font_s;
-
-class Font {
+struct Font {
 public:
-    enum class Size {
-        xxSmall = 8,
-        xSmall = 10,
-        small = 12,
-        medium = 16,
-        large = 20,
-        xLarge = 32,
-        xxLarge = 48
-    };
-
     enum class Weight {
         regular,
         bold
@@ -49,27 +37,28 @@ public:
         italic
     };
 
-    virtual method size() -> Size = 0;
+    Font(String path);
 
-    virtual method setSize(Size newSize) -> Void = 0;
+    ~Font();
 
-    virtual method weight() -> Weight = 0;
+    static method init() -> Void;
 
-    virtual method setWeight(Weight newWeight) -> Void = 0;
+    static method DefaultUIFont() -> shared_ptr<Font>;
 
-    virtual method style() -> Style = 0;
+    static method DefaultWindowTitleFont() -> shared_ptr<Font>;
 
-    virtual method setStyle(Style newStyle) -> Void = 0;
+    static method NotoSans(Weight weight = Weight::regular, Style style = Style::roman) -> shared_ptr<Font>;
 
-    virtual method data() -> const FontData * = 0;
+    static method NotoSerif(Weight weight = Weight::regular, Style style = Style::roman) -> shared_ptr<Font>;
 
-    virtual method widthForString(String str, UInt16 count = 0) -> Int16;
+    static method NotoSansMono(Weight weight) -> shared_ptr<Font>;
 
-    static method UIFont(Font::Size size = Font::Size::medium, Font::Weight weight = Font::Weight::regular) -> shared_ptr<Font>;
+    method acquire() -> Void;
 
-    class NotoSans;
-    class NotoSerif;
-    class NotoMono;
+    method release() -> Void;
 
+    UInt length;
+    FontData data;
 
+    CSpinLock fontLock;
 };

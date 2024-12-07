@@ -20,15 +20,54 @@
  ****************************************************************************/
 
 #include "graphics/font.h"
-#include "mcufont.h"
-#include "fonts/fonts.h"
-#include "graphics/font_notosans.h"
+#include "filesystem.h"
 
+static shared_ptr<Font> _NotoSansRegular;
+static shared_ptr<Font> _NotoSansBold;
+static shared_ptr<Font> _NotoSansItalic;
+static shared_ptr<Font> _NotoSansBoldItalic;
 
-method Font::widthForString(String str, UInt16 count) -> Int16 {
-    return mf_get_string_width(data(), str.c_str(), count, true);
+Font::Font(String path):
+    fontLock()
+{
+    data = Filesystem::readFile(path, &length);
 }
 
-function Font::UIFont(Font::Size size, Font::Weight weight) -> shared_ptr<Font> {
-    return make_shared<Font::NotoSans>(Font::Size::small);
+Font::~Font() {
+    free((void *)data);
+}
+
+method Font::init() -> Void {
+    _NotoSansRegular = make_shared<Font>("SD:/NotoSans-Regular.ttf");
+    _NotoSansBold = make_shared<Font>("SD:/NotoSans-Bold.ttf");
+    _NotoSansItalic = make_shared<Font>("SD:/NotoSans-Italic.ttf");
+    _NotoSansBoldItalic = make_shared<Font>("SD:/NotoSans-BoldItalic.ttf");
+}
+
+method Font::acquire() -> Void {
+    fontLock.Acquire();
+}
+
+method Font::release() -> Void {
+    fontLock.Release();
+}
+
+method Font::DefaultUIFont() -> shared_ptr<Font> {
+    return NotoSans();
+}
+
+method Font::DefaultWindowTitleFont() -> shared_ptr<Font> {
+    return NotoSans(Weight::bold);
+}
+
+method Font::NotoSans(Weight weight, Style style) -> shared_ptr<Font> {
+    if (weight == Weight::regular && style == Style::roman ) {
+        return _NotoSansRegular; 
+    } else if (weight == Weight::bold && style == Style::roman ) {
+        return _NotoSansBold; 
+    } else if (weight == Weight::regular && style == Style::italic ) {
+        return _NotoSansItalic; 
+    } else {
+        return _NotoSansBoldItalic; 
+    }
 }
