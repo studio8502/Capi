@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ filesystem.cpp                                                            ║
+ ║ workspace/window_manager.cpp                                              ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,39 +19,83 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "filesystem.h"
+#include "workspace/window_manager.h"
+#include "workspace/workspace.h"
 
-function Filesystem::readFile(String path, UInt *length) -> FileData {
-    FileData data;
-    FIL file;
-    FILINFO fileInfo;
-    UInt bytesRead;
-    FRESULT status;
+WindowManager::WindowManager():
+    dragContext(false, Point(0,0), nullptr),
+    windowList()
+{}
+
+WindowManager::~WindowManager() {}
+
+method WindowManager::createWindow() -> shared_ptr<Window> {
+
+    windowList.insert(windowList.begin(), make_shared<Window>());
+
+    var win = windowList.front();
+
+    workspace->setDirtyFlag();
+
+    return win;
+}
+
+method WindowManager::discardWindow(shared_ptr<Window> win) -> Void {
+    //FIXME
+    workspace->setDirtyFlag();
+}
+
+method WindowManager::moveWindowToFront(shared_ptr<Window> win) -> Void {
     
-    status = f_stat(path.c_str(), &fileInfo);
-    if (status != FR_OK) {
-        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to stat file!");
-        *length = 0;
-        return nullptr;
-    }
-    
-    *length = fileInfo.fsize;
+    windowList.remove_if([win] (shared_ptr<Window> window) { 
+        return win.get() == window.get(); 
+    });
 
-    data = (FileData) malloc(*length + 1);
-
-    status = f_open(&file, path.c_str(), FA_READ);
-    if (status != FR_OK) {
-        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to open file!");
-        *length = 0;
-        return nullptr;
+    if (windowList.size() > 0) {
+        windowList.front()->resignActive();
     }
 
-    status = f_read(&file, data, *length, &bytesRead);
-    if (status != FR_OK) {
-        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to read file!");
-        *length = 0;
-        return nullptr;
+    win->becomeActive();
+
+    windowList.push_front(win);
+
+    workspace->setDirtyFlag();
+}
+
+method WindowManager::moveWindowToBack(shared_ptr<Window> win) -> Void {
+    //FIXME
+
+    workspace->setDirtyFlag();
+}
+
+method WindowManager::setDragContextForWindow(Window *window, Point dragOrigin) -> Void {
+    dragContext.active = true;
+    dragContext.window = window;
+    dragContext.previousLocation = dragOrigin;
+}
+
+method WindowManager::updateDragContext(Point newLocation) -> Void {
+    guard (dragContext.window != nullptr) else {
+        return;
+    }
+    Int deltaX = dragContext.previousLocation.x - newLocation.x;
+    Int deltaY = dragContext.previousLocation.y - newLocation.y;
+    dragContext.previousLocation = newLocation;
+    var newWindowOrigin = Point(dragContext.window->_x + -deltaX, dragContext.window->_y + -deltaY);
+    dragContext.window->move(newWindowOrigin);
+
+    workspace->setDirtyFlag();
+}
+
+method WindowManager::clearDragContext() -> Void {
+    dragContext.active = false;
+    dragContext.window = nullptr;
+}
+
+method WindowManager::activeWindow() -> weak_ptr<Window> {
+    guard (windowList.size() != 0) else {
+        return {};
     }
 
-    return data;
+    return windowList.front();
 }

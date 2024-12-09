@@ -136,11 +136,15 @@ method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> 
 method Screen::updateDisplay() -> Void {
 	framebuffer->WaitForVerticalSync();
 
+	var surface = workspace->frontSurface();
+	surface->acquire();
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
-						workspace->frontSurface()->data().get(), 
+						surface->data().get(), 
 						_width * _height * sizeof(Color));
+	surface->release();
 	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 	bufferSwapped = !bufferSwapped;
-
 	fpsCounter += 1.0;
+	
+	workspace->setDirtyFlag();
 }

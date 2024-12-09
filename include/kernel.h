@@ -42,30 +42,6 @@ public:
 		Reboot
 	};
 
-	class CPUMonitor: CTask {
-	public:
-		CPUMonitor();
-		~CPUMonitor();
-
-		method Run() -> Void;
-	};
-
-	class USBPNPMonitor: CTask {
-	public:
-		USBPNPMonitor();
-		~USBPNPMonitor();
-
-		method Run() -> Void;
-	};
-
-	class FPSMonitor: CTask {
-	public:
-		FPSMonitor();
-		~FPSMonitor();
-
-		method Run() -> Void;
-	};
-
 	Double fps;
 
 	Kernel();

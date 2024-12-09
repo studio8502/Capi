@@ -49,6 +49,7 @@ method Image::imageFromFile(String filename) -> shared_ptr<Image> {
 method Image::imageSurfaceFromFile(String filename) -> shared_ptr<Surface> {
     var image = make_shared<Image>(filename);
     var surface = make_shared<Surface>(image->rect().width, image->rect().height);
+    surface->setCompositeOperation(Surface::CompositeOperation::sourceCopy);
     surface->drawImage(image, Point(0,0));
     surface->render();
     return surface;

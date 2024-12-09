@@ -33,10 +33,18 @@ Event::Event(Event::Type type):
     position(Point(0,0)),
     clickCount(0),
     locationInWindow(Point(0,0)),
-    window(nullptr)
+    _window(nullptr)
 {}
 
 Event::~Event() {}
+
+method Event::window() -> shared_ptr<Window> {
+    return _window;
+}
+
+method Event::setWindow(shared_ptr<Window> window) -> Void {
+    _window = window;
+}
 
 method Event::mouseMoved() -> shared_ptr<Event> {
     return make_shared<Event>(Type::mouseMoved);

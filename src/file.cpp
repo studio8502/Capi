@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/font.cpp                                                         ║
+ ║ filesystem.cpp                                                            ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,59 +19,68 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/font.h"
 #include "file.h"
 
-static shared_ptr<Font> _NotoSansRegular;
-static shared_ptr<Font> _NotoSansBold;
-static shared_ptr<Font> _NotoSansItalic;
-static shared_ptr<Font> _NotoSansBoldItalic;
-
-Font::Font(String path):
-    fontLock()
+inline File::Mode operator | (File::Mode lhs, File::Mode rhs)
 {
-    var file = make_shared<File>(path);
-    length = file->size();
-    file->open(File::Mode::read);
-    data = file->dump();
-    file->close();
+    using T = std::underlying_type_t<File::Mode>;
+    return static_cast<File::Mode>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
-Font::~Font() {
-    free((UnsafeMutablePointer) data);
+inline File::Mode operator |= (File::Mode& lhs, File::Mode rhs)
+{
+    return lhs = lhs | rhs;
 }
 
-method Font::init() -> Void {
-    _NotoSansRegular = make_shared<Font>("SD:/NotoSans-Regular.ttf");
-    _NotoSansBold = make_shared<Font>("SD:/NotoSans-Bold.ttf");
-    _NotoSansItalic = make_shared<Font>("SD:/NotoSans-Italic.ttf");
-    _NotoSansBoldItalic = make_shared<Font>("SD:/NotoSans-BoldItalic.ttf");
+File::File(String path):
+    _path(path),
+    _isOpen(false)
+{}
+
+File::~File() {}
+
+method File::isOpen() -> Bool {
+    return _isOpen;
 }
 
-method Font::acquire() -> Void {
-    fontLock.Acquire();
+method File::open(Mode mode) -> Void {
+    f_open(&file, _path.c_str(), (typeof(FA_READ)) mode);
+    _isOpen = true;
+    _mode = mode;
 }
 
-method Font::release() -> Void {
-    fontLock.Release();
+method File::close() -> Void {
+    f_close(&file);
+    _isOpen = false;
 }
 
-method Font::DefaultUIFont() -> shared_ptr<Font> {
-    return NotoSans();
+method File::mode() -> Mode {
+    return _mode;
 }
 
-method Font::DefaultWindowTitleFont() -> shared_ptr<Font> {
-    return NotoSans(Weight::bold);
+method File::size() -> UInt64 {
+    f_stat(_path.c_str(), &fileInfo);
+    return fileInfo.fsize;
 }
 
-method Font::NotoSans(Weight weight, Style style) -> shared_ptr<Font> {
-    if (weight == Weight::regular && style == Style::roman ) {
-        return _NotoSansRegular; 
-    } else if (weight == Weight::bold && style == Style::roman ) {
-        return _NotoSansBold; 
-    } else if (weight == Weight::regular && style == Style::italic ) {
-        return _NotoSansItalic; 
-    } else {
-        return _NotoSansBoldItalic; 
+method File::seek(UInt64 offset) -> Void {
+    f_lseek(&file, 0);
+}
+
+method File::dump() -> FileData {
+    var data = (FileData) malloc(size() + 1);
+    var idx = f_tell(&file);
+    var bytesRead = 0u;
+    
+    seek(0);
+
+    status = f_read(&file, data, size(), &bytesRead);
+    if (status != FR_OK) {
+        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to read file!");
+        return nullptr;
     }
+
+    seek(idx);
+
+    return data;
 }

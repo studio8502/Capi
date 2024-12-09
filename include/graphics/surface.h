@@ -91,6 +91,13 @@ public:
         stroke = canvas_ity::stroke_style
     };
 
+    enum class RepetitionStyle {
+        tile = canvas_ity::repeat, 
+        tileX = canvas_ity::repeat_x, 
+        tileY = canvas_ity::repeat_y,
+        noTile = canvas_ity::no_repeat
+    };
+
 	struct TextDrawingContext {
 	public:
 		shared_ptr<ParagraphStyle> style; 
@@ -98,9 +105,9 @@ public:
 		Surface *surface;
 	};
 
-    Surface(Size size);
+    Surface(Size size, Point origin = Point(0, 0));
 
-    Surface(UInt32 width, UInt32 height);
+    Surface(UInt32 width, UInt32 height, Point origin = Point(0, 0));
     
     ~Surface();
 
@@ -108,7 +115,13 @@ public:
 
     method canvas() -> shared_ptr<Canvas>;
 
+    method addSubsurface(shared_ptr<Surface> child, Point origin) -> Void;
+
     method render() -> Void;
+
+    method origin() -> Point;
+
+    method setOrigin(Point origin) -> Void;
 
     virtual method width() -> UInt64;
 
@@ -176,6 +189,22 @@ public:
 
     method setStrokeColor(Color color) -> Void;
 
+    method setStrokeLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void;
+
+    method setFillLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void;
+
+    method setStrokeRadialGradient(Single startX, Single startY, Single startRadius, Single endX, Single endY, Single endRadius) -> Void;
+
+    method setFillRadialGradient(Single startX, Single startY, Single startRadius, Single endX, Single endY, Single endRadius) -> Void;
+
+    method addStrokeColorStop(Single offset, Color color) -> Void;
+
+    method addFillColorStop(Single offset, Color color) -> Void;
+
+    method setStrokeImagePattern(shared_ptr<Image> image, RepetitionStyle rep) -> Void;
+
+    method setFillImagePattern(shared_ptr<Image> image, RepetitionStyle rep) -> Void;
+        
     method setShadowColor(Color color) -> Void;
 
     method setShadowHorizontalOffset(Single offset) -> Void;
@@ -192,6 +221,10 @@ public:
 
     method setMiterLimit(Single limit) -> Void;
 
+    method setLineDashOffset(Single offset) -> Void;
+
+    method setLineDashPattern(Single const *pattern, Int count) -> Void;
+
     method fill() -> Void;
 
     method fillRect(Rect rect) -> Void;
@@ -199,6 +232,10 @@ public:
     method stroke() -> Void;
 
     method beginPath() -> Void;
+
+    method moveTo(Single x, Single y) -> Void;
+
+    method lineTo(Single x, Single y) -> Void;
 
     method rectangle(Rect rect) -> Void;
 
@@ -222,6 +259,10 @@ private:
     UInt8 _opacity; 
 
     shared_ptr<Canvas> _canvas;
+
+    Point _origin;
+
+    std::vector<shared_ptr<Surface>> subsurfaces;
 
     CSpinLock _lock;
 };

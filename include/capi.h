@@ -32,6 +32,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <stdexcept>
 #include <string>
 #include <memory>
@@ -48,6 +49,7 @@
 #include <circle/input/mouse.h>
 #include <circle/interrupt.h>
 #include <circle/koptions.h>
+#include <circle/logger.h>
 #include <circle/logger.h>
 #include <circle/multicore.h>
 #include <circle/net/dnsclient.h>
@@ -101,6 +103,7 @@ using Single = float;
 using String = std::string;
 
 using std::shared_ptr;
+using std::weak_ptr;
 using std::make_shared;
 
 using std::unique_ptr;

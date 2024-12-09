@@ -25,9 +25,9 @@
 
 unique_ptr<Workspace> workspace = nullptr;
 
+static char msg[256];
+
 Workspace::Workspace():
-    dragContext(false, Point(0,0), nullptr),
-    windowList(),
     _dirty(true),
     _screenFlag(true),
     wallpaper(Image::imageSurfaceFromFile("SD:/wallpaper.jpg")),
@@ -42,7 +42,8 @@ Workspace::Workspace():
     ups(0.0),
     upsCounter(0.0),
     fps(0.0),
-    fpsCounter(0.0)
+    fpsCounter(0.0),
+    _nextResponder()
 {
     
     try {
@@ -71,9 +72,9 @@ Workspace::Workspace():
         }
 
     } catch (const std::runtime_error& err) {
-        CLogger::Get()->Write("Image", LogNotice, err.what());
+        CLogger::Get()->Write("Workspace", LogNotice, err.what());
     }
-
+    
     Font::init();
 }
 
@@ -109,16 +110,69 @@ method Workspace::resize(unsigned width, unsigned height) -> Void {
     }
 }
 
-static char msg[256];
-static char msg2[256];
-static char msg3[256];
-
 method Workspace::update() -> Void {
-    sprintf(msg, "%.2f frames/sec", kernel->fps);
-    sprintf(msg2, "%.2f updates/sec", ups);
-    sprintf(msg3, "%.2f draws/sec", fps);
+    var freeMem = ((CMemorySystem::Get()->GetHeapFreeSpace(HEAP_ANY) * 1.0) / 1024.0 / 1024.0);
+    var totalMem = (CMemorySystem::Get()->GetMemSize() * 1.0) / 1024.0 / 1024.0;
+    sprintf(msg, "Mem: %.2fMB/%.2fMB (%.2fMB used)   %s",
+            freeMem, totalMem, totalMem - freeMem,
+            VersionString());
 
     // Consume queued events.
+    dispatchEvents();
+
+    upsCounter += 1.0;
+}
+
+method Workspace::draw() -> Void {
+    guard (_dirty == true) else {   
+        fpsCounter += 1.0;
+        return;
+    }
+
+    var surface = backSurface();
+    surface->acquire();
+
+    surface->drawSurface(wallpaper, Point(0,0));
+
+    std::for_each(windowList.rbegin(), windowList.rend(), [this, surface](shared_ptr<Window> win) {
+        if (win->isVisible()) {
+            win->draw();
+            surface->drawSurface(win->surface(), win->origin());
+        }
+    });
+
+    menubar->clear(0xFFCCCCCC);
+    var menubarTextYPos = 13;
+    menubar->setFont(Font::DefaultUIFont(), 12.0);
+    menubar->setFillColor(0xFF000000);
+    menubar->fillText(msg, Point(3, menubarTextYPos));
+    
+    if (leftButtonDown == true) {
+        menubar->fillText("L", Point(920, menubarTextYPos));
+    }
+    
+    if (middleButtonDown == true) {
+        menubar->fillText("M", Point(930, menubarTextYPos));
+    }
+    
+    if (rightButtonDown == true) {
+        menubar->fillText("R", Point(945, menubarTextYPos));
+    }
+
+    menubar->render();
+
+    surface->drawSurface(menubar, Point(0, 0));
+
+    surface->drawSurface(mouseCursor, Point(mouseX - 1, mouseY - 1), true);
+
+    _dirty = false;
+    _surfaceFlipped = !_surfaceFlipped;
+
+    surface->release();
+    fpsCounter += 1.0;
+}
+
+method Workspace::dispatchEvents() -> Bool {
     while (eventQueue.empty() == false) {
         var event = eventQueue.front();
         eventQueue.pop();
@@ -135,175 +189,44 @@ method Workspace::update() -> Void {
                 updateDragContext(event->position);
             }
             
-            _dirty = true;
+            setDirtyFlag();
 
             break;
 
         case Event::Type::leftMouseDown:
             leftButtonDown = true;
             event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
             
-            _dirty = true;
+            for (var window : windowList) {
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->mouseDown(event);
+                    break;
+                }
+            }
+
+            setDirtyFlag();
+
             break;
 
         case Event::Type::leftMouseUp:
             leftButtonDown = false;
             event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
             
-            _dirty = true;
-            break;
-
-        case Event::Type::middleMouseDown:
-            middleButtonDown = true;
-            event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
+            for (var window : windowList) {
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->mouseUp(event);
+                    break;
+                }
+            }
             
-            _dirty = true;
+            setDirtyFlag();
             break;
-
-        case Event::Type::middleMouseUp:
-            middleButtonDown = false;
-            event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
-            
-            _dirty = true;
-            break;
-
-        case Event::Type::rightMouseDown:
-            rightButtonDown = true;
-            event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
-            
-            _dirty = true;
-            break;
-
-        case Event::Type::rightMouseUp:
-            rightButtonDown = false;
-            event->position = Point(mouseX, mouseY);
-            dispatchEvent(event);
-            
-            _dirty = true;
-            break;
-
-        case Event::Type::scrollWheel:
-            dispatchEvent(event);
-            
-            _dirty = true;
-            break;
-
         default:
             break;
         }
     }
 
-    upsCounter += 1.0;
-}
-
-method Workspace::draw() -> Void {
-    guard (_dirty == true) else {
-        goto done;
-    }
-
-    backSurface()->drawSurface(wallpaper, Point(0,0));
-
-    std::for_each(windowList.rbegin(), windowList.rend(), [this](shared_ptr<Window> win) {
-        if (win->isVisible()) {
-            win->draw();
-            backSurface()->drawSurface(win->surface(), win->origin());
-        }
-    });
-
-    menubar->clear(0xFFCCCCCC);
-    
-    menubar->setFont(Font::DefaultUIFont(), 16.0);
-    menubar->setFillColor(0xFF000000);
-    menubar->fillText(msg, Point(3,15));
-    menubar->fillText(msg2, Point(150,15));
-    menubar->fillText(msg3, Point(350,15));
-    menubar->fillText(VersionString(), Point(650, 15));
-    
-    if (leftButtonDown == true) {
-        menubar->fillText("L", Point(920,15));
-    }
-    
-    if (middleButtonDown == true) {
-        menubar->fillText("M", Point(930,15));
-    }
-    
-    if (rightButtonDown == true) {
-        menubar->fillText("R", Point(945,15));
-    }
-
-    menubar->render();
-
-    backSurface()->drawSurface(menubar, Point(0, 0));
-
-    backSurface()->drawSurface(mouseCursor, Point(mouseX - 1, mouseY - 1), true);
-
-    _dirty = false;
-    _surfaceFlipped = !_surfaceFlipped;
-done:
-    fpsCounter += 1.0;
-}
-
-method Workspace::createWindow() -> shared_ptr<Window> {
-
-    windowList.insert(windowList.begin(), make_shared<Window>());
-
-    var win = windowList.front();
-
-    _dirty = true;
-
-    return win;
-}
-
-method Workspace::discardWindow(shared_ptr<Window> win) -> Void {
-    std::erase(windowList, win);
-
-    _dirty = true;
-}
-
-method Workspace::moveWindowToFront(shared_ptr<Window> win) -> Void {
-    std::erase(windowList, win);
-
-    windowList.insert(windowList.begin(), win);
-
-    _dirty = true;
-
-}
-
-method Workspace::dispatchEvent(shared_ptr<Event> event) -> Bool {
-    // Compare event->mousePosition for each window's rect, starting at the top.
-
-    for (var win : windowList) {
-        if (win->isVisible() && win->rect().checkPoint(event->position)) {
-            win->handleEvent(event, win);
-            return true;
-        }
-    }
-
     return false;
-}
-method Workspace::setDragContextForWindow(Window *window, Point dragOrigin) -> Void {
-    dragContext.active = true;
-    dragContext.window = window;
-    dragContext.previousLocation = dragOrigin;
-}
-
-method Workspace::updateDragContext(Point newLocation) -> Void {
-    guard (dragContext.window != nullptr) else {
-        return;
-    }
-    Int deltaX = dragContext.previousLocation.x - newLocation.x;
-    Int deltaY = dragContext.previousLocation.y - newLocation.y;
-    dragContext.previousLocation = newLocation;
-    var newWindowOrigin = Point(dragContext.window->_x + -deltaX, dragContext.window->_y + -deltaY);
-    dragContext.window->move(newWindowOrigin);
-}
-
-method Workspace::clearDragContext() -> Void {
-    dragContext.active = false;
-    dragContext.window = nullptr;
 }

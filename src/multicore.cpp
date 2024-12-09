@@ -35,14 +35,19 @@ Multicore::~Multicore() {}
 method Multicore::Run(UInt32 core_id) -> Void {
 
     switch (core_id) {
-    case 0: {
-        while (true) {
-            CScheduler::Get()->Sleep(1);
-        }
-    }
     case 1: {
             var win = workspace->createWindow();
             win->show();
+
+            var win2 = workspace->createWindow();
+            win2->move(Point(300, 240));
+            win2->show();
+
+            var win3 = workspace->createWindow();
+            win3->move(Point(200, 200));
+            win3->becomeActive();
+            win3->setHasTitlebar(false);
+            win3->show();
 
             while (true) {
                 workspace->update();

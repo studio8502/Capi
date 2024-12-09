@@ -173,83 +173,14 @@ method Kernel::run() -> ShutdownMode {
 
 	using enum Kernel::ShutdownMode;
 
-	deviceNameService.ListDevices(auto(&debugPort));
-		
-	new CPUMonitor();
-
-	new USBPNPMonitor();
-
-	new FPSMonitor();
-
-	taskScheduler.ListTasks(&debugPort);
+	CCPUThrottle::Get()->SetSpeed(CPUSpeedMaximum);
 
 	multicore.Initialize();
 
-	multicore.Run(0);
-
-	return Halt;
-}
-
-Kernel::CPUMonitor::CPUMonitor() {
-
-}
-
-Kernel::CPUMonitor::~CPUMonitor() {
-
-}
-
-method Kernel::CPUMonitor::Run() -> Void {
-
-	SetName("CPU Monitor");
-
-	CCPUThrottle::Get()->SetSpeed(CPUSpeedMaximum);
-	
-	while (true) {
-		CCPUThrottle::Get()->Update();
-		CScheduler::Get()->Sleep(5);
-	}
-}
-
-Kernel::USBPNPMonitor::USBPNPMonitor() {
-
-}
-
-Kernel::USBPNPMonitor::~USBPNPMonitor() {
-
-}
-
-method Kernel::USBPNPMonitor::Run() -> Void {
-
-	SetName("USB PnP Monitor");
-
-	CCPUThrottle::Get()->SetSpeed(CPUSpeedMaximum);
-	
 	while (true) {
 		kernel->updateUSB();
-		CScheduler::Get()->Sleep(1);
+		CCPUThrottle::Get()->Update();
 	}
-}
 
-Kernel::FPSMonitor::FPSMonitor() {
-
-}
-
-Kernel::FPSMonitor::~FPSMonitor() {
-
-}
-
-method Kernel::FPSMonitor::Run() -> Void {
-
-	SetName("FPS Monitor");
-
-	while (true) {
-		kernel->fps = screen->fpsCounter;
-		screen->fpsCounter = 0.0;
-		workspace->fps = workspace->fpsCounter;
-		workspace->fpsCounter = 0.0;
-		workspace->ups = workspace->upsCounter;
-		workspace->upsCounter = 0.0;
-		workspace->setDirtyFlag();
-		CScheduler::Get()->Sleep(1);
-	}
+	return Halt;
 }

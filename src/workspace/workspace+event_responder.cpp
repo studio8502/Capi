@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/font.cpp                                                         ║
+ ║ workspace/workspace+event_responder.inc                                   ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,59 +19,12 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/font.h"
-#include "file.h"
+ #include "workspace/workspace.h"
 
-static shared_ptr<Font> _NotoSansRegular;
-static shared_ptr<Font> _NotoSansBold;
-static shared_ptr<Font> _NotoSansItalic;
-static shared_ptr<Font> _NotoSansBoldItalic;
-
-Font::Font(String path):
-    fontLock()
-{
-    var file = make_shared<File>(path);
-    length = file->size();
-    file->open(File::Mode::read);
-    data = file->dump();
-    file->close();
+method Workspace::nextResponder() -> weak_ptr<EventResponder> {
+    return _nextResponder;
 }
 
-Font::~Font() {
-    free((UnsafeMutablePointer) data);
-}
-
-method Font::init() -> Void {
-    _NotoSansRegular = make_shared<Font>("SD:/NotoSans-Regular.ttf");
-    _NotoSansBold = make_shared<Font>("SD:/NotoSans-Bold.ttf");
-    _NotoSansItalic = make_shared<Font>("SD:/NotoSans-Italic.ttf");
-    _NotoSansBoldItalic = make_shared<Font>("SD:/NotoSans-BoldItalic.ttf");
-}
-
-method Font::acquire() -> Void {
-    fontLock.Acquire();
-}
-
-method Font::release() -> Void {
-    fontLock.Release();
-}
-
-method Font::DefaultUIFont() -> shared_ptr<Font> {
-    return NotoSans();
-}
-
-method Font::DefaultWindowTitleFont() -> shared_ptr<Font> {
-    return NotoSans(Weight::bold);
-}
-
-method Font::NotoSans(Weight weight, Style style) -> shared_ptr<Font> {
-    if (weight == Weight::regular && style == Style::roman ) {
-        return _NotoSansRegular; 
-    } else if (weight == Weight::bold && style == Style::roman ) {
-        return _NotoSansBold; 
-    } else if (weight == Weight::regular && style == Style::italic ) {
-        return _NotoSansItalic; 
-    } else {
-        return _NotoSansBoldItalic; 
-    }
+method Workspace::setNextResponder(weak_ptr<EventResponder> next) -> Void {
+    _nextResponder = next;
 }

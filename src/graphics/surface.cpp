@@ -20,26 +20,29 @@
  ****************************************************************************/
 
 #include "graphics/surface.h"
-#include "filesystem.h"
+#include "file.h"
 
-Surface::Surface(Size size):
+Surface::Surface(Size size, Point origin):
     _width(size.width),
     _height(size.height),
     _data(shared_ptr<Color[]>(new Color[size.width * size.height])),
     _opacity(255),
     _canvas(make_shared<Canvas>(size.width, size.height)),
+    _origin(origin),
+    subsurfaces(),
     _lock()
 {
     _canvas->translate(0.5,0.5);
     reset();
 }
 
-Surface::Surface(UInt32 width, UInt32 height):
+Surface::Surface(UInt32 width, UInt32 height, Point origin):
     _width(width),
     _height(height),
     _data(shared_ptr<Color[]>(new Color[width * height])),
     _opacity(255),
     _canvas(make_shared<Canvas>(width, height)),
+    _origin(origin),
     _lock()
 {
     reset();
@@ -49,7 +52,25 @@ Surface::~Surface() {
     _data.reset();
 }
 
+method Surface::addSubsurface(shared_ptr<Surface> child, Point origin) -> Void {
+    child->setOrigin(origin);
+    subsurfaces.push_back(child);
+}
+
+method Surface::origin() -> Point {
+    return _origin;
+}
+
+method Surface::setOrigin(Point origin) -> Void {
+    _origin = origin;
+}
+
 method Surface::render() -> Void {
+    std::for_each(subsurfaces.rbegin(), subsurfaces.rend(), [this](shared_ptr<Surface> sfc) {
+        sfc->render();
+        this->drawSurface(sfc, sfc->origin());
+    });
+
     _canvas->get_image_data_bgra((unsigned char *) _data.get(), _width, _height, _width * sizeof(Color), 0, 0);
 }
 
@@ -179,6 +200,61 @@ method Surface::setStrokeColor(Color color) -> Void {
     setColor(BrushType::stroke, color);
 }
 
+method Surface::setStrokeLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void {
+    _canvas->set_linear_gradient((canvas_ity::brush_type) BrushType::stroke, startX, startY, endX, endY);
+}
+
+method Surface::setFillLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void {
+    _canvas->set_linear_gradient((canvas_ity::brush_type) BrushType::fill, startX, startY, endX, endY);
+}
+
+method Surface::setStrokeRadialGradient(Single startX, Single startY, Single startRadius,   
+                                        Single endX, Single endY, Single endRadius) -> Void {
+    _canvas->set_radial_gradient((canvas_ity::brush_type) BrushType::stroke, 
+                                  startX, startY, startRadius, 
+                                  endX, endY, endRadius);
+}
+
+method Surface::setFillRadialGradient(Single startX, Single startY, Single startRadius, Single endX, 
+                                      Single endY, Single endRadius) -> Void {
+    _canvas->set_radial_gradient((canvas_ity::brush_type) BrushType::fill, 
+                                  startX, startY, startRadius, 
+                                  endX, endY, endRadius);
+}
+method Surface::addStrokeColorStop(Single offset, Color color) -> Void {
+    var b = (color & 0xFF) * (1.0 / 255.0);
+    var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
+    var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
+    var a = ((color >> 24) & 0xFF) * (1.0 / 255.0);
+    _canvas->add_color_stop((canvas_ity::brush_type) BrushType::stroke, offset, r, g, b, a);
+}
+
+method Surface::addFillColorStop(Single offset, Color color) -> Void {
+    var b = (color & 0xFF) * (1.0 / 255.0);
+    var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
+    var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
+    var a = ((color >> 24) & 0xFF) * (1.0 / 255.0);
+    _canvas->add_color_stop((canvas_ity::brush_type) BrushType::fill, offset, r, g, b, a);
+}
+
+method Surface::setStrokeImagePattern(shared_ptr<Image> image, RepetitionStyle rep) -> Void {
+    var width = image->rect().width;
+    var height = image->rect().height;
+    Int stride = width * sizeof(Color);
+    _canvas->set_pattern((canvas_ity::brush_type) BrushType::stroke,
+                         (const unsigned char*)(image->data), width, height, stride, 
+                         (canvas_ity::repetition_style) rep);
+}
+
+method Surface::setFillImagePattern(shared_ptr<Image> image, RepetitionStyle rep) -> Void {
+    var width = image->rect().width;
+    var height = image->rect().height;
+    Int stride = width * sizeof(Color);
+    _canvas->set_pattern((canvas_ity::brush_type) BrushType::fill,
+                         (const unsigned char*)(image->data), width, height, stride, 
+                         (canvas_ity::repetition_style) rep);
+}
+
 method Surface::setShadowColor(Color color) -> Void {
     var b = (color & 0xFF) * (1.0 / 255.0);
     var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
@@ -216,6 +292,14 @@ method Surface::setMiterLimit(Single limit) -> Void {
     _canvas->set_miter_limit(limit);
 }
 
+method Surface::setLineDashOffset(Single offset) -> Void {
+    _canvas->line_dash_offset = offset;
+}
+
+method Surface::setLineDashPattern(Single const *pattern, Int count) -> Void {
+    _canvas->set_line_dash(pattern, count);
+}
+
 method Surface::fill() -> Void {
     _canvas->fill();
 }
@@ -230,6 +314,14 @@ method Surface::stroke() -> Void {
 
 method Surface::beginPath() -> Void {
     _canvas->begin_path();
+}
+
+method Surface::moveTo(Single x, Single y) -> Void {
+    _canvas->move_to(x, y);
+}
+
+method Surface::lineTo(Single x, Single y) -> Void {
+    _canvas->line_to(x, y);
 }
 
 method Surface::rectangle(Rect rect) -> Void {
@@ -260,19 +352,6 @@ method Surface::setFont(shared_ptr<Font> font, Double size) -> Void {
 
 method Surface::fillText(String message, Point origin) -> Void {
     _canvas->fill_text(message.c_str(), origin.x, origin.y);
-/*
-
-    /// @param text           null-terminated UTF-8 string of text to fill
-    /// @param x              horizontal coordinate of the anchor point
-    /// @param y              vertical coordinate of the anchor point
-    /// @param maximum_width  horizontal width to condense wider text to
-    ///
-    void fill_text(
-        char const *text,
-        float x,
-        float y,
-        float maximum_width = 1.0e30f );
-*/
 }
 
 method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> Void {

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/font.cpp                                                         ║
+ ║ workspace/window_manager.h                                                ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,59 +19,41 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/font.h"
-#include "file.h"
+#pragma once
 
-static shared_ptr<Font> _NotoSansRegular;
-static shared_ptr<Font> _NotoSansBold;
-static shared_ptr<Font> _NotoSansItalic;
-static shared_ptr<Font> _NotoSansBoldItalic;
+#include "capi.h"
+#include "graphics/geometry.h"
+#include "workspace/window.h"
 
-Font::Font(String path):
-    fontLock()
-{
-    var file = make_shared<File>(path);
-    length = file->size();
-    file->open(File::Mode::read);
-    data = file->dump();
-    file->close();
-}
+class WindowManager {
+public:
+    struct DragContext {
+        Bool active;
+        Point previousLocation;
+        Window *window;
+    };
+    
+    WindowManager();
 
-Font::~Font() {
-    free((UnsafeMutablePointer) data);
-}
+    virtual ~WindowManager();
 
-method Font::init() -> Void {
-    _NotoSansRegular = make_shared<Font>("SD:/NotoSans-Regular.ttf");
-    _NotoSansBold = make_shared<Font>("SD:/NotoSans-Bold.ttf");
-    _NotoSansItalic = make_shared<Font>("SD:/NotoSans-Italic.ttf");
-    _NotoSansBoldItalic = make_shared<Font>("SD:/NotoSans-BoldItalic.ttf");
-}
+    virtual method createWindow() -> shared_ptr<Window>;
 
-method Font::acquire() -> Void {
-    fontLock.Acquire();
-}
+    virtual method discardWindow(shared_ptr<Window> win) -> Void;
 
-method Font::release() -> Void {
-    fontLock.Release();
-}
+    virtual method moveWindowToFront(shared_ptr<Window> win) -> Void;
 
-method Font::DefaultUIFont() -> shared_ptr<Font> {
-    return NotoSans();
-}
+    virtual method moveWindowToBack(shared_ptr<Window> win) -> Void;
 
-method Font::DefaultWindowTitleFont() -> shared_ptr<Font> {
-    return NotoSans(Weight::bold);
-}
+    virtual method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
 
-method Font::NotoSans(Weight weight, Style style) -> shared_ptr<Font> {
-    if (weight == Weight::regular && style == Style::roman ) {
-        return _NotoSansRegular; 
-    } else if (weight == Weight::bold && style == Style::roman ) {
-        return _NotoSansBold; 
-    } else if (weight == Weight::regular && style == Style::italic ) {
-        return _NotoSansItalic; 
-    } else {
-        return _NotoSansBoldItalic; 
-    }
-}
+    virtual method updateDragContext(Point newLocation) -> Void;
+
+    virtual method clearDragContext() -> Void;
+
+    virtual method activeWindow() -> weak_ptr<Window>;
+
+    DragContext dragContext;
+
+    std::list<shared_ptr<Window>> windowList;
+};

@@ -7,3 +7,6 @@
 [submodule "lib/mcufont"]
 	path = lib/mcufont
 	url = https://github.com/mcufont/mcufont.git
+[submodule "lib/ObjFW"]
+	path = lib/ObjFW
+	url = https://github.com/ObjFW/ObjFW.git

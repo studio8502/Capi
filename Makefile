@@ -41,6 +41,7 @@ $(BUILD_NUMBER_FILE): $(OBJS)
 
 CPPFLAGS += --std=gnu++2b \
 			-I include \
+		  	-I src \
 		  	-I $(NEWLIBDIR)/include \
 		  	-I $(STDDEF_INCPATH) \
 		  	-I lib/circle-stdlib/include \
@@ -54,6 +55,7 @@ CPPFLAGS += --std=gnu++2b \
 			-Wno-unused-function
 
 CFLAGS += -I include \
+		  -I src \
 		  -I $(NEWLIBDIR)/include \
 		  -I $(STDDEF_INCPATH) \
 		  -I lib/circle-stdlib/include \
@@ -130,14 +132,14 @@ flash_fonts:
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push fonts/*.ttf  
 
 .PHONY:
-reflash: bootconfig $(TARGET).img reboot
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
+reflash: $(TARGET).img reboot
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
 #	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
 #	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/cursor_arrow.png
 #	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/wallpaper.jpg
-	@echo "Rebooting target..."
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
+#	@echo "Rebooting target..."
+#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
 	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img monitor
 
 .PHONY:

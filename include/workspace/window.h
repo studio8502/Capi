@@ -24,14 +24,14 @@
 #include "capi.h"
 #include "graphics/surface.h"
 #include "event.h"
+#include "event_responder.h"
 
 #define WINDOW_BORDER_WIDTH 4
 #define WINDOW_TITLEBAR_HEIGHT 16
 
-class Event;
-
-class Window {
+class Window: public EventResponder {
 public:
+    friend class WindowManager;
     friend class Workspace;
 
     using WindowDrawCallback = function (*)(Window *) -> Void;
@@ -74,9 +74,21 @@ public:
 
     method setIsDecorated(Bool decorated) -> Void;
 
+    method isResisable() -> Bool;
+
+    method setIsResizable(Bool resizable) -> Void;
+
+    method hasTitlebar() -> Bool;
+
+    method setHasTitlebar(Bool hasTitlebar) -> Void;
+
     method hasCloseButton() -> Bool;
 
     method setHasCloseButton(Bool closeButton) -> Void;
+
+    method hasIconifyButton() -> Bool;
+
+    method setHasIconifyButton(Bool hasIconifyButton) -> Void;
 
     method hasRollUpButton() -> Bool;
 
@@ -96,9 +108,15 @@ public:
 
     method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
 
+    method becomeActive() -> Void;
+
+    method resignActive() -> Void;
+
     virtual method draw() -> Void;
 
-    method handleEvent(shared_ptr<Event> event, shared_ptr<Window>sharedThis) -> Void;
+    virtual method mouseDown(shared_ptr<Event> event) -> Void override;
+
+    virtual method mouseUp(shared_ptr<Event> event) -> Void override;
 
 private:
 
@@ -122,9 +140,12 @@ private:
     Bool _isVisible;
     Bool _hasCloseButton;
     Bool _hasRollUpButton;
+    Bool _hasIconifyButton;
+    Bool _isResizable;
     UInt8 _opacity;
     Bool _dirty;
     Bool isBeingDragged;
+    Bool _isActive;
 
     shared_ptr<Surface> windowSurface;
     shared_ptr<Surface> contentSurface;
@@ -132,4 +153,5 @@ private:
     CSpinLock _lock;
 
     WindowDrawCallback drawCallback;
+
 };

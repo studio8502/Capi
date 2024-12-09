@@ -28,21 +28,15 @@
 #include "graphics/screen.h"
 #include "workspace/window.h"
 #include "kernel.h"
+#include "event_responder.h"
+#include "window_manager.h"
 
 #define MENUBAR_HEIGHT 18
 
-class Workspace {
+class Workspace: public EventResponder, public WindowManager {
 public:
-    friend class Kernel::FPSMonitor;
+    friend class Kernel;
     friend class Screen;
-
-    struct DragContext {
-        Bool active;
-        Point previousLocation;
-        Window *window;
-    };
-
-    DragContext dragContext;
     
     Workspace();
 
@@ -58,27 +52,19 @@ public:
 
     method backSurface() -> shared_ptr<Surface>;
 
-    method createWindow() -> shared_ptr<Window>;
-
-    method discardWindow(shared_ptr<Window> win) -> Void;
-
-    method moveWindowToFront(shared_ptr<Window> win) -> Void;
-
-    method moveWindowToBack(shared_ptr<Window> win) -> Void;
-
     method setDirtyFlag() -> Void;
+
+    method dispatchEvents() -> Bool;
+
+    // EventResponder
+    
+    method nextResponder() -> weak_ptr<EventResponder>;
+
+    method setNextResponder(weak_ptr<EventResponder> next) -> Void;
 
     method dispatchEvent(shared_ptr<Event> event) -> Bool;
 
-    method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
-
-    method updateDragContext(Point newLocation) -> Void;
-
-    method clearDragContext() -> Void;
-
 private:
-
-    std::vector<shared_ptr<Window>> windowList;
 
     bool _dirty;
     bool _screenFlag;
@@ -107,6 +93,9 @@ private:
 
     Double fps;
     Double fpsCounter;
+
+    weak_ptr<EventResponder> _nextResponder;
+
 };
 
 extern unique_ptr<Workspace> workspace;

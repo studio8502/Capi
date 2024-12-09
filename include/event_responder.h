@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ event.h                                                                   ║
+ ║ event_responder.h                                                         ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -21,75 +21,71 @@
 
 #pragma once
 
-#include <queue>
-
 #include "capi.h"
-#include "graphics/geometry.h"
+#include "event.h"
 
-class Window;
+class Event;
 
-class Event {
+// An event responder is any class which processes system events and partitipates
+// in the responder chain.
+
+class EventResponder {
 public:
-    
-    enum class Type {
-        mouseMoved,
-        leftMouseDown,
-        leftMouseDragged,
-        leftMouseUp,
-        middleMouseDown,
-        middleMouseDragged,
-        middleMouseUp,
-        rightMouseDown,
-        rightMouseDragged,
-        rightMouseUp,
-        mouseEntered,
-        mouseExited,
-        keyDown,
-        keyUp,
-        scrollWheel
-    };
 
-    Event(Event::Type type);
+    EventResponder();
 
-    ~Event();
+    virtual ~EventResponder();
 
-    method window() -> shared_ptr<Window>;
+    // Returns whether or not the instance is willing to accept first responder
+    // status.
+    virtual method acceptsFirstResponder() -> Bool;
 
-    method setWindow(shared_ptr<Window> window) -> Void;
+    // Notify the instance that it is about to become the first responder in its
+    // window. The default implementatin simply returns true -- subclasses can
+    // override this to trigger other behaviour, and/or return false to refuse
+    // first responder status.
+    virtual method becomeFirstResponder() -> Bool;
 
-    static method mouseMoved() -> shared_ptr<Event>;
+    virtual method nextResponder() -> weak_ptr<EventResponder>;
 
-    static method leftMouseDown() -> shared_ptr<Event>;
+    virtual method setNextResponder(weak_ptr<EventResponder> next) -> Void;
 
-    static method leftMouseDragged() -> shared_ptr<Event>;
+    virtual method mouseMoved(shared_ptr<Event> evt) -> Void;
 
-    static method leftMouseUp() -> shared_ptr<Event>;
+    virtual method mouseEntered(shared_ptr<Event> evt) -> Void;
 
-    static method middleMouseDown() -> shared_ptr<Event>;
+    virtual method mouseExited(shared_ptr<Event> evt) -> Void;
 
-    static method middleMouseDragged() -> shared_ptr<Event>;
+    virtual method mouseDown(shared_ptr<Event> evt) -> Void;
 
-    static method middleMouseUp() -> shared_ptr<Event>;
+    virtual method mouseDragged(shared_ptr<Event> evt) -> Void;
 
-    static method rightMouseDown() -> shared_ptr<Event>;
+    virtual method mouseUp(shared_ptr<Event> evt) -> Void;
 
-    static method rightMouseDragged() -> shared_ptr<Event>;
+    virtual method middleMouseDown(shared_ptr<Event> evt) -> Void;
 
-    static method rightMouseUp() -> shared_ptr<Event>;
+    virtual method middleMouseDragged(shared_ptr<Event> evt) -> Void;
 
-    static method scrollWheel() -> shared_ptr<Event>;
+    virtual method middleMouseUp(shared_ptr<Event> evt) -> Void;
 
-    Type type;
+    virtual method rightMouseDown(shared_ptr<Event> evt) -> Void;
 
-    Double deltaX;
-    Double deltaY;
-    Double deltaW;
-    Point position;
+    virtual method rightMouseDragged(shared_ptr<Event> evt) -> Void;
 
-    UInt8 clickCount;
+    virtual method rightMouseUp(shared_ptr<Event> evt) -> Void;
 
-    Point locationInWindow;
-    shared_ptr<Window> _window;
+    virtual method scrollWheel(shared_ptr<Event> evt) -> Void;
+
+    virtual method keyDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method keyUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadButtonDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadButtonUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadAxisMoved(shared_ptr<Event> evt) -> Void;
+
+private:
+    weak_ptr<EventResponder> _nextResponder;
 };
-
-extern std::queue<shared_ptr<Event>> eventQueue;
