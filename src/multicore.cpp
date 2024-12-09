@@ -21,10 +21,17 @@
 
 #include "multicore.h"
 #include "kernel.h"
+#define TINA_IMPLEMENTATION
+#include "tina.h"
 #include "graphics/font.h"
 #include "workspace/workspace.h"
 
 static function now() -> UInt64;
+
+static void* coro_body(tina* coro, void* value);
+size_t buffer_size = 256*1024;
+void* buffer = NULL;
+void* user_data = NULL;
 
 Multicore::Multicore(CMemorySystem *memory):
 	CMultiCoreSupport (memory)
@@ -49,9 +56,18 @@ method Multicore::Run(UInt32 core_id) -> Void {
             win3->setHasTitlebar(false);
             win3->show();
 
+            tina* coro = tina_init(buffer, buffer_size, coro_body, user_data);
+	        coro->name = "MyCoro";
+	        void* value = tina_resume(coro, (void *) "hello");
+
             while (true) {
+                if(!coro->completed) {
+                    tina_resume(coro, NULL);
+                }
                 workspace->update();
             }
+
+	        free(coro->buffer);
         }
         break;
     case 2: 
@@ -75,4 +91,21 @@ static function now() -> UInt64 {
     var millis = duration_cast<milliseconds>(since_epoch);
     Int64 time = millis.count();
     return time;
+}
+
+static char msg[256];
+static void* coro_body(tina* coro, void* value){
+	CLogger::Get()->Write("Tina:", LogNotice, "coro_body() enter\n");
+	printf("user_data: '%s'\n", (char*)coro->user_data);
+	
+	for(unsigned i = 0; i < 3; i++){
+		sprintf(msg, "coro_body(): %u\n", i);
+        CLogger::Get()->Write("Tina:", LogNotice, msg);
+		// Yielding suspends this coroutine and returns control back to the caller.
+		tina_yield(coro, 0);
+	}
+	
+	CLogger::Get()->Write("Tina:", LogNotice, "coro_body() return\n");
+	// The return value is returned from tina_resume() in the caller.
+	return 0;
 }

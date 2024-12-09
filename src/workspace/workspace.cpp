@@ -113,7 +113,10 @@ method Workspace::resize(unsigned width, unsigned height) -> Void {
 method Workspace::update() -> Void {
     var freeMem = ((CMemorySystem::Get()->GetHeapFreeSpace(HEAP_ANY) * 1.0) / 1024.0 / 1024.0);
     var totalMem = (CMemorySystem::Get()->GetMemSize() * 1.0) / 1024.0 / 1024.0;
-    sprintf(msg, "Mem: %.2fMB/%.2fMB (%.2fMB used)   %s",
+    sprintf(msg, "%.2f frames/sec, %.2f kupdates/sec, %.2f kdraws/sec, Mem: %.2fMB/%.2fMB (%.2fMB used)   %s", 
+            kernel->fps, 
+            ups / 1024.0, 
+            fps / 1024.0,
             freeMem, totalMem, totalMem - freeMem,
             VersionString());
 
@@ -130,11 +133,10 @@ method Workspace::draw() -> Void {
     }
 
     var surface = backSurface();
-    surface->acquire();
 
     surface->drawSurface(wallpaper, Point(0,0));
 
-    std::for_each(windowList.rbegin(), windowList.rend(), [this, surface](shared_ptr<Window> win) {
+    std::for_each(windowList.rbegin(), windowList.rend(), [this, surface](Window *win) {
         if (win->isVisible()) {
             win->draw();
             surface->drawSurface(win->surface(), win->origin());
@@ -168,7 +170,6 @@ method Workspace::draw() -> Void {
     _dirty = false;
     _surfaceFlipped = !_surfaceFlipped;
 
-    surface->release();
     fpsCounter += 1.0;
 }
 

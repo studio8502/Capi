@@ -37,13 +37,13 @@ public:
 
     virtual ~WindowManager();
 
-    virtual method createWindow() -> shared_ptr<Window>;
+    virtual method createWindow() -> Window *;
 
-    virtual method discardWindow(shared_ptr<Window> win) -> Void;
+    virtual method discardWindow(Window *win) -> Void;
 
-    virtual method moveWindowToFront(shared_ptr<Window> win) -> Void;
+    virtual method moveWindowToFront(Window *win) -> Void;
 
-    virtual method moveWindowToBack(shared_ptr<Window> win) -> Void;
+    virtual method moveWindowToBack(Window *win) -> Void;
 
     virtual method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
 
@@ -51,9 +51,9 @@ public:
 
     virtual method clearDragContext() -> Void;
 
-    virtual method activeWindow() -> weak_ptr<Window>;
+    virtual method activeWindow() -> Window *;
 
     DragContext dragContext;
 
-    std::list<shared_ptr<Window>> windowList;
+    std::vector<Window *> windowList;
 };

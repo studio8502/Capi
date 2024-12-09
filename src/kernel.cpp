@@ -177,10 +177,31 @@ method Kernel::run() -> ShutdownMode {
 
 	multicore.Initialize();
 
+	new FPSMonitor();
+
 	while (true) {
 		kernel->updateUSB();
 		CCPUThrottle::Get()->Update();
+		CScheduler::Get()->Sleep(1);
 	}
 
 	return Halt;
+}
+
+Kernel::FPSMonitor::FPSMonitor() {}
+
+Kernel::FPSMonitor::~FPSMonitor() {}
+
+method Kernel::FPSMonitor::Run() -> Void {
+	SetName("FPS Monitor");
+	while (true) {
+		kernel->fps = screen->fpsCounter;
+		screen->fpsCounter = 0.0;
+		workspace->fps = workspace->fpsCounter;
+		workspace->fpsCounter = 0.0;
+		workspace->ups = workspace->upsCounter;
+		workspace->upsCounter = 0.0;
+		workspace->setDirtyFlag();
+		CScheduler::Get()->Sleep(1);
+	}
 }

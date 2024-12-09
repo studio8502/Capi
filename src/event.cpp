@@ -38,11 +38,11 @@ Event::Event(Event::Type type):
 
 Event::~Event() {}
 
-method Event::window() -> shared_ptr<Window> {
+method Event::window() -> Window * {
     return _window;
 }
 
-method Event::setWindow(shared_ptr<Window> window) -> Void {
+method Event::setWindow(Window *window) -> Void {
     _window = window;
 }
 

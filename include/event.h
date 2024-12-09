@@ -53,9 +53,9 @@ public:
 
     ~Event();
 
-    method window() -> shared_ptr<Window>;
+    method window() -> Window *;
 
-    method setWindow(shared_ptr<Window> window) -> Void;
+    method setWindow(Window *window) -> Void;
 
     static method mouseMoved() -> shared_ptr<Event>;
 
@@ -89,7 +89,7 @@ public:
     UInt8 clickCount;
 
     Point locationInWindow;
-    shared_ptr<Window> _window;
+    Window *_window;
 };
 
 extern std::queue<shared_ptr<Event>> eventQueue;

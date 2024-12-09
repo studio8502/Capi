@@ -402,10 +402,13 @@ method Window::handleEvent(shared_ptr<Event> event, shared_ptr<Window>sharedThis
 */
 
 method Window::mouseDown(shared_ptr<Event> event) -> Void {
-    workspace->moveWindowToFront(event->window());
+    if (_isActive == false) {
+        workspace->moveWindowToFront(event->window());
+    }
     if (titlebarRect().checkPoint(event->position)) {
         workspace->setDragContextForWindow(this, event->position);
     }
+    workspace->setDirtyFlag();              
 }
 
 method Window::mouseUp(shared_ptr<Event> event) -> Void {

@@ -29,9 +29,9 @@ WindowManager::WindowManager():
 
 WindowManager::~WindowManager() {}
 
-method WindowManager::createWindow() -> shared_ptr<Window> {
+method WindowManager::createWindow() -> Window * {
 
-    windowList.insert(windowList.begin(), make_shared<Window>());
+    windowList.insert(windowList.begin(), new Window());
 
     var win = windowList.front();
 
@@ -40,15 +40,20 @@ method WindowManager::createWindow() -> shared_ptr<Window> {
     return win;
 }
 
-method WindowManager::discardWindow(shared_ptr<Window> win) -> Void {
-    //FIXME
+method WindowManager::discardWindow(Window *win) -> Void {
+    erase_if(windowList, [win] (Window *window) { 
+        return win == window; 
+    });
+
+    delete win;
+    
     workspace->setDirtyFlag();
 }
 
-method WindowManager::moveWindowToFront(shared_ptr<Window> win) -> Void {
+method WindowManager::moveWindowToFront(Window *win) -> Void {
     
-    windowList.remove_if([win] (shared_ptr<Window> window) { 
-        return win.get() == window.get(); 
+    erase_if(windowList, [win] (Window *window) { 
+        return win == window; 
     });
 
     if (windowList.size() > 0) {
@@ -57,12 +62,12 @@ method WindowManager::moveWindowToFront(shared_ptr<Window> win) -> Void {
 
     win->becomeActive();
 
-    windowList.push_front(win);
+    windowList.insert(windowList.begin(), win);
 
     workspace->setDirtyFlag();
 }
 
-method WindowManager::moveWindowToBack(shared_ptr<Window> win) -> Void {
+method WindowManager::moveWindowToBack(Window *win) -> Void {
     //FIXME
 
     workspace->setDirtyFlag();
@@ -92,9 +97,9 @@ method WindowManager::clearDragContext() -> Void {
     dragContext.window = nullptr;
 }
 
-method WindowManager::activeWindow() -> weak_ptr<Window> {
+method WindowManager::activeWindow() -> Window * {
     guard (windowList.size() != 0) else {
-        return {};
+        return nullptr;
     }
 
     return windowList.front();

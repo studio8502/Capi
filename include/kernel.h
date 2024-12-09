@@ -42,6 +42,14 @@ public:
 		Reboot
 	};
 
+	class FPSMonitor: CTask {
+	public:
+		FPSMonitor();
+		~FPSMonitor();
+
+		method Run() -> Void;
+	};
+
 	Double fps;
 
 	Kernel();
