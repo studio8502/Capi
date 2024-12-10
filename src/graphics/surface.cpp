@@ -143,15 +143,15 @@ method Surface::resetTransform() -> Void {
     _canvas->set_transform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 }
 
-method Surface::scaleTransform(Single x, Single y) -> Void {
+method Surface::scaleTransform(Float x, Float y) -> Void {
     _canvas->scale(x, y);
 }
 
-method Surface::rotateTransform(Single angle) -> Void {
+method Surface::rotateTransform(Float angle) -> Void {
     _canvas->rotate(angle);
 }
 
-method Surface::translateTransform(Single x, Single y) -> Void {
+method Surface::translateTransform(Float x, Float y) -> Void {
     _canvas->translate(x, y);
 }
 
@@ -200,28 +200,28 @@ method Surface::setStrokeColor(Color color) -> Void {
     setColor(BrushType::stroke, color);
 }
 
-method Surface::setStrokeLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void {
+method Surface::setStrokeLinearGradient(Float startX, Float startY, Float endX, Float endY) -> Void {
     _canvas->set_linear_gradient((canvas_ity::brush_type) BrushType::stroke, startX, startY, endX, endY);
 }
 
-method Surface::setFillLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void {
+method Surface::setFillLinearGradient(Float startX, Float startY, Float endX, Float endY) -> Void {
     _canvas->set_linear_gradient((canvas_ity::brush_type) BrushType::fill, startX, startY, endX, endY);
 }
 
-method Surface::setStrokeRadialGradient(Single startX, Single startY, Single startRadius,   
-                                        Single endX, Single endY, Single endRadius) -> Void {
+method Surface::setStrokeRadialGradient(Float startX, Float startY, Float startRadius,   
+                                        Float endX, Float endY, Float endRadius) -> Void {
     _canvas->set_radial_gradient((canvas_ity::brush_type) BrushType::stroke, 
                                   startX, startY, startRadius, 
                                   endX, endY, endRadius);
 }
 
-method Surface::setFillRadialGradient(Single startX, Single startY, Single startRadius, Single endX, 
-                                      Single endY, Single endRadius) -> Void {
+method Surface::setFillRadialGradient(Float startX, Float startY, Float startRadius, Float endX, 
+                                      Float endY, Float endRadius) -> Void {
     _canvas->set_radial_gradient((canvas_ity::brush_type) BrushType::fill, 
                                   startX, startY, startRadius, 
                                   endX, endY, endRadius);
 }
-method Surface::addStrokeColorStop(Single offset, Color color) -> Void {
+method Surface::addStrokeColorStop(Float offset, Color color) -> Void {
     var b = (color & 0xFF) * (1.0 / 255.0);
     var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
     var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
@@ -229,7 +229,7 @@ method Surface::addStrokeColorStop(Single offset, Color color) -> Void {
     _canvas->add_color_stop((canvas_ity::brush_type) BrushType::stroke, offset, r, g, b, a);
 }
 
-method Surface::addFillColorStop(Single offset, Color color) -> Void {
+method Surface::addFillColorStop(Float offset, Color color) -> Void {
     var b = (color & 0xFF) * (1.0 / 255.0);
     var g = ((color >> 8) & 0xFF) * (1.0 / 255.0);
     var r = ((color >> 16) & 0xFF) * (1.0 / 255.0);
@@ -263,15 +263,15 @@ method Surface::setShadowColor(Color color) -> Void {
     _canvas->set_shadow_color(r, g, b, a);
 }
 
-method Surface::setShadowHorizontalOffset(Single offset) -> Void {
+method Surface::setShadowHorizontalOffset(Float offset) -> Void {
     _canvas->shadow_offset_x = offset;
 }
 
-method Surface::setShadowVerticallOffset(Single offset) -> Void {
+method Surface::setShadowVerticallOffset(Float offset) -> Void {
     _canvas->shadow_offset_y = offset;
 }
 
-method Surface::setShadowBlur(Single blur) -> Void {
+method Surface::setShadowBlur(Float blur) -> Void {
     _canvas->set_shadow_blur(blur);
 }
 
@@ -288,15 +288,15 @@ method Surface::setLineJoinStyle(LineJoinStyle style) -> Void {
     _canvas->line_join = (canvas_ity::join_style) style;
 }
 
-method Surface::setMiterLimit(Single limit) -> Void {
+method Surface::setMiterLimit(Float limit) -> Void {
     _canvas->set_miter_limit(limit);
 }
 
-method Surface::setLineDashOffset(Single offset) -> Void {
+method Surface::setLineDashOffset(Float offset) -> Void {
     _canvas->line_dash_offset = offset;
 }
 
-method Surface::setLineDashPattern(Single const *pattern, Int count) -> Void {
+method Surface::setLineDashPattern(Float const *pattern, Int count) -> Void {
     _canvas->set_line_dash(pattern, count);
 }
 
@@ -316,11 +316,11 @@ method Surface::beginPath() -> Void {
     _canvas->begin_path();
 }
 
-method Surface::moveTo(Single x, Single y) -> Void {
+method Surface::moveTo(Float x, Float y) -> Void {
     _canvas->move_to(x, y);
 }
 
-method Surface::lineTo(Single x, Single y) -> Void {
+method Surface::lineTo(Float x, Float y) -> Void {
     _canvas->line_to(x, y);
 }
 
@@ -339,7 +339,7 @@ method Surface::drawImage(shared_ptr<Image> image, Point dest) -> Void {
                          image->rect().height);
 }
 
-method Surface::measureText(String message) -> Single {
+method Surface::measureText(String message) -> Float {
     return _canvas->measure_text(message.c_str());
 }
 

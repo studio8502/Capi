@@ -44,18 +44,6 @@ public:
 
     friend class Screen;
 
-    // A structure representing the top two rows of
-    // a 3x3 matrix expression of an affine transformation.
-    // The bottom row is implicitly {0.0, 0.0, 1.0}.
-    struct AffineTransform {
-        float horizontalScale;
-        float verticalSkew;
-        float horizontalSkew;
-        float verticalScale;
-        float horizontalTranslation;
-        float verticalTranslation;
-    };
-
     // An enumerated type that defines the various compositing operations
     // possible.
     enum class CompositeOperation {
@@ -153,20 +141,20 @@ public:
     // Arguments:
     //      x: Horizontal scale factor
     //      y: Vertical scale factor
-    method scaleTransform(Single x, Single y) -> Void;
+    method scaleTransform(Float x, Float y) -> Void;
 
     // Rotate the current transform.
     //
     // Arguments:
     //      angle: Rotation angle in radians
-    method rotateTransform(Single angle) -> Void;
+    method rotateTransform(Float angle) -> Void;
 
     // Translate the current transform.
     //
     // Arguments:
     //      x: Distance to move horizontally
     //      y: Distance to move vertically
-    method translateTransform(Single x, Single y) -> Void;
+    method translateTransform(Float x, Float y) -> Void;
 
     // Append an arbitrary transform to the current one.
     //
@@ -189,17 +177,17 @@ public:
 
     method setStrokeColor(Color color) -> Void;
 
-    method setStrokeLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void;
+    method setStrokeLinearGradient(Float startX, Float startY, Float endX, Float endY) -> Void;
 
-    method setFillLinearGradient(Single startX, Single startY, Single endX, Single endY) -> Void;
+    method setFillLinearGradient(Float startX, Float startY, Float endX, Float endY) -> Void;
 
-    method setStrokeRadialGradient(Single startX, Single startY, Single startRadius, Single endX, Single endY, Single endRadius) -> Void;
+    method setStrokeRadialGradient(Float startX, Float startY, Float startRadius, Float endX, Float endY, Float endRadius) -> Void;
 
-    method setFillRadialGradient(Single startX, Single startY, Single startRadius, Single endX, Single endY, Single endRadius) -> Void;
+    method setFillRadialGradient(Float startX, Float startY, Float startRadius, Float endX, Float endY, Float endRadius) -> Void;
 
-    method addStrokeColorStop(Single offset, Color color) -> Void;
+    method addStrokeColorStop(Float offset, Color color) -> Void;
 
-    method addFillColorStop(Single offset, Color color) -> Void;
+    method addFillColorStop(Float offset, Color color) -> Void;
 
     method setStrokeImagePattern(shared_ptr<Image> image, RepetitionStyle rep) -> Void;
 
@@ -207,11 +195,11 @@ public:
         
     method setShadowColor(Color color) -> Void;
 
-    method setShadowHorizontalOffset(Single offset) -> Void;
+    method setShadowHorizontalOffset(Float offset) -> Void;
 
-    method setShadowVerticallOffset(Single offset) -> Void;
+    method setShadowVerticallOffset(Float offset) -> Void;
 
-    method setShadowBlur(Single blur) -> Void;
+    method setShadowBlur(Float blur) -> Void;
 
     method setLineWidth(Int width) -> Void;
 
@@ -219,11 +207,11 @@ public:
 
     method setLineJoinStyle(LineJoinStyle style) -> Void;
 
-    method setMiterLimit(Single limit) -> Void;
+    method setMiterLimit(Float limit) -> Void;
 
-    method setLineDashOffset(Single offset) -> Void;
+    method setLineDashOffset(Float offset) -> Void;
 
-    method setLineDashPattern(Single const *pattern, Int count) -> Void;
+    method setLineDashPattern(Float const *pattern, Int count) -> Void;
 
     method fill() -> Void;
 
@@ -233,9 +221,9 @@ public:
 
     method beginPath() -> Void;
 
-    method moveTo(Single x, Single y) -> Void;
+    method moveTo(Float x, Float y) -> Void;
 
-    method lineTo(Single x, Single y) -> Void;
+    method lineTo(Float x, Float y) -> Void;
 
     method rectangle(Rect rect) -> Void;
 
@@ -245,7 +233,7 @@ public:
 
     method setFont(shared_ptr<Font> font, Double size) -> Void;
 
-    method measureText(String message) -> Single;
+    method measureText(String message) -> Float;
 
     method fillText(String message, Point origin) -> Void;
 

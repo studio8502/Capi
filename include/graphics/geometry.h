@@ -64,3 +64,16 @@ public:
     // Returns true if the specified rect overlaps the rect.
     method checkRect(Rect other) -> Bool;
 };
+
+// A structure representing the top two rows of
+// a 3x3 matrix expression of an affine transformation.
+// The bottom row is implicitly {0.0, 0.0, 1.0}.
+struct AffineTransform {
+    float horizontalScale;
+    float verticalSkew;
+    float horizontalSkew;
+    float verticalScale;
+    float horizontalTranslation;
+    float verticalTranslation;
+};
+

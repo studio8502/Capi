@@ -68,6 +68,7 @@
 #include <circle/usb/usbkeyboard.h>
 #include <SDCard/emmc.h>
 #include <fatfs/ff.h>
+#include <lvgl/lvgl.h>
 
 #define STRING(STR) __STRING(STR)
 
@@ -98,7 +99,7 @@ using Int8 = int8_t;
 using Int = int32_t;
 
 using Double = double;
-using Single = float;
+using Float = float;
 
 using String = std::string;
 
