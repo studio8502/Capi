@@ -46,9 +46,9 @@ public:
     // first responder status.
     virtual method becomeFirstResponder() -> Bool;
 
-    virtual method nextResponder() -> weak_ptr<EventResponder>;
+    virtual method nextResponder() -> EventResponder *;
 
-    virtual method setNextResponder(weak_ptr<EventResponder> next) -> Void;
+    virtual method setNextResponder(EventResponder *next) -> Void;
 
     virtual method mouseMoved(shared_ptr<Event> evt) -> Void;
 
@@ -87,5 +87,5 @@ public:
     virtual method gamepadAxisMoved(shared_ptr<Event> evt) -> Void;
 
 private:
-    weak_ptr<EventResponder> _nextResponder;
+    EventResponder *_nextResponder;
 };

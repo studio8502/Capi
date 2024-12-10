@@ -29,51 +29,50 @@ WindowManager::WindowManager():
 
 WindowManager::~WindowManager() {}
 
-method WindowManager::createWindow() -> Window * {
+method WindowManager::createWindow() -> shared_ptr<Window> {
 
-    windowList.insert(windowList.begin(), new Window());
+    var win = make_shared<Window>();
 
-    var win = windowList.front();
+    windowList.insert(windowList.begin(), win);
 
     workspace->setDirtyFlag();
 
     return win;
 }
 
-method WindowManager::discardWindow(Window *win) -> Void {
-    erase_if(windowList, [win] (Window *window) { 
-        return win == window; 
-    });
+method WindowManager::discardWindow(shared_ptr<Window> win) -> Void {
 
-    delete win;
+    std::erase_if(windowList, [win](var window){
+        return win.get() == window.get();
+    });
     
     workspace->setDirtyFlag();
 }
 
-method WindowManager::moveWindowToFront(Window *win) -> Void {
-    
-    erase_if(windowList, [win] (Window *window) { 
-        return win == window; 
+method WindowManager::moveWindowToFront(shared_ptr<Window> win) -> Void {
+
+    activeWindow()->resignActive();
+
+    std::erase_if(windowList, [win](var window){
+        return win.get() == window.get();
     });
-
-    if (windowList.size() > 0) {
-        windowList.front()->resignActive();
-    }
-
-    win->becomeActive();
 
     windowList.insert(windowList.begin(), win);
+    
+    workspace->setDirtyFlag();
+}
+
+method WindowManager::moveWindowToBack(shared_ptr<Window> win) -> Void {
+    std::erase_if(windowList, [win](var window){
+        return win.get() == window.get();
+    });
+
+    windowList.push_back(win);
 
     workspace->setDirtyFlag();
 }
 
-method WindowManager::moveWindowToBack(Window *win) -> Void {
-    //FIXME
-
-    workspace->setDirtyFlag();
-}
-
-method WindowManager::setDragContextForWindow(Window *window, Point dragOrigin) -> Void {
+method WindowManager::setDragContextForWindow(shared_ptr<Window> window, Point dragOrigin) -> Void {
     dragContext.active = true;
     dragContext.window = window;
     dragContext.previousLocation = dragOrigin;
@@ -94,13 +93,9 @@ method WindowManager::updateDragContext(Point newLocation) -> Void {
 
 method WindowManager::clearDragContext() -> Void {
     dragContext.active = false;
-    dragContext.window = nullptr;
+    dragContext.window.reset();
 }
 
-method WindowManager::activeWindow() -> Window * {
-    guard (windowList.size() != 0) else {
-        return nullptr;
-    }
-
+method WindowManager::activeWindow() -> shared_ptr<Window>  {
     return windowList.front();
 }

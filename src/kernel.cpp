@@ -179,10 +179,25 @@ method Kernel::run() -> ShutdownMode {
 
 	new FPSMonitor();
 
+	var win = workspace->createWindow();
+	win->show();
+
+	var win2 = workspace->createWindow();
+	win2->move(Point(300, 240));
+	win2->show();
+
+	var win3 = workspace->createWindow();
+	win3->move(Point(200, 200));
+	win3->becomeActive();
+	win3->setHasTitlebar(false);
+	win3->show();
+
 	while (true) {
 		kernel->updateUSB();
 		CCPUThrottle::Get()->Update();
-		CScheduler::Get()->Sleep(1);
+		workspace->update();
+		workspace->draw();
+		CScheduler::Get()->Yield();
 	}
 
 	return Halt;

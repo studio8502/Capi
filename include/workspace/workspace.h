@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "capi.h"
 #include "graphics/surface.h"
 #include "graphics/screen.h"
@@ -56,14 +54,6 @@ public:
 
     method dispatchEvents() -> Bool;
 
-    // EventResponder
-    
-    method nextResponder() -> weak_ptr<EventResponder>;
-
-    method setNextResponder(weak_ptr<EventResponder> next) -> Void;
-
-    method dispatchEvent(shared_ptr<Event> event) -> Bool;
-
 private:
 
     bool _dirty;
@@ -93,9 +83,6 @@ private:
 
     Double fps;
     Double fpsCounter;
-
-    weak_ptr<EventResponder> _nextResponder;
-
 };
 
 extern unique_ptr<Workspace> workspace;

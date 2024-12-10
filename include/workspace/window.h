@@ -25,6 +25,7 @@
 #include "graphics/surface.h"
 #include "event.h"
 #include "event_responder.h"
+#include "workspace/view.h"
 
 #define WINDOW_BORDER_WIDTH 4
 #define WINDOW_TITLEBAR_HEIGHT 16
@@ -34,7 +35,14 @@ public:
     friend class WindowManager;
     friend class Workspace;
 
-    using WindowDrawCallback = function (*)(Window *) -> Void;
+    struct TrackingRect {
+        UInt16 x;
+        UInt16 y;
+        UInt16 width;
+        UInt16 height;
+        Bool cursorInsideRect;
+        EventResponder *target;
+    };
 
     Window();
 
@@ -61,8 +69,6 @@ public:
     method title() -> String;
 
     method setTitle(String title) -> Void;
-
-    method setDrawCallback(WindowDrawCallback callback) -> Void;
 
     method isVisible() -> Bool;
 
@@ -104,15 +110,15 @@ public:
 
     method release() -> Void;
 
-    method drawText(String message, Point origin) -> Void;
-
-    method drawSurface(shared_ptr<Surface> src, Point dest) -> Void;
-
     method becomeActive() -> Void;
 
     method resignActive() -> Void;
 
     virtual method draw() -> Void;
+
+    method addTrackingRect(Rect rect, EventResponder *responder);
+
+    // EventResponder
 
     virtual method mouseDown(shared_ptr<Event> event) -> Void override;
 
@@ -123,8 +129,6 @@ private:
     method surface() -> shared_ptr<Surface>;
 
     virtual method drawWindowChrome() -> Void;
-
-    virtual method drawWindowContent() -> Void;
 
     method translate(Rect rect) -> Rect;
 
@@ -148,10 +152,11 @@ private:
     Bool _isActive;
 
     shared_ptr<Surface> windowSurface;
-    shared_ptr<Surface> contentSurface;
 
     CSpinLock _lock;
 
-    WindowDrawCallback drawCallback;
+    unique_ptr<View> contentView;
+
+    std::vector<TrackingRect> trackingRectList;
 
 };

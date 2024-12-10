@@ -42,8 +42,8 @@ Window::Window():
     isBeingDragged(false),
     _isActive(false),
     windowSurface(nullptr),
-    contentSurface(nullptr),
-    drawCallback(nullptr)
+    contentView(make_unique<View>()),
+    trackingRectList()
 {
     resize(Size(_width, _height));
 }
@@ -79,6 +79,7 @@ method Window::hasTitlebar() -> Bool {
 
 method Window::setHasTitlebar(Bool hasTitlebar) -> Void {
     _hasTitlebar = hasTitlebar;
+    resize(Size(_width, _height));
 }
 
 method Window::hasIconifyButton() -> Bool {
@@ -151,16 +152,21 @@ method Window::resize(Size size) -> Void {
     _width = size.width;
     _height = size.height;
     windowSurface.reset();
-    contentSurface.reset();
     windowSurface = make_shared<Surface>(size);
-    contentSurface = make_shared<Surface>(contentRect().size());
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::setDrawCallback(WindowDrawCallback callback) -> Void {
-    drawCallback = callback;
-    _dirty = true;
+    if (_isDecorated && _hasTitlebar) {
+        contentView->setFrame(Rect(WINDOW_BORDER_WIDTH,
+                                   WINDOW_TITLEBAR_HEIGHT + 2, 
+                                   size.width - WINDOW_BORDER_WIDTH * 2, 
+                                   size.height - WINDOW_BORDER_WIDTH - WINDOW_TITLEBAR_HEIGHT - 3));
+    } else if (_isDecorated) {
+        contentView->setFrame(Rect(WINDOW_BORDER_WIDTH,
+                                   WINDOW_BORDER_WIDTH, 
+                                   size.width - WINDOW_BORDER_WIDTH * 2, 
+                                   size.height - WINDOW_BORDER_WIDTH * 2));
+    } else {
+        contentView->setFrame(Rect(0, 0, size.width, size.height));
+    }
+    draw();
     workspace->setDirtyFlag();
 }
 
@@ -217,18 +223,6 @@ method Window::release() -> Void {
     _lock.Release();
 }
 
-method Window::drawText(String message, Point origin) -> Void {
-    contentSurface->fillText(message, origin);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
-method Window::drawSurface(shared_ptr<Surface> src, Point dest) -> Void {
-    contentSurface->drawSurface(src, dest);
-    _dirty = true;
-    workspace->setDirtyFlag();
-}
-
 method Window::contentOrigin() -> Point {
     var origin = Point(WINDOW_BORDER_WIDTH,0);
     if (_isDecorated && _hasTitlebar) {
@@ -246,9 +240,9 @@ method Window::draw() -> Void{
         return;
     }
 
-    drawWindowContent();
-    windowSurface->drawSurface(contentSurface, contentOrigin());
+    contentView->draw();
     drawWindowChrome();
+    windowSurface->drawSurface(contentView->surface, contentView->frame().origin());
 
     _dirty = false;
 }
@@ -350,22 +344,13 @@ method Window::drawWindowChrome() -> Void {
         var titleX = centerX - titleWidth / 2;
         windowSurface->setFillColor(0xFFCCCCCC);
         windowSurface->fillRect(Rect(titleX - 5, 1, titleWidth + 10, WINDOW_TITLEBAR_HEIGHT - 2));
-        windowSurface->setFillColor(0xFF888888);
+        windowSurface->setFillColor(0xFF666666);
         windowSurface->fillText(_title, Point(titleX, WINDOW_TITLEBAR_HEIGHT - 4));
     }
 
     windowSurface->render();
     windowSurface->release();
 
-}
-
-// Draw the window content to the window's content surface.
-method Window::drawWindowContent() -> Void {
-    contentSurface->acquire();
-    if (drawCallback != nullptr) {
-        drawCallback(this);
-    }
-    contentSurface->release();
 }
 
 method Window::becomeActive() -> Void {
@@ -380,33 +365,13 @@ method Window::resignActive() -> Void {
     _dirty = true;
 }
 
-/*
-method Window::handleEvent(shared_ptr<Event> event, shared_ptr<Window>sharedThis) -> Void {
-
-    switch (event->type) {
-    case Event::Type::mouseMoved:
-        break;
-    case Event::Type::leftMouseDown:
-        workspace->moveWindowToFront(sharedThis);
-        if (titlebarRect().checkPoint(event->position)) {
-            workspace->setDragContextForWindow(this, event->position);
-        }
-        break;
-    case Event::Type::leftMouseUp:
-        workspace->clearDragContext();
-        break;
-    default:
-        break;
-    }
-}
-*/
-
 method Window::mouseDown(shared_ptr<Event> event) -> Void {
     if (_isActive == false) {
         workspace->moveWindowToFront(event->window());
+        event->window()->becomeActive();
     }
-    if (titlebarRect().checkPoint(event->position)) {
-        workspace->setDragContextForWindow(this, event->position);
+    if (titlebarRect().checkPoint(event->position) && _hasTitlebar) {
+        workspace->setDragContextForWindow(event->window(), event->position);
     }
     workspace->setDirtyFlag();              
 }

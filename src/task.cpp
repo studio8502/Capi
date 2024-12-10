@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ multicore.cpp                                                             ║
+ ║ task.cpp                                                                  ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,47 +19,32 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "multicore.h"
-#include "kernel.h"
-#include "graphics/font.h"
-#include "workspace/workspace.h"
+#define TINA_IMPLEMENTATION
+#include "tina.h"
+#include "task.h"
 
-static function now() -> UInt64;
-
-Multicore::Multicore(CMemorySystem *memory):
-	CMultiCoreSupport (memory)
-{}
-
-Multicore::~Multicore() {}
-
-method Multicore::Run(UInt32 core_id) -> Void {
-
-    switch (core_id) {
-    case 1: {
-            while (true) {
-		        screen->updateDisplay();
-            }
-        }
-        break;
-    case 2: 
-        while (true) {
-            // This is where sprites and tiles and audio happen (maybe?)
-        }
-        break;
-    case 3: 
-        while (true) {
-            // This is where user code will run (maybe?)
-        }
-        break;
-    default:
-        break;
-    }
+Task::Task(String name, std::size_t bufSize, UnsafeMutablePointer userData):
+    _name(name),
+    body(nullptr)
+{
+    context = tina_init(buffer, bufSize, Task::funct, userData);
+    context->name = name.c_str();
 }
 
-static function now() -> UInt64 {
-    using namespace std::chrono;
-    var since_epoch = system_clock::now().time_since_epoch();
-    var millis = duration_cast<milliseconds>(since_epoch);
-    Int64 time = millis.count();
-    return time;
+Task::~Task() {}
+
+method Task::funct(Context context, UnsafeMutablePointer value) -> UnsafeMutablePointer {
+    return nullptr;
+}
+
+method Task::completed() -> Bool {
+    return context->completed;
+}
+    
+method Task::resume() -> Void {
+    tina_resume(context, nullptr);
+}
+
+method Task::yield() -> Void {
+	tina_yield(context, 0);
 }

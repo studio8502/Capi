@@ -22,16 +22,16 @@
 #include "event_responder.h"
 
 EventResponder::EventResponder():
-    _nextResponder()
+    _nextResponder(nullptr)
 {}
 
 EventResponder::~EventResponder() {}
 
-method EventResponder::nextResponder() -> weak_ptr<EventResponder> {
+method EventResponder::nextResponder() -> EventResponder * {
     return _nextResponder;
 }
 
-method EventResponder::setNextResponder(weak_ptr<EventResponder> next) -> Void {
+method EventResponder::setNextResponder(EventResponder *next) -> Void {
     _nextResponder = next;
 }
 
@@ -44,109 +44,109 @@ method EventResponder::becomeFirstResponder() -> Bool {
 }
 
 method EventResponder::mouseMoved(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseMoved(evt);
     }
 }
 
 method EventResponder::mouseEntered(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseEntered(evt);
     }
 }
 
 method EventResponder::mouseExited(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseExited(evt);
     }
 }
 
 method EventResponder::mouseDown(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseDown(evt);
     }
 }
 
 method EventResponder::mouseDragged(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseDragged(evt);
     }
 }
 
 method EventResponder::mouseUp(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->mouseUp(evt);
     }
 }
 
 method EventResponder::middleMouseDown(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->middleMouseDown(evt);
     }
 }
 
 method EventResponder::middleMouseDragged(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->middleMouseDragged(evt);
     }
 }
 
 method EventResponder::middleMouseUp(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->middleMouseUp(evt);
     }
 }
 
 method EventResponder::rightMouseDown(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->rightMouseDown(evt);
     }
 }
 
 method EventResponder::rightMouseDragged(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->rightMouseDragged(evt);
     }
 }
 
 method EventResponder::rightMouseUp(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->rightMouseUp(evt);
     }
 }
 
 method EventResponder::scrollWheel(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->scrollWheel(evt);
     }
 }
 
 method EventResponder::keyDown(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->keyDown(evt);
     }
 }
 
 method EventResponder::keyUp(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->keyUp(evt);
     }
 }
 
 method EventResponder::gamepadButtonDown(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->gamepadButtonDown(evt);
     }
 }
 
 method EventResponder::gamepadButtonUp(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->gamepadButtonUp(evt);
     }
 }
 
 method EventResponder::gamepadAxisMoved(shared_ptr<Event> evt) -> Void {
-    if (std::shared_ptr<EventResponder> next = nextResponder().lock()) {
+    if (EventResponder *next = nextResponder()) {
         next->gamepadAxisMoved(evt);
     }
 }

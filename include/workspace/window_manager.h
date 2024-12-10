@@ -30,30 +30,30 @@ public:
     struct DragContext {
         Bool active;
         Point previousLocation;
-        Window *window;
+        shared_ptr<Window> window;
     };
     
     WindowManager();
 
     virtual ~WindowManager();
 
-    virtual method createWindow() -> Window *;
+    virtual method createWindow() -> shared_ptr<Window>;
 
-    virtual method discardWindow(Window *win) -> Void;
+    virtual method discardWindow(shared_ptr<Window> win) -> Void;
 
-    virtual method moveWindowToFront(Window *win) -> Void;
+    virtual method moveWindowToFront(shared_ptr<Window> win) -> Void;
 
-    virtual method moveWindowToBack(Window *win) -> Void;
+    virtual method moveWindowToBack(shared_ptr<Window> win) -> Void;
 
-    virtual method setDragContextForWindow(Window *window, Point dragOrigin) -> Void;
+    virtual method setDragContextForWindow(shared_ptr<Window> window, Point dragOrigin) -> Void;
 
     virtual method updateDragContext(Point newLocation) -> Void;
 
     virtual method clearDragContext() -> Void;
 
-    virtual method activeWindow() -> Window *;
+    virtual method activeWindow() -> shared_ptr<Window>;
 
     DragContext dragContext;
 
-    std::vector<Window *> windowList;
+    std::vector<shared_ptr<Window>> windowList;
 };

@@ -42,8 +42,7 @@ Workspace::Workspace():
     ups(0.0),
     upsCounter(0.0),
     fps(0.0),
-    fpsCounter(0.0),
-    _nextResponder()
+    fpsCounter(0.0)
 {
     
     try {
@@ -133,13 +132,14 @@ method Workspace::draw() -> Void {
     }
 
     var surface = backSurface();
+	surface->acquire();
 
     surface->drawSurface(wallpaper, Point(0,0));
 
-    std::for_each(windowList.rbegin(), windowList.rend(), [this, surface](Window *win) {
-        if (win->isVisible()) {
-            win->draw();
-            surface->drawSurface(win->surface(), win->origin());
+    std::for_each(windowList.rbegin(), windowList.rend(), [surface](shared_ptr<Window> window) {
+        if (window.get() == nullptr) { } else if (window->isVisible()) {
+            window->draw();
+            surface->drawSurface(window->surface(), window->origin());
         }
     });
 
@@ -167,6 +167,8 @@ method Workspace::draw() -> Void {
 
     surface->drawSurface(mouseCursor, Point(mouseX - 1, mouseY - 1), true);
 
+	surface->release();
+    
     _dirty = false;
     _surfaceFlipped = !_surfaceFlipped;
 
@@ -199,6 +201,7 @@ method Workspace::dispatchEvents() -> Bool {
             event->position = Point(mouseX, mouseY);
             
             for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
                 if (window->isVisible() && window->rect().checkPoint(event->position)) {
                     event->setWindow(window);
                     window->mouseDown(event);
@@ -215,6 +218,7 @@ method Workspace::dispatchEvents() -> Bool {
             event->position = Point(mouseX, mouseY);
             
             for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
                 if (window->isVisible() && window->rect().checkPoint(event->position)) {
                     event->setWindow(window);
                     window->mouseUp(event);
@@ -223,6 +227,74 @@ method Workspace::dispatchEvents() -> Bool {
             }
             
             setDirtyFlag();
+            break;
+
+        case Event::Type::middleMouseDown:
+            middleButtonDown = true;
+            event->position = Point(mouseX, mouseY);
+            
+            for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->middleMouseDown(event);
+                    break;
+                }
+            }
+
+            setDirtyFlag();
+
+            break;
+
+        case Event::Type::middleMouseUp:
+            middleButtonDown = false;
+            event->position = Point(mouseX, mouseY);
+            
+            for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->middleMouseUp(event);
+                    break;
+                }
+            }
+
+            setDirtyFlag();
+
+            break;
+
+        case Event::Type::rightMouseDown:
+            rightButtonDown = true;
+            event->position = Point(mouseX, mouseY);
+            
+            for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->rightMouseDown(event);
+                    break;
+                }
+            }
+
+            setDirtyFlag();
+
+            break;
+
+        case Event::Type::rightMouseUp:
+            rightButtonDown = false;
+            event->position = Point(mouseX, mouseY);
+            
+            for (var window : windowList) {
+                guard (window.get() != nullptr) else { continue; }
+                if (window->isVisible() && window->rect().checkPoint(event->position)) {
+                    event->setWindow(window);
+                    window->rightMouseUp(event);
+                    break;
+                }
+            }
+
+            setDirtyFlag();
+
             break;
         default:
             break;

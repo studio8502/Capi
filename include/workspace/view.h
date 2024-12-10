@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ multicore.cpp                                                             ║
+ ║ workspace/view.h                                                          ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,47 +19,60 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "multicore.h"
-#include "kernel.h"
-#include "graphics/font.h"
-#include "workspace/workspace.h"
+#pragma once
 
-static function now() -> UInt64;
+#include "capi.h"
 
-Multicore::Multicore(CMemorySystem *memory):
-	CMultiCoreSupport (memory)
-{}
+#include "event_responder.h"
+#include "graphics/surface.h"
 
-Multicore::~Multicore() {}
+class View: public EventResponder {
+public:
 
-method Multicore::Run(UInt32 core_id) -> Void {
+    enum LayoutConstraint: UInt8 {
+        noResizing = 0,
+        leftMarginStretch = 1,
+        widthStretch = 2,
+        rightMarginStretch = 4,
+        bottomMarginStretch = 8,
+        heightStretch = 16,
+        topMarginStretch = 32
+    };
 
-    switch (core_id) {
-    case 1: {
-            while (true) {
-		        screen->updateDisplay();
-            }
-        }
-        break;
-    case 2: 
-        while (true) {
-            // This is where sprites and tiles and audio happen (maybe?)
-        }
-        break;
-    case 3: 
-        while (true) {
-            // This is where user code will run (maybe?)
-        }
-        break;
-    default:
-        break;
-    }
-}
+    View();
 
-static function now() -> UInt64 {
-    using namespace std::chrono;
-    var since_epoch = system_clock::now().time_since_epoch();
-    var millis = duration_cast<milliseconds>(since_epoch);
-    Int64 time = millis.count();
-    return time;
-}
+    ~View();
+
+    // Informs the parent that this view does or does not request
+    // a tracking rect be placed to match its position and size rect.
+    virtual method requestsTrackingRect() -> Bool;
+
+    virtual method frame() -> Rect;
+
+    virtual method setFrame(Rect frame) -> Void;
+
+    // Adds a view as a subview.
+    virtual method addSubview(View *subview) -> Void;
+
+    virtual method removeSubview(View *subview) -> Void;
+
+    virtual method draw() -> Void;
+
+    virtual method resizeWithOldFrame(Rect oldFrame) -> Void;
+
+    virtual method resizeSubviewsWithOldFrame(Rect oldFrame) -> Void;
+
+    LayoutConstraint layout;
+
+    Bool resizesSubviews;
+
+    Rect _frame;
+    shared_ptr<Surface> surface;
+
+private:
+    Window *_window;
+    View *_superview;
+
+
+    std::vector<View *> subviewList;
+};

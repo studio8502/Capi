@@ -355,7 +355,6 @@ method Surface::fillText(String message, Point origin) -> Void {
 }
 
 method Surface::drawSurface(shared_ptr<Surface> src, Point dest, Bool alpha) -> Void {
-
     var target = Point(0 ,0);
 	var pixelBuffer = src.get()->data();
 	var buffer = _data.get();

@@ -1177,6 +1177,7 @@ public:
     ///
     void restore();
 
+    rgba *bitmap;
 private:
     int size_x;
     int size_y;
@@ -1198,7 +1199,6 @@ private:
     pixel_runs runs;
     pixel_runs mask;
     font_face face;
-    rgba *bitmap;
     canvas *saves;
     canvas( canvas const & );
     canvas &operator=( canvas const & );
@@ -2645,6 +2645,7 @@ canvas::canvas(
       line_dash_offset( 0.0f ),
       text_align( start ),
       text_baseline( alphabetic ),
+      bitmap( new rgba[ width * height ] ),
       size_x( width ),
       size_y( height ),
       global_alpha( 1.0f ),
@@ -2655,7 +2656,6 @@ canvas::canvas(
       stroke_brush(),
       image_brush(),
       face(),
-      bitmap( new rgba[ width * height ] ),
       saves( 0 )
 {
     affine_matrix identity = { 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f };
