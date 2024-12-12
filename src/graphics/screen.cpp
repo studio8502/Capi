@@ -114,34 +114,12 @@ method Screen::clear() -> Void {
 	memset(_buffer, c, _width * _height * sizeof(Color));
 }
 
-method Screen::drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha) -> Void {
-
-    var target = Point(0 ,0);
-	var pixelBuffer = src.get()->data();
-	var clip = screenRect();
-	
-	for(unsigned i = 0; i < src->height(); i += 1)
-	{
-		target.y = dest.y + i;
-
-		for(unsigned j = 0; j < src->width(); j += 1)
-		{
-            target.x = j + dest.x;
-
-			_buffer[target.y * _width + target.x] = pixelBuffer[i * src->width() + j];
-    	}
-	}
-}
-
 method Screen::updateDisplay() -> Void {
 	framebuffer->WaitForVerticalSync();
 
-	var surface = workspace->frontSurface();
-	surface->acquire();
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
-						surface->data().get(), 
+						_buffer, 
 						_width * _height * sizeof(Color));
-	surface->release();
 	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 	bufferSwapped = !bufferSwapped;
 	fpsCounter += 1.0;

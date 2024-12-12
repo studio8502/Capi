@@ -22,7 +22,6 @@
 #pragma once
 
 #include "capi.h"
-#include "graphics/surface.h"
 #include "graphics/screen.h"
 #include "workspace/window.h"
 #include "kernel.h"
@@ -46,10 +45,6 @@ public:
 
     method draw() -> Void;
 
-    method frontSurface() -> shared_ptr<Surface>;
-
-    method backSurface() -> shared_ptr<Surface>;
-
     method setDirtyFlag() -> Void;
 
     method dispatchEvents() -> Bool;
@@ -58,16 +53,6 @@ private:
 
     bool _dirty;
     bool _screenFlag;
-
-    shared_ptr<Surface> wallpaper;
-
-    shared_ptr<Surface> mouseCursor;
-
-    shared_ptr<Surface> menubar;
-
-    shared_ptr<Surface> surface1;
-
-    shared_ptr<Surface> surface2;
 
     bool _surfaceFlipped;
 

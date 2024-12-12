@@ -35,8 +35,6 @@ public:
 
     static method imageFromFile(String filename) -> shared_ptr<Image>;
 
-    static method imageSurfaceFromFile(String filename) -> shared_ptr<Surface>;
-
     static method imageFromURL(String url) -> shared_ptr<Image>;
 
     static method RGBAtoBGRA(Color pixel) -> Color;

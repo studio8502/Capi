@@ -24,7 +24,6 @@
 #include "capi.h"
 
 #include "event_responder.h"
-#include "graphics/surface.h"
 
 class View: public EventResponder {
 public:
@@ -67,7 +66,6 @@ public:
     Bool resizesSubviews;
 
     Rect _frame;
-    shared_ptr<Surface> surface;
 
 private:
     Window *_window;

@@ -30,11 +30,6 @@ static char msg[256];
 Workspace::Workspace():
     _dirty(true),
     _screenFlag(true),
-    wallpaper(Image::imageSurfaceFromFile("SD:/wallpaper.jpg")),
-    mouseCursor(Image::imageSurfaceFromFile("SD:/cursor_arrow.png")),
-    menubar(make_shared<Surface>(screen->width(), MENUBAR_HEIGHT)),
-    surface1(make_shared<Surface>(screen->width(), screen->height())),
-    surface2(make_shared<Surface>(screen->width(), screen->height())),
     _surfaceFlipped(false),
     leftButtonDown(false),
     rightButtonDown(false),
@@ -50,45 +45,16 @@ Workspace::Workspace():
             throw std::runtime_error("There can be only a single Workspace instance!");
         }
 
-        guard (wallpaper != nullptr) else {
-            throw std::runtime_error("Failed to allocate surface for wallpaper!");
-        }
-
-        guard(surface1 != nullptr) else {
-            throw(std::runtime_error("Failed to allocate surface for workspace!"));
-        }
-
-        guard(surface2 != nullptr) else {
-            throw(std::runtime_error("Failed to allocate surface for workspace!"));
-        }
-
-        guard(mouseCursor != nullptr) else {
-            throw(std::runtime_error("Failed to allocate surface for mouse cursor!"));
-        }
-
-        guard(menubar != nullptr) else {
-            throw(std::runtime_error("Failed to allocate surface for menubar!"));
-        }
-
     } catch (const std::runtime_error& err) {
         CLogger::Get()->Write("Workspace", LogNotice, err.what());
     }
     
-    Font::init();
 }
 
 Workspace::~Workspace(){}
 
 method Workspace::setDirtyFlag() -> Void {
     _dirty = true;
-}
-
-method Workspace::frontSurface() -> shared_ptr<Surface> {
-    return _surfaceFlipped ? surface2 : surface1;
-}
-
-method Workspace::backSurface() -> shared_ptr<Surface> {
-    return _surfaceFlipped ? surface1 : surface2;
 }
 
 method Workspace::resize(unsigned width, unsigned height) -> Void {
@@ -131,46 +97,7 @@ method Workspace::draw() -> Void {
         return;
     }
 
-    var surface = backSurface();
-	surface->acquire();
-
-    surface->drawSurface(wallpaper, Point(0,0));
-
-    std::for_each(windowList.rbegin(), windowList.rend(), [surface](shared_ptr<Window> window) {
-        if (window.get() == nullptr) { } else if (window->isVisible()) {
-            window->draw();
-            surface->drawSurface(window->surface(), window->origin());
-        }
-    });
-
-    menubar->clear(0xFFCCCCCC);
-    var menubarTextYPos = 13;
-    menubar->setFont(Font::DefaultUIFont(), 12.0);
-    menubar->setFillColor(0xFF000000);
-    menubar->fillText(msg, Point(3, menubarTextYPos));
-    
-    if (leftButtonDown == true) {
-        menubar->fillText("L", Point(920, menubarTextYPos));
-    }
-    
-    if (middleButtonDown == true) {
-        menubar->fillText("M", Point(930, menubarTextYPos));
-    }
-    
-    if (rightButtonDown == true) {
-        menubar->fillText("R", Point(945, menubarTextYPos));
-    }
-
-    menubar->render();
-
-    surface->drawSurface(menubar, Point(0, 0));
-
-    surface->drawSurface(mouseCursor, Point(mouseX - 1, mouseY - 1), true);
-
-	surface->release();
-    
     _dirty = false;
-    _surfaceFlipped = !_surfaceFlipped;
 
     fpsCounter += 1.0;
 }

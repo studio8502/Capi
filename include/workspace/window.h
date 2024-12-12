@@ -22,7 +22,6 @@
 #pragma once
 
 #include "capi.h"
-#include "graphics/surface.h"
 #include "event.h"
 #include "event_responder.h"
 #include "workspace/view.h"
@@ -126,8 +125,6 @@ public:
 
 private:
 
-    method surface() -> shared_ptr<Surface>;
-
     virtual method drawWindowChrome() -> Void;
 
     method translate(Rect rect) -> Rect;
@@ -150,8 +147,6 @@ private:
     Bool _dirty;
     Bool isBeingDragged;
     Bool _isActive;
-
-    shared_ptr<Surface> windowSurface;
 
     CSpinLock _lock;
 

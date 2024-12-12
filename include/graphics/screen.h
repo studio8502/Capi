@@ -23,7 +23,7 @@
 
 #include "capi.h"
 #include "graphics/palette.h"
-#include "graphics/surface.h"
+#include "graphics/geometry.h"
 
 class Screen {
 public:
@@ -54,8 +54,6 @@ public:
 	method buffer() -> Color *;
 
 	method clear() -> Void;
-
-    method drawSurface(shared_ptr<Surface> src, Point dest, UInt8 alpha = 255) -> Void;
 
     method updateDisplay() -> Void;
 	

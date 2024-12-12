@@ -26,7 +26,6 @@ View::View():
     layout(noResizing),
     resizesSubviews(false),
     _frame(0,0,100,100),
-    surface(make_shared<Surface>(_frame.size(), _frame.origin())),
     _window(nullptr),
     _superview(nullptr),
     subviewList()
@@ -45,9 +44,6 @@ method View::frame() -> Rect {
 method View::setFrame(Rect frame) -> Void {
     var oldFrame = _frame;
     _frame = frame;
-
-    surface.reset();
-    surface = make_shared<Surface>(_frame.width, _frame.height);
 
     if (resizesSubviews == true) {
         resizeSubviewsWithOldFrame(oldFrame);
@@ -151,14 +147,8 @@ method View::resizeSubviewsWithOldFrame(Rect oldFrame) -> Void {
 
 method View::draw() -> Void {
 
-    surface->setFillColor(0xFFFFFFFF);
-    surface->fillRect(Rect(0, 0, _frame.width, _frame.height));
-
-    surface->render();
-
     for (var view : subviewList) {
         guard (view != nullptr) else { continue; }
         view->draw();
-        surface->drawSurface(view->surface, view->frame().origin());
     }
 }

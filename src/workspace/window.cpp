@@ -41,7 +41,6 @@ Window::Window():
     _dirty(true),
     isBeingDragged(false),
     _isActive(false),
-    windowSurface(nullptr),
     contentView(make_unique<View>()),
     trackingRectList()
 {
@@ -49,10 +48,6 @@ Window::Window():
 }
 
 Window::~Window() {}
-
-method Window::surface() -> shared_ptr<Surface> {
-    return windowSurface;
-}
 
 method Window::title() -> String {
     return _title;
@@ -151,8 +146,7 @@ method Window::move(Point point) -> Void {
 method Window::resize(Size size) -> Void {
     _width = size.width;
     _height = size.height;
-    windowSurface.reset();
-    windowSurface = make_shared<Surface>(size);
+
     if (_isDecorated && _hasTitlebar) {
         contentView->setFrame(Rect(WINDOW_BORDER_WIDTH,
                                    WINDOW_TITLEBAR_HEIGHT + 2, 
@@ -242,114 +236,12 @@ method Window::draw() -> Void{
 
     contentView->draw();
     drawWindowChrome();
-    windowSurface->drawSurface(contentView->surface, contentView->frame().origin());
 
     _dirty = false;
 }
 
 // Draw the window chrome to the window's main surface.
 method Window::drawWindowChrome() -> Void {
-
-    windowSurface->acquire();
-
-    windowSurface->setFillColor(0xFFCCCCCC);
-    if (_isActive) {
-        windowSurface->setStrokeColor(0xFF333333);
-    } else {
-        windowSurface->setStrokeColor(0xFF666666);
-    }
-    windowSurface->setLineWidth(1);
-    windowSurface->beginPath();
-
-    windowSurface->rectangle(Rect(0, 0, _width - 1, _height - 1));
-    
-    // Content border
-    if (_isDecorated) {
-        var rect = contentRect();
-        windowSurface->rectangle(Rect(rect.x - 1, rect.y, rect.width + 1, rect.height));
-    }
-
-    // Close button
-    if (_isActive && _hasTitlebar && _hasCloseButton) {
-        windowSurface->rectangle(Rect(WINDOW_BORDER_WIDTH - 1, WINDOW_BORDER_WIDTH - 1, 10, 10));
-    }
-
-    // Roll Up button
-    if (_isActive && _hasTitlebar) {
-        var rect = Rect(_width - WINDOW_BORDER_WIDTH - 10, WINDOW_BORDER_WIDTH - 1, 10, 10);
-        windowSurface->rectangle(rect);
-        windowSurface->moveTo(rect.x, rect.y + 3);
-        windowSurface->lineTo(rect.x + rect.width, rect.y + 3);
-        windowSurface->moveTo(rect.x, rect.y + 6);
-        windowSurface->lineTo(rect.x + rect.width, rect.y + 6);
-    }
-
-    // Iconify button
-    if (_isActive && _hasTitlebar && _hasIconifyButton) {
-        var rect = Rect(_width - WINDOW_BORDER_WIDTH - 23, WINDOW_BORDER_WIDTH - 1, 10, 10);
-        windowSurface->rectangle(rect);
-        windowSurface->moveTo(rect.x, rect.y + 6);
-        windowSurface->lineTo(rect.x + 5, rect.y + 6);
-        windowSurface->lineTo(rect.x + 5, rect.y);
-    }
-
-    windowSurface->fill();
-    windowSurface->stroke();
-
-    // Titlebar text and texture lines
-    if (_isActive && _hasTitlebar) {
-        windowSurface->beginPath();
-
-        var textureLineStartX = 0;
-        textureLineStartX += _hasCloseButton ? WINDOW_BORDER_WIDTH + 12 : WINDOW_BORDER_WIDTH;
-
-        var textureLineEndX = _width - WINDOW_BORDER_WIDTH - 13;
-        textureLineEndX -= _hasIconifyButton ?  13 : 0;
-
-        windowSurface->moveTo(textureLineStartX, 3);
-        windowSurface->lineTo(textureLineEndX, 3);
-
-        windowSurface->moveTo(textureLineStartX, 5);
-        windowSurface->lineTo(textureLineEndX, 5);
-
-        windowSurface->moveTo(textureLineStartX, 7);
-        windowSurface->lineTo(textureLineEndX, 7);
-
-        windowSurface->moveTo(textureLineStartX, 9);
-        windowSurface->lineTo(textureLineEndX, 9);
-
-        windowSurface->moveTo(textureLineStartX, 11);
-        windowSurface->lineTo(textureLineEndX, 11);
-
-        windowSurface->moveTo(textureLineStartX, 13);
-        windowSurface->lineTo(textureLineEndX, 13);
-
-        windowSurface->setStrokeColor(0xFF444444);
-        windowSurface->stroke();
-
-        windowSurface->setFont(Font::DefaultWindowTitleFont(), 13.0);
-
-        var titleWidth = windowSurface->measureText(_title);
-        var centerX = _width / 2;
-        var titleX = centerX - titleWidth / 2;
-        windowSurface->setFillColor(0xFFCCCCCC);
-        windowSurface->fillRect(Rect(titleX - 5, 1, titleWidth + 10, WINDOW_TITLEBAR_HEIGHT - 2));
-        windowSurface->setFillColor(0xFF000000);
-        windowSurface->fillText(_title, Point(titleX, WINDOW_TITLEBAR_HEIGHT - 4));
-    } else if (_hasTitlebar) {
-        windowSurface->setFont(Font::DefaultWindowTitleFont(), 13.0);
-
-        var titleWidth = windowSurface->measureText(_title);
-        var centerX = _width / 2;
-        var titleX = centerX - titleWidth / 2;
-        windowSurface->setFillColor(0xFFCCCCCC);
-        windowSurface->fillRect(Rect(titleX - 5, 1, titleWidth + 10, WINDOW_TITLEBAR_HEIGHT - 2));
-        windowSurface->setFillColor(0xFF666666);
-        windowSurface->fillText(_title, Point(titleX, WINDOW_TITLEBAR_HEIGHT - 4));
-    }
-
-    windowSurface->render();
-    windowSurface->release();
 
 }
 

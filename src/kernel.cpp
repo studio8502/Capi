@@ -82,6 +82,8 @@ method Kernel::initialize() -> Bool {
 
 	screen->initialize();
 
+	screen->clear();
+
 	workspace = make_unique<Workspace>();
 
 	return true;
@@ -178,19 +180,6 @@ method Kernel::run() -> ShutdownMode {
 	multicore.Initialize();
 
 	new FPSMonitor();
-
-	var win = workspace->createWindow();
-	win->show();
-
-	var win2 = workspace->createWindow();
-	win2->move(Point(300, 240));
-	win2->show();
-
-	var win3 = workspace->createWindow();
-	win3->move(Point(200, 200));
-	win3->becomeActive();
-	win3->setHasTitlebar(false);
-	win3->show();
 
 	while (true) {
 		kernel->updateUSB();
