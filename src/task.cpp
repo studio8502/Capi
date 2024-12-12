@@ -21,30 +21,3 @@
 
 #define TINA_IMPLEMENTATION
 #include "tina.h"
-#include "task.h"
-
-Task::Task(String name, std::size_t bufSize, UnsafeMutablePointer userData):
-    _name(name),
-    body(nullptr)
-{
-    context = tina_init(buffer, bufSize, Task::funct, userData);
-    context->name = name.c_str();
-}
-
-Task::~Task() {}
-
-method Task::funct(Context context, UnsafeMutablePointer value) -> UnsafeMutablePointer {
-    return nullptr;
-}
-
-method Task::completed() -> Bool {
-    return context->completed;
-}
-    
-method Task::resume() -> Void {
-    tina_resume(context, nullptr);
-}
-
-method Task::yield() -> Void {
-	tina_yield(context, 0);
-}
