@@ -20,11 +20,14 @@
  ****************************************************************************/
 
 #include "graphics/screen.h"
-#include "graphics/palette.h"
 #include "workspace/workspace.h"
 #include "kernel.h"
 
 unique_ptr<Screen> screen;
+
+static UInt32 SystemPalette[] = {
+#include "graphics/aurora.hex"
+};
 
 Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 	fpsCounter(0.0),

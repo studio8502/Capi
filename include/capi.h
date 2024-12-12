@@ -109,6 +109,8 @@ using std::make_shared;
 using std::unique_ptr;
 using std::make_unique;
 
+using Color = TScreenColor;
+
 function VersionString() -> char *;
 
 extern char __VERSION_MAJOR;

@@ -23,7 +23,6 @@
 
 #include "capi.h"
 #include "graphics/geometry.h"
-#include "graphics/palette.h"
 
 class Surface;
 

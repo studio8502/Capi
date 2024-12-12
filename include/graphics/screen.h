@@ -22,7 +22,6 @@
 #pragma once
 
 #include "capi.h"
-#include "graphics/palette.h"
 #include "graphics/geometry.h"
 
 class Screen {
