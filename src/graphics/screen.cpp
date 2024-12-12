@@ -97,8 +97,8 @@ method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
 	backBuffer = nullptr;
 	bufferSwapped = true;
 
-	frontBufferLock.Release();
 	backBufferLock.Release();
+	frontBufferLock.Release();
 
 	return initialize();
 }
@@ -127,8 +127,8 @@ method Screen::pageFlip() -> Void {
 	backBuffer = frontBuffer;
 	frontBuffer = tmp;
 
-	frontBufferLock.Release();
 	backBufferLock.Release();
+	frontBufferLock.Release();
 }
 
 method Screen::clear() -> Void {
@@ -140,8 +140,8 @@ method Screen::clear() -> Void {
 	memset(frontBuffer, c, _width * _height * sizeof(Color));
 	memset(backBuffer, c, _width * _height * sizeof(Color));
 
-	frontBufferLock.Release();
 	backBufferLock.Release();
+	frontBufferLock.Release();
 }
 
 method Screen::updateDisplay() -> Void {

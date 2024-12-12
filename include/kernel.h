@@ -24,7 +24,6 @@
 #include "capi.h"
 #include "graphics/geometry.h"
 #include "graphics/screen.h"
-#include "multicore.h"
 
 #define MAX_GAMEPADS 8
 
@@ -40,6 +39,18 @@ public:
 		None,
 		Halt,
 		Reboot
+	};
+
+	class Multicore: public CMultiCoreSupport {
+	public:
+
+		Multicore(CMemorySystem *memory);
+
+		~Multicore();
+
+		method Run(UInt32 core_id) -> Void;
+
+	private:
 	};
 
 	class FPSMonitor: CTask {

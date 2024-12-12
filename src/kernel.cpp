@@ -181,13 +181,7 @@ method Kernel::run() -> ShutdownMode {
 
 	new FPSMonitor();
 
-	while (true) {
-		kernel->updateUSB();
-		CCPUThrottle::Get()->Update();
-		workspace->update();
-		workspace->draw();
-		CScheduler::Get()->Yield();
-	}
+	multicore.Run(0);
 
 	return Halt;
 }
@@ -208,4 +202,44 @@ method Kernel::FPSMonitor::Run() -> Void {
 		workspace->setDirtyFlag();
 		CScheduler::Get()->Sleep(1);
 	}
+}
+
+Kernel::Multicore::Multicore(CMemorySystem *memory):
+	CMultiCoreSupport (memory)
+{}
+
+Kernel::Multicore::~Multicore() {}
+
+method Kernel::Multicore::Run(UInt32 core_id) -> Void {
+
+    switch (core_id) {
+	case 0: {
+			while (true) {
+				kernel->updateUSB();
+				CCPUThrottle::Get()->Update();
+				workspace->update();
+				workspace->draw();
+				CScheduler::Get()->Yield();
+			}
+		}
+		break;
+    case 1: {
+            while (true) {
+		        screen->updateDisplay();
+            }
+        }
+        break;
+    case 2: 
+        while (true) {
+            // This is where sprites and tiles and audio happen (maybe?)
+        }
+        break;
+    case 3: 
+        while (true) {
+            // This is where user code will run (maybe?)
+        }
+        break;
+    default:
+        break;
+    }
 }
