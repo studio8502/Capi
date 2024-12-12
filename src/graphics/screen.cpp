@@ -21,7 +21,7 @@
 
 #include "graphics/screen.h"
 #include "workspace/workspace.h"
-#include "kernel.h"
+#include "kernel/kernel.h"
 
 unique_ptr<Screen> screen;
 

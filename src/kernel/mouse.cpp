@@ -19,9 +19,9 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "mouse.h"
+#include "kernel/mouse.h"
 
-#include "event.h"
+#include "kernel/event.h"
 #include "workspace/workspace.h"
 
 // The maximum amount of time in milliseconds from mouse down to mouse up to

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/compositor.h                                                     ║
+ ║ main.cpp                                                                  ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,13 +19,39 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#pragma once
+#include "kernel/kernel.h"
 
-#include "capi.h"
+Kernel *kernel = new Kernel();
 
-class Compositor {
-public:
+function VersionString() -> char * {
+	static char buffer[255];
 
-private:
+	sprintf(buffer, "Capi v%lu.%lu.%lu (%08lX-%04lX)", (unsigned long) &__VERSION_MAJOR, 
+								 	   	   		  	   (unsigned long) &__VERSION_MINOR, 
+								 	    		  	   (unsigned long) &__VERSION_MICRO,
+												  	   (unsigned long) &__BUILD_COMMIT,
+									    		 	   (unsigned long) &__BUILD_NUMBER);
 
-};
+	return buffer;
+}
+
+using enum Kernel::ShutdownMode;
+
+int main (void)
+{
+	kernel->initialize();
+	
+	auto mode = kernel->run();
+
+	switch (mode)
+	{
+	case Reboot:
+		reboot();
+		return EXIT_REBOOT;
+
+	case Halt:
+	default:
+		halt();
+		return EXIT_HALT;
+	}
+}

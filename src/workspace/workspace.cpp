@@ -20,8 +20,8 @@
  ****************************************************************************/
 
 #include "workspace/workspace.h"
-#include "kernel.h"
-#include "event.h"
+#include "kernel/kernel.h"
+#include "kernel/event.h"
 
 unique_ptr<Workspace> workspace = nullptr;
 

@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ task.cpp                                                                  ║
+ ║ filesystem.cpp                                                            ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,5 +19,68 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#define TINA_IMPLEMENTATION
-#include "tina.h"
+#include "kernel/file.h"
+
+inline File::Mode operator | (File::Mode lhs, File::Mode rhs)
+{
+    using T = std::underlying_type_t<File::Mode>;
+    return static_cast<File::Mode>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline File::Mode operator |= (File::Mode& lhs, File::Mode rhs)
+{
+    return lhs = lhs | rhs;
+}
+
+File::File(String path):
+    _path(path),
+    _isOpen(false)
+{}
+
+File::~File() {}
+
+method File::isOpen() -> Bool {
+    return _isOpen;
+}
+
+method File::open(Mode mode) -> Void {
+    f_open(&file, _path.c_str(), (typeof(FA_READ)) mode);
+    _isOpen = true;
+    _mode = mode;
+}
+
+method File::close() -> Void {
+    f_close(&file);
+    _isOpen = false;
+}
+
+method File::mode() -> Mode {
+    return _mode;
+}
+
+method File::size() -> UInt64 {
+    f_stat(_path.c_str(), &fileInfo);
+    return fileInfo.fsize;
+}
+
+method File::seek(UInt64 offset) -> Void {
+    f_lseek(&file, 0);
+}
+
+method File::dump() -> FileData {
+    var data = (FileData) malloc(size() + 1);
+    var idx = f_tell(&file);
+    var bytesRead = 0u;
+    
+    seek(0);
+
+    status = f_read(&file, data, size(), &bytesRead);
+    if (status != FR_OK) {
+        CLogger::Get()->Write("Filesystem", LogNotice, "Failed to read file!");
+        return nullptr;
+    }
+
+    seek(idx);
+
+    return data;
+}

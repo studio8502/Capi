@@ -19,9 +19,9 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "kernel.h"
-#include "event.h"
-#include "mouse.h"
+#include "kernel/kernel.h"
+#include "kernel/event.h"
+#include "kernel/mouse.h"
 #include "graphics/screen.h"
 #include "workspace/workspace.h"
 

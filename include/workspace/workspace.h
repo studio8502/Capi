@@ -24,7 +24,7 @@
 #include "capi.h"
 #include "graphics/screen.h"
 #include "workspace/window.h"
-#include "kernel.h"
+#include "kernel/kernel.h"
 #include "event_responder.h"
 #include "window_manager.h"
 

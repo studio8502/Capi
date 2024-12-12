@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ graphics/image.cpp                                                        ║
+ ║ event.cpp                                                                 ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,32 +19,73 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "graphics/image.h"
+#include "kernel/event.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-#define STBI_ONLY_JPEG
-#include "graphics/stb_image.h"
+std::queue<shared_ptr<Event>> eventQueue = std::queue<shared_ptr<Event>>();
 
-static UInt8 desired_channels = 4;
-static char exceptionMessage[256];
+// Get the current time, in milliseconds since the epoch began
+static function now() -> UInt64;
 
-Image::Image(String filename) {
-    data = (Color *) stbi_load(filename.c_str(), &_width, &_height, &_channels, desired_channels);
-    if (data == nullptr) {
-        sprintf(exceptionMessage, "Failed to load file \"%s\"", filename.c_str());
-        throw(std::runtime_error(exceptionMessage));
-    }
+Event::Event(Event::Type type):
+    type(type),
+    deltaX(0.0),
+    deltaY(0.0),
+    position(Point(0,0)),
+    clickCount(0),
+    locationInWindow(Point(0,0)),
+    _window(nullptr)
+{}
+
+Event::~Event() {}
+
+method Event::window() -> shared_ptr<Window>  {
+    return _window;
 }
 
-Image::~Image() {
-    stbi_image_free(data);
+method Event::setWindow(shared_ptr<Window> window) -> Void {
+    _window = window;
 }
 
-method Image::imageFromFile(String filename) -> shared_ptr<Image> {
-    return make_shared<Image>(filename);
+method Event::mouseMoved() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::mouseMoved);
 }
 
-method Image::rect() -> Rect {
-    return Rect(0, 0, _width, _height);
+method Event::leftMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseDown);
+}
+
+method Event::leftMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseDragged);
+}
+
+method Event::leftMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::leftMouseUp);
+}
+
+method Event::middleMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseDown);
+}
+
+method Event::middleMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseDragged);
+}
+
+method Event::middleMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::middleMouseUp);
+}
+
+method Event::rightMouseDown() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseDown);
+}
+
+method Event::rightMouseDragged() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseDragged);
+}
+
+method Event::rightMouseUp() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::rightMouseUp);
+}
+
+method Event::scrollWheel() -> shared_ptr<Event> {
+    return make_shared<Event>(Type::scrollWheel);
 }

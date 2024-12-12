@@ -19,7 +19,7 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "event_responder.h"
+#include "workspace/event_responder.h"
 
 EventResponder::EventResponder():
     _nextResponder(nullptr)

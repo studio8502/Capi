@@ -22,7 +22,7 @@
 #pragma once
 
 #include "capi.h"
-#include "event.h"
+#include "kernel/event.h"
 #include "event_responder.h"
 #include "workspace/view.h"
 

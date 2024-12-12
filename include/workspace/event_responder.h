@@ -1,6 +1,6 @@
 /*****************************************************************************
  ╔═══════════════════════════════════════════════════════════════════════════╗
- ║ main.cpp                                                                  ║
+ ║ event_responder.h                                                         ║
  ╟───────────────────────────────────────────────────────────────────────────╢
  ║ Copyright © 2024 Kyle J Cardoza, Studio 8502 <Kyle.Cardoza@icloud.com>    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -19,39 +19,73 @@
  ╚═══════════════════════════════════════════════════════════════════════════╝
  ****************************************************************************/
 
-#include "kernel.h"
+#pragma once
 
-Kernel *kernel = new Kernel();
+#include "capi.h"
+#include "kernel/event.h"
 
-function VersionString() -> char * {
-	static char buffer[255];
+class Event;
 
-	sprintf(buffer, "Capi v%lu.%lu.%lu (%08lX-%04lX)", (unsigned long) &__VERSION_MAJOR, 
-								 	   	   		  	   (unsigned long) &__VERSION_MINOR, 
-								 	    		  	   (unsigned long) &__VERSION_MICRO,
-												  	   (unsigned long) &__BUILD_COMMIT,
-									    		 	   (unsigned long) &__BUILD_NUMBER);
+// An event responder is any class which processes system events and partitipates
+// in the responder chain.
 
-	return buffer;
-}
+class EventResponder {
+public:
 
-using enum Kernel::ShutdownMode;
+    EventResponder();
 
-int main (void)
-{
-	kernel->initialize();
-	
-	auto mode = kernel->run();
+    virtual ~EventResponder();
 
-	switch (mode)
-	{
-	case Reboot:
-		reboot();
-		return EXIT_REBOOT;
+    // Returns whether or not the instance is willing to accept first responder
+    // status.
+    virtual method acceptsFirstResponder() -> Bool;
 
-	case Halt:
-	default:
-		halt();
-		return EXIT_HALT;
-	}
-}
+    // Notify the instance that it is about to become the first responder in its
+    // window. The default implementatin simply returns true -- subclasses can
+    // override this to trigger other behaviour, and/or return false to refuse
+    // first responder status.
+    virtual method becomeFirstResponder() -> Bool;
+
+    virtual method nextResponder() -> EventResponder *;
+
+    virtual method setNextResponder(EventResponder *next) -> Void;
+
+    virtual method mouseMoved(shared_ptr<Event> evt) -> Void;
+
+    virtual method mouseEntered(shared_ptr<Event> evt) -> Void;
+
+    virtual method mouseExited(shared_ptr<Event> evt) -> Void;
+
+    virtual method mouseDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method mouseDragged(shared_ptr<Event> evt) -> Void;
+
+    virtual method mouseUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method middleMouseDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method middleMouseDragged(shared_ptr<Event> evt) -> Void;
+
+    virtual method middleMouseUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method rightMouseDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method rightMouseDragged(shared_ptr<Event> evt) -> Void;
+
+    virtual method rightMouseUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method scrollWheel(shared_ptr<Event> evt) -> Void;
+
+    virtual method keyDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method keyUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadButtonDown(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadButtonUp(shared_ptr<Event> evt) -> Void;
+
+    virtual method gamepadAxisMoved(shared_ptr<Event> evt) -> Void;
+
+private:
+    EventResponder *_nextResponder;
+};
