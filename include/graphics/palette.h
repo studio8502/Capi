@@ -38,7 +38,7 @@ auto RGB(UInt32 RGB) -> Color;
 
 auto RGBA(UInt32 RGBA) -> Color;
 
-extern Color SystemPalette[256];
+extern UInt32 SystemPalette[256];
 
 // Given two colours return the result of alpha blending the second over the
 // first.

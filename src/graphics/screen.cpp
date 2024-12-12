@@ -20,6 +20,7 @@
  ****************************************************************************/
 
 #include "graphics/screen.h"
+#include "graphics/palette.h"
 #include "workspace/workspace.h"
 #include "kernel.h"
 
@@ -32,9 +33,11 @@ Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 	_height(height),
 	display (display),
 	framebuffer(nullptr),
-	_buffer(nullptr),
+	frontBuffer(nullptr),
+	backBuffer(nullptr),
+	frontBufferLock(),
+	backBufferLock(),
 	bufferSwapped(TRUE),
-	_bufferLock(),
 	_dirty(false),
 	dma(DMA_CHANNEL_NORMAL, CInterruptSystem::Get())
 {
@@ -45,12 +48,17 @@ Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 
 Screen::~Screen(void)
 {
-    delete [] _buffer;
+    delete [] frontBuffer;
+    delete [] backBuffer;
 }
 
 method Screen::initialize(void) -> Bool {
 	framebuffer = make_unique<CBcmFrameBuffer>(_width, _height, DEPTH, _width, 2 * _height,
 					                           display, TRUE);
+
+	for (Int i = 0; i < 256; i += 1) {
+		framebuffer->SetPalette32(i, SystemPalette[i]);
+	}											   
 
 	if (!framebuffer || !framebuffer->Initialize ())
 	{
@@ -61,8 +69,13 @@ method Screen::initialize(void) -> Bool {
 	_width = framebuffer->GetWidth();
 	_height = framebuffer->GetHeight();
 
-	_buffer = new Color[_width * _height];
-	if (_buffer == nullptr) {
+	frontBuffer = new Color[_width * _height];
+	if (frontBuffer == nullptr) {
+		return false;
+	}
+
+	backBuffer = new Color[_width * _height];
+	if (frontBuffer == nullptr) {
 		return false;
 	}
 	
@@ -75,9 +88,17 @@ method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
 	_width = nWidth;
 	_height = nHeight;
 
-	delete [] _buffer;
-	_buffer = nullptr;
+	frontBufferLock.Acquire();
+	backBufferLock.Acquire();
+
+	delete [] frontBuffer;
+	delete [] backBuffer;
+	frontBuffer = nullptr;
+	backBuffer = nullptr;
 	bufferSwapped = true;
+
+	frontBufferLock.Release();
+	backBufferLock.Release();
 
 	return initialize();
 }
@@ -94,32 +115,43 @@ method Screen::screenRect() -> Rect {
 	return Rect(0, 0, _width, _height);
 }
 
-method Screen::acquire() -> Void {
-	_bufferLock.Acquire();
-}
-
-method Screen::release() -> Void {
-	_dirty = true;
-	_bufferLock.Release();
-}
-
 method Screen::buffer() -> Color * {
-	return _buffer;
+	return backBuffer;
+}
+
+method Screen::pageFlip() -> Void {
+	frontBufferLock.Acquire();
+	backBufferLock.Acquire();
+
+	var tmp = backBuffer;
+	backBuffer = frontBuffer;
+	frontBuffer = tmp;
+
+	frontBufferLock.Release();
+	backBufferLock.Release();
 }
 
 method Screen::clear() -> Void {
+    Color c = 0x0F;
 
-    Color c = RGBA(0xFFFFFFFF);
+	frontBufferLock.Acquire();
+	backBufferLock.Acquire();
 
-	memset(_buffer, c, _width * _height * sizeof(Color));
+	memset(frontBuffer, c, _width * _height * sizeof(Color));
+	memset(backBuffer, c, _width * _height * sizeof(Color));
+
+	frontBufferLock.Release();
+	backBufferLock.Release();
 }
 
 method Screen::updateDisplay() -> Void {
 	framebuffer->WaitForVerticalSync();
 
+	frontBufferLock.Acquire();
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
-						_buffer, 
+						frontBuffer, 
 						_width * _height * sizeof(Color));
+	frontBufferLock.Release();
 	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 	bufferSwapped = !bufferSwapped;
 	fpsCounter += 1.0;

@@ -21,7 +21,7 @@
 
 #include "graphics/palette.h"
 
-Color SystemPalette[] = {
+UInt32 SystemPalette[] = {
 #include "graphics/aurora.hex"
 };
 

@@ -64,9 +64,7 @@ method Workspace::resize(unsigned width, unsigned height) -> Void {
 	    mouse->Release();
     }
 
-    screen->acquire();
     screen->resize(width, height);
-    screen->release();
 
     if (mouse != nullptr) {
         mouse->Setup(width, height);

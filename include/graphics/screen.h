@@ -47,11 +47,9 @@ public:
 
     method screenRect() -> Rect;
 
-	method acquire() -> Void;
-
-	method release() -> Void;
-
 	method buffer() -> Color *;
+
+	method pageFlip() -> Void;
 
 	method clear() -> Void;
 
@@ -65,9 +63,11 @@ private:
 	unique_ptr<CBcmFrameBuffer>	framebuffer;
 	
     Color *baseBuffer;
-	Color *_buffer;
+	Color *frontBuffer;
+	Color *backBuffer;
+	CSpinLock frontBufferLock;
+	CSpinLock backBufferLock;
 	boolean bufferSwapped;
-	CSpinLock _bufferLock;
 	Bool _dirty;
 
 	CDMAChannel dma;
