@@ -7,15 +7,19 @@ NEWLIB_ARCH := aarch64-none-circle
 CIRCLEHOME  := lib/circle-stdlib/libs/circle
 NEWLIBDIR   := lib/circle-stdlib/install/$(NEWLIB_ARCH)
 
-FLASHY_OPTS ?= --cpu-boost:yes \
+FLASHY_OPTS ?=  \
 			   --baud:$(FLASHY_BAUD) \
 			   --flashBaud:$(FLASHY_BAUD)
 
 FLASHY_CMD_REBOOT_LOADER := exec "reboot"
 FLASHY_CMD_REBOOT := reboot $(FLASHY_REBOOT_MAGIC_WORD)
 
+MFDIR := lib/mcufont/decoder
+include lib/mcufont/decoder/mcufont.mk
+
 CXX_SRCS := $(shell find src -type f -name "*.cpp")
-C_SRCS := $(shell find src -type f -name "*.c") 
+C_SRCS := $(shell find src -type f -name "*.c") \
+		  $(MFSRC)
 
 OBJS := $(CXX_SRCS:.cpp=.o) \
 		$(C_SRCS:.c=.o)
@@ -24,7 +28,6 @@ LIBS := $(shell find lib -type f -name "*.a")
 
 include lib/circle-stdlib/Config.mk
 include $(CIRCLEHOME)/Rules.mk
-
 
 # Create an auto-incrementing build number.
 BUILD_NUMBER_FILE=build_number.txt
@@ -42,6 +45,7 @@ $(BUILD_NUMBER_FILE): $(OBJS)
 CPPFLAGS += --std=gnu++2b \
 			-I include \
 		  	-I src \
+			-I $(MFINC) \
 		  	-I $(NEWLIBDIR)/include \
 		  	-I $(STDDEF_INCPATH) \
 		  	-I lib/circle-stdlib/include \
@@ -56,6 +60,7 @@ CPPFLAGS += --std=gnu++2b \
 
 CFLAGS += -I include \
 		  -I src \
+		  -I $(MFINC) \
 		  -I $(NEWLIBDIR)/include \
 		  -I $(STDDEF_INCPATH) \
 		  -I lib/circle-stdlib/include \
@@ -79,11 +84,6 @@ $(MCUFONT):
 	@cp -f lib/mcufont/encoder/mcufont bin/mcufont
 
 .PHONY:
-fonts: $(MCUFONT)
-	@make -C fonts
-	@make -C fonts install
-
-.PHONY:
 bootconfig:
 	@echo "Regenerating boot files..."
 	@cp -f boot.in/*.bin boot/
@@ -101,11 +101,7 @@ bootconfig:
 	 m4 boot.in/cmdline.txt.in > boot/cmdline.txt
 
 .PHONY:
-clean: distclean font-clean
-
-.PHONY:
-font-clean:
-	@make -C fonts clean
+clean: distclean
 
 .PHONY:
 distclean:
@@ -115,37 +111,12 @@ distclean:
 	@rm -f boot/*
 	@rm -f pkg/boot/*
 
-.PHONY:
-package: bootconfig $(TARGET).img 
-	@echo "Creating archive pkg/Capi.txz"
-	@rm -f pkg/boot/*
-	@cp boot/* pkg/boot/
-	@cp $(TARGET).img pkg/boot
-	@tar -C pkg -cJf pkg/Capi.txz boot
-
-.PHONY:
-reboot:
-	@echo "Rebooting target..."
-	@flashy $(FLASHY_TARGET) $(FLASHY_CMD_REBOOT)
-
-flash_fonts:
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push fonts/*.ttf  
-
-.PHONY:
-reflash: $(TARGET).img reboot
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/cmdline.txt  
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push boot/config.txt
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/sample.png
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/cursor_arrow.png
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) push images/test/wallpaper.jpg
-#	@echo "Rebooting target..."
-#	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) $(FLASHY_CMD_REBOOT_LOADER)
-	@flashy $(FLASHY_OPTS) --port:$(FLASHY_TARGET) flash $(TARGET).img monitor
-
-.PHONY:
-bootload: bootconfig reboot 
-	@flashy $(FLASHY_TARGET) push boot/*.* $(FLASHY_OPTS) 
-	@flashy $(FLASHY_TARGET) push flashy/$(TARGET).img $(FLASHY_OPTS)
-
-.PHONY:
-run: reflash
+run: $(TARGET).img
+	$(FLASHY) \
+		$(SERIALPORT) \
+		--flashBaud:$(FLASHBAUD) \
+		--userBaud:$(USERBAUD) \
+		--reboot:$(REBOOTMAGIC) \
+		$(FLASHYFLAGS) \
+		$< \
+		monitor

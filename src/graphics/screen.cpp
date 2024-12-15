@@ -1,4 +1,4 @@
-/*****************************************************************************
+/*
  ╔═══════════════════════════════════════════════════════════════════════════╗
  ║ graphics/screen.cpp                                                       ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -17,7 +17,7 @@
  ║ You should have received a copy of the GNU General Public License         ║
  ║ along with this program.  If not, see <http://www.gnu.org/licenses/>.     ║
  ╚═══════════════════════════════════════════════════════════════════════════╝
- ****************************************************************************/
+ */
 
 #include "graphics/screen.h"
 #include "workspace/workspace.h"
@@ -40,7 +40,8 @@ Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 	backBuffer(nullptr),
 	frontBufferLock(),
 	backBufferLock(),
-	bufferSwapped(TRUE),
+	backBufferSwapped(false),
+	bufferSwapped(true),
 	_dirty(false),
 	dma(DMA_CHANNEL_NORMAL, CInterruptSystem::Get())
 {
@@ -78,7 +79,7 @@ method Screen::initialize(void) -> Bool {
 	}
 
 	backBuffer = new Color[_width * _height];
-	if (frontBuffer == nullptr) {
+	if (backBuffer == nullptr) {
 		return false;
 	}
 	
@@ -106,6 +107,14 @@ method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
 	return initialize();
 }
 
+method Screen::lock() -> Void {
+	backBufferLock.Acquire();
+}
+
+method Screen::unlock() -> Void {
+	backBufferLock.Release();
+}
+
 method Screen::width() const -> UInt32 {
 	return _width;
 }
@@ -119,45 +128,34 @@ method Screen::screenRect() -> Rect {
 }
 
 method Screen::buffer() -> Color * {
-	return backBuffer;
+	return backBufferSwapped ? backBuffer : frontBuffer;
 }
 
 method Screen::pageFlip() -> Void {
-	frontBufferLock.Acquire();
-	backBufferLock.Acquire();
-
-	var tmp = backBuffer;
-	backBuffer = frontBuffer;
-	frontBuffer = tmp;
-
-	backBufferLock.Release();
-	frontBufferLock.Release();
+	guard (_dirty == false) else {
+		return;
+	}
+	backBufferSwapped = !backBufferSwapped;
+	_dirty = true;
 }
 
-method Screen::clear() -> Void {
-    Color c = 0x0F;
-
-	frontBufferLock.Acquire();
-	backBufferLock.Acquire();
-
-	memset(frontBuffer, c, _width * _height * sizeof(Color));
-	memset(backBuffer, c, _width * _height * sizeof(Color));
-
-	backBufferLock.Release();
-	frontBufferLock.Release();
+method Screen::clear(Color color) -> Void {
+	memset(buffer(), color, _width * _height * sizeof(Color));
 }
 
 method Screen::updateDisplay() -> Void {
+	guard (_dirty == true) else {
+		return;
+	}
 	framebuffer->WaitForVerticalSync();
 
-	frontBufferLock.Acquire();
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
-						frontBuffer, 
-						_width * _height * sizeof(Color));
-	frontBufferLock.Release();
+		   backBufferSwapped ? frontBuffer : backBuffer, 
+		   _width * _height * sizeof(Color));
 	framebuffer->SetVirtualOffset(0, bufferSwapped ? _height : 0);
 	bufferSwapped = !bufferSwapped;
 	fpsCounter += 1.0;
+	_dirty = false;
 	
 	workspace->setDirtyFlag();
 }

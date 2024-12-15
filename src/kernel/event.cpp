@@ -23,9 +23,6 @@
 
 std::queue<shared_ptr<Event>> eventQueue = std::queue<shared_ptr<Event>>();
 
-// Get the current time, in milliseconds since the epoch began
-static function now() -> UInt64;
-
 Event::Event(Event::Type type):
     type(type),
     deltaX(0.0),

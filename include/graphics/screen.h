@@ -34,8 +34,6 @@ public:
 
 	~Screen(void);
 
-	method fpsLimit() -> UInt8;
-
 	method initialize(void) -> Bool;
     
 	method resize(unsigned nWidth, unsigned nHeight) -> Bool;
@@ -50,7 +48,11 @@ public:
 
 	method pageFlip() -> Void;
 
-	method clear() -> Void;
+	method lock() -> Void;
+
+	method unlock() -> Void;
+
+	method clear(Color color = 0x0F) -> Void;
 
     method updateDisplay() -> Void;
 	
@@ -66,6 +68,7 @@ private:
 	Color *backBuffer;
 	CSpinLock frontBufferLock;
 	CSpinLock backBufferLock;
+	Bool backBufferSwapped;
 	boolean bufferSwapped;
 	Bool _dirty;
 

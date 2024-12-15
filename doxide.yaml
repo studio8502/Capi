@@ -1,0 +1,5 @@
+title: Capi
+description: A bare-metal OS for Raspberry Pi
+files:
+  - "include/*.h"
+  - "include/**/*.h"

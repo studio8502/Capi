@@ -23,7 +23,7 @@
 
 Kernel *kernel = new Kernel();
 
-function VersionString() -> char * {
+func VersionString() -> char * {
 	static char buffer[255];
 
 	sprintf(buffer, "Capi v%lu.%lu.%lu (%08lX-%04lX)", (unsigned long) &__VERSION_MAJOR, 

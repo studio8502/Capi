@@ -108,11 +108,3 @@ method Mouse::statusHandler(UInt buttons, Int deltaX, Int deltaY, Int deltaW) ->
         eventQueue.push(event);
     }
 }
-
-static function now() -> UInt64 {
-    using namespace std::chrono;
-    var since_epoch = system_clock::now().time_since_epoch();
-    var millis = duration_cast<milliseconds>(since_epoch);
-    Int64 time = millis.count();
-    return time;
-}

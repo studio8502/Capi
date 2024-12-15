@@ -1,4 +1,4 @@
-/*****************************************************************************
+/*
  ╔═══════════════════════════════════════════════════════════════════════════╗
  ║ kernel.h                                                                  ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -17,7 +17,7 @@
  ║ You should have received a copy of the GNU General Public License         ║
  ║ along with this program.  If not, see <http://www.gnu.org/licenses/>.     ║
  ╚═══════════════════════════════════════════════════════════════════════════╝
- ****************************************************************************/
+ */
 
 #pragma once
 
@@ -27,6 +27,10 @@
 
 #define MAX_GAMEPADS 8
 
+/**
+ * The kernel class is the core of Capi's OS. It manages hardware and interrupts, as
+ * well as setting up the system at boot time.
+*/
 class Kernel
 {
 public:
@@ -34,6 +38,9 @@ public:
 	friend class FPSMonitor;
 	friend class Workspace;
 
+	/**
+	 * An enumeration specifying the possible shutdown modes in Capi.
+	 */
 	enum class ShutdownMode
 	{
 		None,
@@ -41,6 +48,9 @@ public:
 		Reboot
 	};
 
+	/**
+	 * A class implementing support for using all the cores of the Pi's CPU.
+	 */
 	class Multicore: public CMultiCoreSupport {
 	public:
 
@@ -63,17 +73,50 @@ public:
 
 	Double fps;
 
+	/**
+	 * Create the kernel instance. There should only ever be one active instance of this
+     * class.
+	 */
 	Kernel();
 
+	/**
+	 * Initializes the kernel.
+	 * 
+	 * @return true for success, false for falure.
+	 */
 	method initialize() -> Bool;
 
+	/**
+	 * Updates the USB driver.
+	 */
 	method updateUSB() -> Void;
 
+	/**
+	 * Enters the kernel's main loop. This must be called after [Kernel::initialize()](#initialize).
+	 * 
+	 * @return The shutdown mode for the system.
+	 */
 	method run() -> ShutdownMode;
 
 private:
+
+	/**
+	 * The method which handles the debug cable sending the "magic" string that causes a system
+	 * reboot.;
+	 */
 	static method magicRebootStringHandler() -> Void;
+
+	/**
+	 * The method which handles the mouse being unplugged.
+	 *
+	 * @param pDevice A handle to the Circle CDevice intance for the mouse.
+	 * @param pContext A pointer to a context structure holding internal data.
+	 */
 	static method mouseRemovedHandler(CDevice *pDevice, void *pContext) -> Void;
+
+	/**
+	 * The method which handles the keyboard being unplugged.
+	 */
 	static method keyboardRemovedHandler(CDevice *pDevice, void *pContext) -> Void;
 	static method gamePadRemovedHandler (CDevice *pad, void *context) -> Void;
 

@@ -1,4 +1,4 @@
-/*****************************************************************************
+/*
  ╔═══════════════════════════════════════════════════════════════════════════╗
  ║ capi.h                                                                    ║
  ╟───────────────────────────────────────────────────────────────────────────╢
@@ -17,7 +17,7 @@
  ║ You should have received a copy of the GNU General Public License         ║
  ║ along with this program.  If not, see <http://www.gnu.org/licenses/>.     ║
  ╚═══════════════════════════════════════════════════════════════════════════╝
- ****************************************************************************/
+ */
 
 #pragma once
 
@@ -72,7 +72,7 @@
 #define STRING(STR) __STRING(STR)
 
 #define method auto
-#define function auto
+#define func auto
 #define var auto
 #define let auto const
 
@@ -111,7 +111,7 @@ using std::make_unique;
 
 using Color = TScreenColor;
 
-function VersionString() -> char *;
+func VersionString() -> char *;
 
 extern char __VERSION_MAJOR;
 extern char __VERSION_MINOR;

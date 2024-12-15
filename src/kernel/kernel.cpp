@@ -23,6 +23,7 @@
 #include "kernel/event.h"
 #include "kernel/mouse.h"
 #include "graphics/screen.h"
+#include "graphics/draw_context.h"
 #include "workspace/workspace.h"
 
 #define NTPServer "pool.ntp.org"
@@ -210,6 +211,9 @@ Kernel::Multicore::Multicore(CMemorySystem *memory):
 
 Kernel::Multicore::~Multicore() {}
 
+
+static String default_text = "The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. \n0123456789 !?()[]{}/\\+-*";
+
 method Kernel::Multicore::Run(UInt32 core_id) -> Void {
 
     switch (core_id) {
@@ -217,20 +221,27 @@ method Kernel::Multicore::Run(UInt32 core_id) -> Void {
 			while (true) {
 				kernel->updateUSB();
 				CCPUThrottle::Get()->Update();
-				workspace->update();
-				workspace->draw();
 				CScheduler::Get()->Yield();
 			}
 		}
 		break;
     case 1: {
             while (true) {
-		        screen->updateDisplay();
+				screen->lock();
+				screen->clear();
+
+				var context = DrawContext(20, 20, 200, 100);
+				context.font = Font::Helvetica(Font::Size::medium);
+				context.drawText(default_text);
+				screen->pageFlip();
+				screen->unlock();
             }
         }
         break;
     case 2: 
         while (true) {
+
+		        screen->updateDisplay();
             // This is where sprites and tiles and audio happen (maybe?)
         }
         break;
