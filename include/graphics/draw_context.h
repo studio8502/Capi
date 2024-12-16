@@ -59,6 +59,7 @@ public:
         UInt16 x;
         UInt16 y;
         UInt16 width;
+        Color *target;
 
         struct {
             UInt16 top;
@@ -72,8 +73,8 @@ public:
     };
 
     // Create a DrawContext relative to the screen origin.
-    DrawContext(UInt16 x, UInt16 y, UInt16 width, UInt16 height);
-    DrawContext(Rect clip);
+    DrawContext(UInt16 x, UInt16 y, UInt16 width, UInt16 height, Color *target = nullptr);
+    DrawContext(Rect clip, Color *target = nullptr);
 
     ~DrawContext();
 
@@ -87,10 +88,19 @@ public:
     method createChildContext(Rect clip) -> DrawContext;
 
     // Draw all or part of a pixmap resource to the canvas.
-    method drawPixmap(Pixmap *src, Point dest);
-    method drawPixmap(Pixmap *src, Rect srcRect, Point dest);
+    method drawPixmap(Pixmap *src, Point dest) -> Void;
+    method drawPixmap(Pixmap *src, Rect srcRect, Point dest) -> Void;
 
     method drawText(String message) -> Void;
+
+    method drawHorizontalLine(Point origin, UInt16 length) -> Void;
+    method drawVerticalLine(Point origin, UInt16 length) -> Void;
+    method drawLine(Point origin, Point end) -> Void;
+
+    method drawRect(Rect rect, Point origin) -> Void;
+    method fillRect(Rect rect, Point origin) -> Void;
+
+    method render() -> Void;
 
     UInt16 x;
     UInt16 y;
@@ -110,6 +120,8 @@ public:
     Alignment align;
     UInt16 textMargin;
     Color color;
+
+    Color *target;
 
     Font font;
  };

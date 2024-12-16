@@ -33,9 +33,5 @@ struct Pixmap {
     
     // Array of size width * height, encoded linerarly, left to right, 
     // top down.
-    Color pixels[];
-
-    Pixmap(String path);
-
-    ~Pixmap();
+    Color data[512];
 };

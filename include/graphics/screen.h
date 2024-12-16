@@ -69,7 +69,8 @@ private:
 	CSpinLock frontBufferLock;
 	CSpinLock backBufferLock;
 	Bool backBufferSwapped;
-	boolean bufferSwapped;
+	Bool bufferSwapped;
+	Bool locked;
 	Bool _dirty;
 
 	CDMAChannel dma;

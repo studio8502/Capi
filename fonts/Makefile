@@ -54,12 +54,43 @@ Courier.h:
 
 Helvetica.h:
 	@printf '#pragma once\n\n' > $@
-	for S in 12 ; do \
+	for S in 8 ; do \
+		$(MCUFONT) import_bdf Helvetica/HelveticaBoldItalic-$$S.bdf; \
+		$(MCUFONT) filter Helvetica/HelveticaBoldItalic-$$S.dat $(CHARS); \
+		$(MCUFONT) rlefont_optimize Helvetica/HelveticaBoldItalic-$$S.dat $(OPTIMIZE_ITERATIONS); \
+		$(MCUFONT) rlefont_export Helvetica/HelveticaBoldItalic-$$S.dat HelveticaBoldItalic-$$S.inc; \
+		printf "#include \"fonts/Helvetica/HelveticaBoldItalic-$$S.inc\"\n" >> $@; \
+	done
+
+Helvetica_S:
+	for S in $(SIZES) ; do \
 		$(MCUFONT) import_bdf Helvetica/Helvetica-$$S.bdf; \
 		$(MCUFONT) filter Helvetica/Helvetica-$$S.dat $(CHARS); \
 		$(MCUFONT) rlefont_optimize Helvetica/Helvetica-$$S.dat $(OPTIMIZE_ITERATIONS); \
 		$(MCUFONT) rlefont_export Helvetica/Helvetica-$$S.dat Helvetica-$$S.inc; \
 		printf "#include \"fonts/Helvetica/Helvetica-$$S.inc\"\n" >> $@; \
+	done
+	for S in $(SIZES) ; do \
+		$(MCUFONT) import_bdf Helvetica/HelveticaBold-$$S.bdf; \
+		$(MCUFONT) filter Helvetica/HelveticaBold-$$S.dat $(CHARS); \
+		$(MCUFONT) rlefont_optimize Helvetica/HelveticaBold-$$S.dat $(OPTIMIZE_ITERATIONS); \
+		$(MCUFONT) rlefont_export Helvetica/HelveticaBold-$$S.dat HelveticaBold-$$S.inc; \
+		printf "#include \"fonts/Helvetica/HelveticaBold-$$S.inc\"\n" >> $@; \
+	done
+	for S in $(SIZES) ; do \
+		$(MCUFONT) import_bdf Helvetica/HelveticaItalic-$$S.bdf; \
+		$(MCUFONT) filter Helvetica/HelveticaItalic-$$S.dat $(CHARS); \
+		$(MCUFONT) rlefont_optimize Helvetica/HelveticaItalic-$$S.dat $(OPTIMIZE_ITERATIONS); \
+		$(MCUFONT) rlefont_export Helvetica/HelveticaItalic-$$S.dat HelveticaItalic-$$S.inc; \
+		printf "#include \"fonts/Helvetica/HelveticaItalic-$$S.inc\"\n" >> $@; \
+	done
+	@printf '#pragma once\n\n' > $@
+	for S in $(SIZES) ; do \
+		$(MCUFONT) import_bdf Helvetica/HelveticaBoldItalic-$$S.bdf; \
+		$(MCUFONT) filter Helvetica/HelveticaBoldItalic-$$S.dat $(CHARS); \
+		$(MCUFONT) rlefont_optimize Helvetica/HelveticaBoldItalic-$$S.dat $(OPTIMIZE_ITERATIONS); \
+		$(MCUFONT) rlefont_export Helvetica/HelveticaBoldItalic-$$S.dat HelveticaBoldItalic-$$S.inc; \
+		printf "#include \"fonts/Helvetica/HelveticaBoldItalic-$$S.inc\"\n" >> $@; \
 	done
 
 Lucida.h:

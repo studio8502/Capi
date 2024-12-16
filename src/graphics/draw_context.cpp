@@ -31,7 +31,7 @@ static func char_callback(Int16 x0, Int16 y0, mf_char character, UnsafeMutablePo
 
 static func line_callback(const char *line, uint16_t count, void *state) -> Bool;
 
-DrawContext::DrawContext(UInt16 x, UInt16 y, UInt16 width, UInt16 height):
+DrawContext::DrawContext(UInt16 x, UInt16 y, UInt16 width, UInt16 height, Color *target):
     x(x),
     y(y),
     width(width),
@@ -47,7 +47,19 @@ DrawContext::DrawContext(UInt16 x, UInt16 y, UInt16 width, UInt16 height):
     clip.bottom = std::min((UInt16)(y + height), (UInt16)(screen->height() - 1));
     clip.left = std::max(x, (UInt16) 0);
     clip.right = std::min((UInt16)(x + width), (UInt16)(screen->width() - 1));
+
+    if (target == nullptr) {
+        this->target = screen->buffer();
+    } else {
+        this->target = target;
+    }
 }
+
+DrawContext::DrawContext(Rect clip, Color *target):
+    DrawContext(clip.x, clip.y, clip.width, clip.height, target)
+{}
+
+DrawContext::~DrawContext(){}
 
 method DrawContext::lock() -> Void {
 	contextLock.Acquire();
@@ -69,8 +81,6 @@ method DrawContext::createChildContext(UInt16 x, UInt16 y, UInt16 width, UInt16 
 
     return context;
 }
-
-DrawContext::~DrawContext() {}
 
 DrawContext::TextDrawingContext::TextDrawingContext():
     align(Alignment::left),
@@ -99,6 +109,7 @@ method DrawContext::drawText(String message) -> Void {
     context->clip.bottom = clip.bottom;
     context->clip.left = clip.left;
     context->clip.right = clip.right;
+    context->target = target;
 
     switch (align) {
     case DrawContext::Alignment::left:
@@ -116,6 +127,7 @@ method DrawContext::drawText(String message) -> Void {
 
     mf_wordwrap(font.data, width, message.c_str(), line_callback, (UnsafeMutablePointer) context);
 
+    delete context;
 }
 
 static func pixel_callback(Int16 x, Int16 y, UInt8 count, UInt8 alpha, UnsafeMutablePointer state) -> Void {
@@ -144,7 +156,7 @@ static func pixel_callback(Int16 x, Int16 y, UInt8 count, UInt8 alpha, UnsafeMut
 
         var offset = screen->width() * targetY + targetX;
 
-        screen->buffer()[offset] = context->color;
+        context->target[offset] = context->color;
 		
         x += 1;
 	}
@@ -153,7 +165,43 @@ static func pixel_callback(Int16 x, Int16 y, UInt8 count, UInt8 alpha, UnsafeMut
 static func char_callback(Int16 x0, Int16 y0, mf_char character, UnsafeMutablePointer state) -> UInt8 {
     var context = (DrawContext::TextDrawingContext *) state;
 
+    // This is where the character stream gets interpreted.
+
     return mf_render_character(context->font.data, x0, y0, character, pixel_callback, state);
+}
+
+method DrawContext::drawPixmap(Pixmap *src, Point dest) -> Void {
+    drawPixmap(src, Rect(0, 0, src->width, src->height), dest);
+}
+
+method DrawContext::drawPixmap(Pixmap *src, Rect srcRect, Point dest) -> Void {
+
+    for (Int row = 0; row < srcRect.height; row += 1) {
+        var targetY = y + dest.y + row;
+
+        if (targetY <= clip.top) {
+            continue;
+        } else if (targetY >= clip.bottom) {
+            return;
+        }
+
+        for (Int col = 0; col < srcRect.width; col += 1) {
+            var targetX = x + dest.x + col;
+
+            if (targetX <= clip.left || targetX >= clip.right) {
+                continue;
+            }
+
+            var destOffset = screen->width() * targetY + targetX;
+
+            var sourcePixel = src->data[src->width * row + srcRect.x + col];
+
+            if (sourcePixel != 0xFF) {
+                target[destOffset] = sourcePixel;
+            }
+
+        }
+    }
 }
 
 static func line_callback(const char *line, uint16_t count, void *state) -> Bool {
@@ -192,97 +240,3 @@ static func line_callback(const char *line, uint16_t count, void *state) -> Bool
     context->textY += context->font.data->line_height;
     return true;
 }
-
-/*
-
-struct TextDrawingContext {
-public:
-    shared_ptr<ParagraphStyle> style; 
-    Point origin;
-    Surface *surface;
-};
-
-method Surface::drawImageRect(Rect rect, Rect sourceRect, shared_ptr<Image> image, Bool replace) -> Void {
-    var target = Point(0 ,0);
-	var buffer = _data.get();
-	var width = _width;
-
-	for(unsigned i = 0; i < rect.height; i++)
-	{
-		for(unsigned j = 0; j < rect.width; j++)
-		{
-			Color sourcePixel = (image->data)[(sourceRect.y + i) * sourceRect.width + j + sourceRect.x];
-
-            target.x = j + rect.x;
-            target.y = rect.y + i;
-
-            if (target.x >= _width || target.x < 0 || target.y < 0) {
-                continue;
-            } else if (target.y >= _height) {
-                return;
-            }
-            
-            if (replace == false) {
-                buffer[(rect.y + i) * width + j + rect.x] = \
-                    alpha_blend(buffer[(rect.y + i) * width + j + rect.x], sourcePixel);
-            } else {
-                buffer[(rect.y + i) * width + j + rect.x] = sourcePixel;
-            }
-		}
-	}
-}
-
-method Surface::drawText(String message, shared_ptr<ParagraphStyle> style, Point origin) -> Void {
-
-	var context = new Surface::TextDrawingContext(style, origin, this);
-
-	mf_render_aligned(context->style->font()->data(),
-            		  context->origin.x, context->origin.y, 
-					  (mf_align_t) context->style->align(), 
-					  message.c_str(), 0, 
-					  &char_callback, (void *) context);
-	
-	delete context;
-}
-
-static function line_callback(mf_str line, uint16_t count, void *state) -> Bool {
-
-    [[gnu::unused]]
-	var context = (Surface::TextDrawingContext *) state;
-	
-	return false;
-}
-
-// Character callback
-static function char_callback(int16_t x0, int16_t y0, mf_char character, void *state) -> uint8_t {
-
-    [[gnu::unused]]
-	var context = (Surface::TextDrawingContext *) state;
-
-    return mf_render_character(context->style->font()->data(), x0, y0, character, &pixel_callback, state);
-}
-
-// Pixel callback
-static function pixel_callback(int16_t x, int16_t y, uint8_t count, uint8_t alpha, void *state) -> Void {
-
-	var context = (Surface::TextDrawingContext *) state;
-    Surface *surface = context->surface;
-    Color *buffer = surface->data().get();
-
-    for (var c = 0; c < count; c += 1) {
-        Color textColor = (context->style->color() & 0x00FFFFFF) | (alpha << 24);
-        var offset = surface->width() * y + x;
-        var target = Point(x, y);
-        
-        if (target.x > surface->width() || target.x < 0 || target.y < 0) {
-            continue;
-        } else if (target.y > surface->height()) {
-            return;
-        }
-
-        buffer[offset] = alpha_blend(buffer[offset], textColor);
-		
-        x += 1;
-	}
-}
-*/

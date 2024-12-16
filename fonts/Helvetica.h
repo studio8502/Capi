@@ -1,3 +1,3 @@
 #pragma once
 
-#include "fonts/Helvetica/Helvetica-12.inc"
+#include "fonts/Helvetica/HelveticaItalic-24.inc"

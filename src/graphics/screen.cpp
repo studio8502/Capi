@@ -42,6 +42,7 @@ Screen::Screen(UInt32 width, UInt32 height, UInt8 display):
 	backBufferLock(),
 	backBufferSwapped(false),
 	bufferSwapped(true),
+	locked(false),
 	_dirty(false),
 	dma(DMA_CHANNEL_NORMAL, CInterruptSystem::Get())
 {
@@ -92,17 +93,11 @@ method Screen::resize(unsigned nWidth, unsigned nHeight) -> Bool {
 	_width = nWidth;
 	_height = nHeight;
 
-	frontBufferLock.Acquire();
-	backBufferLock.Acquire();
-
 	delete [] frontBuffer;
 	delete [] backBuffer;
 	frontBuffer = nullptr;
 	backBuffer = nullptr;
 	bufferSwapped = true;
-
-	backBufferLock.Release();
-	frontBufferLock.Release();
 
 	return initialize();
 }
@@ -144,10 +139,10 @@ method Screen::clear(Color color) -> Void {
 }
 
 method Screen::updateDisplay() -> Void {
+	framebuffer->WaitForVerticalSync();
 	guard (_dirty == true) else {
 		return;
 	}
-	framebuffer->WaitForVerticalSync();
 
 	memcpy(baseBuffer + bufferSwapped * _width * _height, 
 		   backBufferSwapped ? frontBuffer : backBuffer, 

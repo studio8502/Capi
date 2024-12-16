@@ -111,7 +111,17 @@ distclean:
 	@rm -f boot/*
 	@rm -f pkg/boot/*
 
-run: $(TARGET).img
+.PHONY:
+run: $(TARGET).img bootconfig
+	$(FLASHY) \
+		$(SERIALPORT) \
+		reboot $(REBOOTMAGIC)
+	$(FLASHY) \
+		$(SERIALPORT) \
+		push boot/config.txt boot/cmdline.txt
+	$(FLASHY) \
+		$(SERIALPORT) \
+		exec reboot
 	$(FLASHY) \
 		$(SERIALPORT) \
 		--flashBaud:$(FLASHBAUD) \
